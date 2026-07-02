@@ -116,7 +116,12 @@ tmp/
 
 ## README.md
 
-- reference と同様の `wget` によるセットアップ手順（`Makefile`, `setup.sh`, `git.sh`, `deploy.sh`, `scripts/add-profiling-gems.sh` を取得）
+- セットアップ手順は reference の `wget` 個別列挙方式ではなく、tarball展開方式を採用する:
+  ```bash
+  curl -L https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
+    | tar xz --strip-components=1
+  ```
+  理由: 本リポジトリは reference（フラットな3ファイルのみ）と異なり `scripts/`, `tool-config/`, `.github/workflows/` などディレクトリを含むため、`wget`によるファイル単位の列挙はディレクトリを取得できずファイル追加のたびにREADMEの更新が必要になる。tarball展開なら1コマンドで全ファイル・ディレクトリを取得でき、`.git`も生成されないため後続の`git.sh`（独自リポジトリへの`git init`）と衝突しない。
 - 必要な GitHub Secrets 一覧（上表）
 - Vernier/Prosopite 導入手順（`make add-profiling-gems`）とVernierプロファイルの閲覧方法（`bundle exec vernier view <file>` または https://profiler.firefox.com にJSONをドラッグ）
 - Makefileターゲット一覧表
