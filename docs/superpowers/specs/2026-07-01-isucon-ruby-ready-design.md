@@ -214,4 +214,4 @@ tmp/
 - `make -n <target>` で各Makefileターゲットのドライラン確認
 - GitHub Actionsワークフローは `actionlint` で静的解析する（「あれば」ではなく検証の必須ツールとして導入する）
 - **Ubuntu 22.04 / 24.04 の Docker コンテナで `make install-tools` と extract 系ターゲットを実際に実行して検証する**（静的解析だけでは apt パッケージ名の誤りや awk の抽出ロジックを検証できないため）。systemd 依存のターゲット（restart 等）はドライランのみ
-- `install-tools` で固定している alp / notify_slack のバージョンが最新リリースかを実装時に確認して更新する（reference の alp v1.0.9 / notify_slack v0.5.1 は古い可能性がある）
+- `install-tools` の alp / notify_slack はバージョンを固定せず `releases/latest/download/` URL（常に最新リリースへリダイレクト）でダウンロードする。バージョン番号のメンテナンスが不要になる代わりに、実行時点の最新リリースに依存するため、素振り時に一度 `make install-tools` を通して動作確認しておくこと

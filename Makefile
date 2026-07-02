@@ -117,14 +117,14 @@ install-tools:
 	sudo apt install -y percona-toolkit dstat git unzip snapd graphviz tree \
 		build-essential libmysqlclient-dev libpq-dev zlib1g-dev libyaml-dev
 
-	# alpのインストール
-	wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_$(ARCH).zip
+	# alpのインストール（releases/latest/download は常に最新リリースを指す）
+	wget https://github.com/tkuchiki/alp/releases/latest/download/alp_linux_$(ARCH).zip
 	unzip alp_linux_$(ARCH).zip
 	sudo install alp /usr/local/bin/alp
 	rm alp_linux_$(ARCH).zip alp
 
-	# notify_slackのインストール
-	wget https://github.com/catatsuy/notify_slack/releases/download/v0.5.12/notify_slack-linux-$(ARCH).tar.gz
+	# notify_slackのインストール（releases/latest/download は常に最新リリースを指す）
+	wget https://github.com/catatsuy/notify_slack/releases/latest/download/notify_slack-linux-$(ARCH).tar.gz
 	tar -xvf notify_slack-linux-$(ARCH).tar.gz
 	sudo install notify_slack /usr/local/bin/notify_slack
 	rm notify_slack-linux-$(ARCH).tar.gz notify_slack LICENSE CHANGELOG.md README.md
