@@ -158,12 +158,12 @@ make deploy
 
 ```bash
 make remote-deploy-s1    # 対象サーバーのみ（remote-deploy-s2 / -s3 も同様）
-make remote-deploy-all   # 全サーバーに順次デプロイ。失敗したサーバーがあれば最後にまとめて報告
+make remote-deploy-all   # 全サーバーへ並列デプロイ。失敗したサーバーがあれば最後にまとめて報告
 ```
 
 - `~/.ssh/config` に `Host s1` / `s2` / `s3`（User isucon、各サーバーのIP）を定義しておくことが前提。設定例をREADMEに記載する
 - サーバー上の配置パスは `REMOTE_DEPLOY_PATH`（デフォルト `/home/isucon`）、対象サーバーは `SERVERS`（デフォルト `s1 s2 s3`）で調整する
-- `remote-deploy-all` は途中のサーバーで失敗しても残りのサーバーへのデプロイを続行し、最後に失敗サーバーを報告して非0で終了する（1台の不調が全体のデプロイを止めないようにするため）
+- `remote-deploy-all` は `make -k -j` による並列実行。失敗したサーバーがあっても残りへ続行し、最後にまとめて報告して非0で終了する（1台の不調が全体のデプロイを止めないようにするため）
 
 ## .gitignore
 
