@@ -154,6 +154,10 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 
 前提として、ローカルの `~/.ssh/config` に各サーバーのHostを `s1` / `s2` / `s3` の名前で定義しておくこと（s2 / s3も同様のブロックを追加する）:
 
+```bash
+mkdir -p ~/.ssh/sockets
+```
+
 ```
 Host s1
   HostName <s1のグローバルIP>
@@ -163,10 +167,14 @@ Host s1
   UserKnownHostsFile ~/.ssh/known_hosts_isucon
   ServerAliveInterval 30
   ServerAliveCountMax 3
+  ControlMaster auto
+  ControlPath ~/.ssh/sockets/%r@%h-%p
+  ControlPersist 600
 ```
 
 - `StrictHostKeyChecking accept-new` + 専用の `UserKnownHostsFile`: 競技のたびにサーバーが新規払い出しされ、過去の大会で使った `~/.ssh/known_hosts` の記録と衝突しがちなので、確認プロンプトなしで新規ホストキーを自動登録しつつ普段使いのknown_hostsは汚さない
 - `ServerAliveInterval` / `ServerAliveCountMax`: NAT越しの接続が無通信で切れて`remote-deploy-all`が固まるのを防ぐ
+- `ControlMaster` / `ControlPath` / `ControlPersist`: 初回接続後にマスター接続を600秒使い回すことで、エージェントが都度`ssh`でコマンドを実行する際の接続確立コストをほぼゼロにする（[エージェントの実行環境](AGENTS.md)を参照。事前に`~/.ssh/sockets`の作成が必要）
 - サーバー上の配置パスがホームディレクトリ以外の場合は `make remote-deploy-s1 REMOTE_DEPLOY_PATH=<パス>` で上書きする
 - 使わないサーバーがある場合は `make remote-deploy-all SERVERS="s1 s2"` のように対象を絞れる
 - `remote-deploy-all` は並列実行（`make -k -j`）のため出力が交錯することがある。失敗したサーバーがあっても残りへ続行し、最後にまとめて報告して非0で終了する
