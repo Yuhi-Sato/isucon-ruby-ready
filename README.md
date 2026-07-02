@@ -173,18 +173,35 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 
 ```
 Host s1
-  HostName <s1のIPアドレス>
+  HostName <s1のグローバルIP>
   User isucon
+  IdentityFile ~/.ssh/<競技サーバーへのログインに使う鍵>
+  StrictHostKeyChecking accept-new
+  UserKnownHostsFile ~/.ssh/known_hosts_isucon
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
 
 Host s2
-  HostName <s2のIPアドレス>
+  HostName <s2のグローバルIP>
   User isucon
+  IdentityFile ~/.ssh/<競技サーバーへのログインに使う鍵>
+  StrictHostKeyChecking accept-new
+  UserKnownHostsFile ~/.ssh/known_hosts_isucon
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
 
 Host s3
-  HostName <s3のIPアドレス>
+  HostName <s3のグローバルIP>
   User isucon
+  IdentityFile ~/.ssh/<競技サーバーへのログインに使う鍵>
+  StrictHostKeyChecking accept-new
+  UserKnownHostsFile ~/.ssh/known_hosts_isucon
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
 ```
 
+- `StrictHostKeyChecking accept-new` + 専用の `UserKnownHostsFile`: 競技のたびにサーバーが新規払い出しされ、過去の大会で使った `~/.ssh/known_hosts` の記録と衝突しがちなので、確認プロンプトなしで新規ホストキーを自動登録しつつ普段使いのknown_hostsは汚さない
+- `ServerAliveInterval` / `ServerAliveCountMax`: NAT越しの接続が無通信で切れて`remote-deploy-all`が固まるのを防ぐ
 - サーバー上の配置パスがホームディレクトリ以外の場合は `make remote-deploy-s1 REMOTE_DEPLOY_PATH=<パス>` で上書きする
 - 使わないサーバーがある場合は `make remote-deploy-all SERVERS="s1 s2"` のように対象を絞れる
 - `remote-deploy-all` は並列実行（`make -k -j`）のため出力が交錯することがある。失敗したサーバーがあっても残りへ続行し、最後にまとめて報告して非0で終了する
