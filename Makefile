@@ -18,90 +18,78 @@ NGINX_LOG:=/var/log/nginx/access.log
 
 NOTIFY_SLACK_TMPFILE:=tmp/notify-slack.txt
 
+# alp / notify_slack のバイナリ選択に使う（arm環境での素振りにも対応）
+ARCH:=$(shell dpkg --print-architecture 2>/dev/null || echo amd64)
+
+# 引数なしのmakeで setup が走らないように、デフォルトはヘルプ表示にする
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help: ## ターゲット一覧を表示する
+	@grep -hE '^[a-zA-Z0-9_%-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "\033[36m%-24s\033[0m %s\n", $$1, $$2}'
+
 # メインで使うコマンド ------------------------
 
-# サーバーの環境構築　ツールのインストール、gitまわりのセットアップ
 .PHONY: setup
-setup: install-tools dir-setup git-setup
+setup: install-tools dir-setup git-setup ## サーバーの環境構築（ツールのインストール、gitまわりのセットアップ）
 
-# 設定ファイルなどを取得してgit管理下に配置する
 .PHONY: get-conf
-get-conf: check-server-id get-db-conf get-nginx-conf get-envsh
+get-conf: check-server-id get-db-conf get-nginx-conf get-envsh ## 設定ファイルなどを取得してgit管理下に配置する
 
-# リポジトリ内の設定ファイルをそれぞれ配置する
 .PHONY: deploy-conf
-deploy-conf: check-server-id deploy-db-conf deploy-nginx-conf deploy-envsh
+deploy-conf: check-server-id deploy-db-conf deploy-nginx-conf deploy-envsh ## リポジトリ内の設定ファイルをそれぞれ配置する
 
-# ベンチマークを走らせる直前に実行する（ログ削除・設定反映・DB/nginx含む全再起動）
 .PHONY: bench
-bench:
+bench: ## ベンチマーク直前に実行する（ログ削除・設定反映・DB/nginx含む全再起動）
 	git pull
-	make check-server-id
-	make bundle-install
-	make rm-logs
-	make deploy-conf
-	make restart
+	$(MAKE) check-server-id
+	$(MAKE) bundle-install
+	$(MAKE) rm-logs
+	$(MAKE) deploy-conf
+	$(MAKE) restart
 
-# mainマージ時の自動デプロイで使う（ログは消さない・DB/nginxは再起動しない）
 .PHONY: deploy
-deploy:
+deploy: ## mainマージ時の自動デプロイで使う（ログは消さない・DB/nginxは再起動しない）
 	git pull
-	make check-server-id
-	make bundle-install
-	make restart-app
+	$(MAKE) check-server-id
+	$(MAKE) bundle-install
+	$(MAKE) restart-app
 
-# notify_slack系をまとめて通知する
 .PHONY: ns
-ns: notify-slack-alp notify-slack-slow-query
+ns: notify-slack-alp notify-slack-slow-query ## notify_slack系をまとめて通知する
 
-# slow queryを確認する
 .PHONY: slow-query
-slow-query:
+slow-query: ## slow queryを確認する
 	sudo pt-query-digest $(DB_SLOW_LOG)
 
-# notify_slackでslow-queryを通知する
-.PHONY: notify-slack-slow-query
-notify-slack-slow-query:
-	$(eval when := $(shell date "+%Y-%m-%d-%H:%M:%S"))
-	make refresh-notify-slack-tmp
-	make slow-query >> $(NOTIFY_SLACK_TMPFILE)
-	cat $(NOTIFY_SLACK_TMPFILE) | notify_slack -c tool-config/slow-query/notify-slack.toml -snippet -filename=$(when).txt
-
-# alpでアクセスログを確認する
 .PHONY: alp
-alp:
+alp: ## alpでアクセスログを確認する
 	sudo alp ltsv --file=$(NGINX_LOG) --config=tool-config/alp/config.yml
 
-# notify_slackでalpの結果を通知する
-.PHONY: notify-slack-alp
-notify-slack-alp:
-	$(eval when := $(shell date "+%Y-%m-%d-%H:%M:%S"))
-	make refresh-notify-slack-tmp
-	make alp >> $(NOTIFY_SLACK_TMPFILE)
-	cat $(NOTIFY_SLACK_TMPFILE) | notify_slack -c tool-config/alp/notify-slack.toml -snippet -filename=$(when).txt
+# notify-slack-alp / notify-slack-slow-query
+# `$*`（alp / slow-query）がmakeターゲット名とtool-config/のディレクトリ名を兼ねる
+notify-slack-%: ## alp / slow-query の結果をSlackに通知する（notify-slack-alp など）
+	$(MAKE) refresh-notify-slack-tmp
+	mkdir -p tmp && $(MAKE) $* >> $(NOTIFY_SLACK_TMPFILE)
+	cat $(NOTIFY_SLACK_TMPFILE) | notify_slack -c tool-config/$*/notify-slack.toml -snippet -filename=$$(date "+%Y-%m-%d-%H:%M:%S").txt
 
-# Vernierプロファイル用のgemを追加する（ローカル専用。詳細はREADME参照）
 .PHONY: add-profiling-gems
-add-profiling-gems:
+add-profiling-gems: ## Vernier用gemを追加する（ローカル専用。詳細はREADME参照）
 	./scripts/add-profiling-gems.sh $(APP_DIR)
 
-# 直近のVernierプロファイルをビューアで開く（アプリのtmp/vernier以下に出力する想定。READMEのスニペット参照）
 .PHONY: vernier-view
-vernier-view:
+vernier-view: ## 直近のVernierプロファイルをビューアで開く（tmp/vernier以下に出力する想定）
 	$(eval latest := $(shell ls -t $(APP_DIR)/tmp/vernier/*.json 2>/dev/null | head -n 1))
-	cd $(APP_DIR); bundle exec vernier view $(abspath $(latest))
+	@test -n "$(latest)" || { echo "no profile found in $(APP_DIR)/tmp/vernier"; exit 1; }
+	cd $(APP_DIR) && bundle exec vernier view $(abspath $(latest))
 
-# SQLクエリをmain.rbなどから抽出する
-.PHONY: extract-sql
-extract-sql: extract-select extract-insert extract-update extract-delete
-
-# アプリケーションのログを確認する
-.PHONY: watch-service-log
-watch-service-log:
-	sudo journalctl -u $(SERVICE_NAME) -n10 -f
-
-.PHONY: extract-queries
+.PHONY: extract-sql extract-queries
+extract-sql: extract-select extract-insert extract-update extract-delete ## SQLクエリを*.rbから抽出してqueries/以下に出力する
 extract-queries: extract-select extract-insert extract-update extract-delete
+
+.PHONY: watch-service-log
+watch-service-log: ## アプリケーションのログを確認する
+	sudo journalctl -u $(SERVICE_NAME) -n10 -f
 
 # 主要コマンドの構成要素 ------------------------
 
@@ -113,16 +101,16 @@ install-tools:
 		build-essential libmysqlclient-dev libpq-dev zlib1g-dev libyaml-dev
 
 	# alpのインストール
-	wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_amd64.zip
-	unzip alp_linux_amd64.zip
+	wget https://github.com/tkuchiki/alp/releases/download/v1.0.21/alp_linux_$(ARCH).zip
+	unzip alp_linux_$(ARCH).zip
 	sudo install alp /usr/local/bin/alp
-	rm alp_linux_amd64.zip alp
+	rm alp_linux_$(ARCH).zip alp
 
 	# notify_slackのインストール
-	wget https://github.com/catatsuy/notify_slack/releases/download/v0.5.12/notify_slack-linux-amd64.tar.gz
-	tar -xvf notify_slack-linux-amd64.tar.gz
+	wget https://github.com/catatsuy/notify_slack/releases/download/v0.5.12/notify_slack-linux-$(ARCH).tar.gz
+	tar -xvf notify_slack-linux-$(ARCH).tar.gz
 	sudo install notify_slack /usr/local/bin/notify_slack
-	rm notify_slack-linux-amd64.tar.gz notify_slack LICENSE CHANGELOG.md README.md
+	rm notify_slack-linux-$(ARCH).tar.gz notify_slack LICENSE CHANGELOG.md README.md
 
 .PHONY: dir-setup
 dir-setup:
@@ -135,8 +123,8 @@ git-setup:
 	git config --global user.email "yuhi120101@gmail.com"
 	git config --global user.name "Yuhi-Sato"
 
-	# deploykeyの作成
-	ssh-keygen -t ed25519
+	# deploykeyの作成（既にあればスキップ。パスフレーズなしで非対話生成）
+	test -f ~/.ssh/id_ed25519 || ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
 
 .PHONY: check-server-id
 check-server-id:
@@ -147,42 +135,24 @@ else
 	@exit 1
 endif
 
-.PHONY: set-as-s1
-set-as-s1:
-	mkdir -p s1/etc/mysql s1/etc/nginx
-	cp -R /home/isucon/env.sh s1/env.sh
-	echo "" >> s1/env.sh
+# set-as-s1 / set-as-s2 / set-as-s3
+set-as-%: ## このサーバーをs1/s2/s3として設定する（set-as-s1 など）
+	mkdir -p $*$(DB_PATH) $*$(NGINX_PATH)
+	cp -R /home/isucon/env.sh $*/env.sh
+	echo "" >> $*/env.sh
 	echo "" >> ~/env.sh
-	echo "SERVER_ID=s1" >> s1/env.sh
-	echo "SERVER_ID=s1" >> ~/env.sh
-
-.PHONY: set-as-s2
-set-as-s2:
-	mkdir -p s2/etc/mysql s2/etc/nginx
-	cp -R /home/isucon/env.sh s2/env.sh
-	echo "" >> s2/env.sh
-	echo "" >> ~/env.sh
-	echo "SERVER_ID=s2" >> s2/env.sh
-	echo "SERVER_ID=s2" >> ~/env.sh
-
-.PHONY: set-as-s3
-set-as-s3:
-	mkdir -p s3/etc/mysql s3/etc/nginx
-	cp -R /home/isucon/env.sh s3/env.sh
-	echo "" >> s3/env.sh
-	echo "" >> ~/env.sh
-	echo "SERVER_ID=s3" >> s3/env.sh
-	echo "SERVER_ID=s3" >> ~/env.sh
+	echo "SERVER_ID=$*" >> $*/env.sh
+	echo "SERVER_ID=$*" >> ~/env.sh
 
 .PHONY: get-db-conf
 get-db-conf:
-	sudo cp -R $(DB_PATH)/* $(SERVER_ID)/etc/mysql
-	sudo chown $(USER) -R $(SERVER_ID)/etc/mysql
+	sudo cp -R $(DB_PATH)/* $(SERVER_ID)$(DB_PATH)
+	sudo chown -R $(USER) $(SERVER_ID)$(DB_PATH)
 
 .PHONY: get-nginx-conf
 get-nginx-conf:
-	sudo cp -R $(NGINX_PATH)/* $(SERVER_ID)/etc/nginx
-	sudo chown $(USER) -R $(SERVER_ID)/etc/nginx
+	sudo cp -R $(NGINX_PATH)/* $(SERVER_ID)$(NGINX_PATH)
+	sudo chown -R $(USER) $(SERVER_ID)$(NGINX_PATH)
 
 .PHONY: get-envsh
 get-envsh:
@@ -190,11 +160,11 @@ get-envsh:
 
 .PHONY: deploy-db-conf
 deploy-db-conf:
-	sudo cp -R $(SERVER_ID)/etc/mysql/* $(DB_PATH)
+	sudo cp -R $(SERVER_ID)$(DB_PATH)/* $(DB_PATH)
 
 .PHONY: deploy-nginx-conf
 deploy-nginx-conf:
-	sudo cp -R $(SERVER_ID)/etc/nginx/* $(NGINX_PATH)
+	sudo cp -R $(SERVER_ID)$(NGINX_PATH)/* $(NGINX_PATH)
 
 .PHONY: deploy-envsh
 deploy-envsh:
@@ -202,26 +172,26 @@ deploy-envsh:
 
 .PHONY: bundle-install
 bundle-install:
-	cd $(APP_DIR); \
-	bundle install
+	cd $(APP_DIR) && bundle install
 
 .PHONY: restart
-restart:
+restart: ## アプリ・DB・nginxをすべて再起動する
 	sudo systemctl daemon-reload
 	sudo systemctl restart $(SERVICE_NAME)
 	sudo systemctl restart $(DB_SERVICE_NAME)
 	sudo systemctl restart nginx
 
-# CIからの自動デプロイ専用。DB/nginxは再起動しない
 .PHONY: restart-app
-restart-app:
+restart-app: ## アプリのみ再起動する（自動デプロイ用。DB/nginxは触らない）
 	sudo systemctl daemon-reload
 	sudo systemctl restart $(SERVICE_NAME)
 
+# rm ではなく truncate を使う: rm だと書き込み中のプロセスが削除済みinodeに
+# 書き続けて新しいログが取れない。truncate ならプロセス再起動なしでログを空にできる
 .PHONY: rm-logs
-rm-logs:
-	sudo rm -f $(NGINX_LOG)
-	sudo rm -f $(DB_SLOW_LOG)
+rm-logs: ## アクセスログ・スロークエリログを空にする
+	test ! -f $(NGINX_LOG) || sudo truncate -s 0 $(NGINX_LOG)
+	test ! -f $(DB_SLOW_LOG) || sudo truncate -s 0 $(DB_SLOW_LOG)
 
 .PHONY: refresh-notify-slack-tmp
 refresh-notify-slack-tmp:
@@ -229,31 +199,12 @@ refresh-notify-slack-tmp:
 	mkdir -p tmp
 	touch $(NOTIFY_SLACK_TMPFILE)
 
+# extract-select / extract-insert / extract-update / extract-delete
 # 一行のクォート文字列クエリと、ヒアドキュメント（<<~SQL 等）で書かれたクエリの両方を抽出する
-.PHONY: extract-select
-extract-select:
-	find $(APP_DIR) -name "*.rb" | xargs grep -h -E "[\"']SELECT" | sed -E "s/.*[\"'](SELECT[^\"']*)[\"'].*/\1/" > queries/select.sql
-	echo >> queries/select.sql
-	echo ----------------------------------------- heredoc queries ----------------------------------------- >> queries/select.sql
-	find $(APP_DIR) -name "*.rb" | xargs awk '/<<[-~]?SQL/ { capture=1; buf=""; next } capture && /^[[:space:]]*SQL[[:space:]]*$$/ { capture=0; if (buf ~ /SELECT/) printf "%s", buf; next } capture { buf = buf $$0 "\n" }' >> queries/select.sql
-
-.PHONY: extract-insert
-extract-insert:
-	find $(APP_DIR) -name "*.rb" | xargs grep -h -E "[\"']INSERT" | sed -E "s/.*[\"'](INSERT[^\"']*)[\"'].*/\1/" > queries/insert.sql
-	echo >> queries/insert.sql
-	echo ----------------------------------------- heredoc queries ----------------------------------------- >> queries/insert.sql
-	find $(APP_DIR) -name "*.rb" | xargs awk '/<<[-~]?SQL/ { capture=1; buf=""; next } capture && /^[[:space:]]*SQL[[:space:]]*$$/ { capture=0; if (buf ~ /INSERT/) printf "%s", buf; next } capture { buf = buf $$0 "\n" }' >> queries/insert.sql
-
-.PHONY: extract-update
-extract-update:
-	find $(APP_DIR) -name "*.rb" | xargs grep -h -E "[\"']UPDATE" | sed -E "s/.*[\"'](UPDATE[^\"']*)[\"'].*/\1/" > queries/update.sql
-	echo >> queries/update.sql
-	echo ----------------------------------------- heredoc queries ----------------------------------------- >> queries/update.sql
-	find $(APP_DIR) -name "*.rb" | xargs awk '/<<[-~]?SQL/ { capture=1; buf=""; next } capture && /^[[:space:]]*SQL[[:space:]]*$$/ { capture=0; if (buf ~ /UPDATE/) printf "%s", buf; next } capture { buf = buf $$0 "\n" }' >> queries/update.sql
-
-.PHONY: extract-delete
-extract-delete:
-	find $(APP_DIR) -name "*.rb" | xargs grep -h -E "[\"']DELETE" | sed -E "s/.*[\"'](DELETE[^\"']*)[\"'].*/\1/" > queries/delete.sql
-	echo >> queries/delete.sql
-	echo ----------------------------------------- heredoc queries ----------------------------------------- >> queries/delete.sql
-	find $(APP_DIR) -name "*.rb" | xargs awk '/<<[-~]?SQL/ { capture=1; buf=""; next } capture && /^[[:space:]]*SQL[[:space:]]*$$/ { capture=0; if (buf ~ /DELETE/) printf "%s", buf; next } capture { buf = buf $$0 "\n" }' >> queries/delete.sql
+extract-%:
+	$(eval kw := $(shell echo $* | tr a-z A-Z))
+	mkdir -p queries
+	find $(APP_DIR) -name "*.rb" | xargs -r grep -h -oE "\"$(kw)[^\"]*\"|'$(kw)[^']*'" | sed -E "s/^[\"']//; s/[\"']$$//" > queries/$*.sql
+	echo >> queries/$*.sql
+	echo ----------------------------------------- heredoc queries ----------------------------------------- >> queries/$*.sql
+	find $(APP_DIR) -name "*.rb" | xargs -r awk -v kw=$(kw) '/<<[-~]?SQL/ { capture=1; buf=""; next } capture && /^[[:space:]]*SQL[[:space:]]*$$/ { capture=0; if (buf ~ kw) printf "%s", buf; next } capture { buf = buf $$0 "\n" }' >> queries/$*.sql
