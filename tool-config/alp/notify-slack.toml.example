@@ -1,0 +1,11 @@
+# このファイルをコピーして tool-config/alp/notify-slack.toml として使う。
+# notify-slack.toml はWebhook URLを含むため.gitignore済み（git管理しない）。
+#
+#   cp tool-config/alp/notify-slack.toml.example tool-config/alp/notify-slack.toml
+#
+# フィールドの詳細は notify_slack -h を参照。
+
+webhook_url = "https://hooks.slack.com/services/XXXX/XXXX/XXXX"
+channel = "#isucon-alp"
+username = "notify_slack"
+icon_emoji = ":bar_chart:"

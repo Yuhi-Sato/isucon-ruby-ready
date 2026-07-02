@@ -1,0 +1,12 @@
+# make alp (alp ltsv --file=$(NGINX_LOG) --config=tool-config/alp/config.yml) で使用する設定。
+# matching_groups はパスの可変部分（IDなど）を正規表現でまとめて集計するためのもの。
+# 問題のAPIエンドポイントに合わせて当日追加・修正すること。
+
+sort: sum
+reverse: true
+limit: 40
+
+matching_groups:
+  # 例: /api/users/1 と /api/users/2 を /api/users/:id としてまとめて集計する
+  - "^/api/[a-zA-Z0-9_]+/[0-9]+$"
+  - "^/api/[a-zA-Z0-9_]+/[0-9]+/[a-zA-Z0-9_]+$"

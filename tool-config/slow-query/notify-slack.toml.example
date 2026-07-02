@@ -1,0 +1,11 @@
+# このファイルをコピーして tool-config/slow-query/notify-slack.toml として使う。
+# notify-slack.toml はWebhook URLを含むため.gitignore済み（git管理しない）。
+#
+#   cp tool-config/slow-query/notify-slack.toml.example tool-config/slow-query/notify-slack.toml
+#
+# フィールドの詳細は notify_slack -h を参照。
+
+webhook_url = "https://hooks.slack.com/services/XXXX/XXXX/XXXX"
+channel = "#isucon-slow-query"
+username = "notify_slack"
+icon_emoji = ":turtle:"

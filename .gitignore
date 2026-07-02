@@ -1,0 +1,18 @@
+# 公式ISUCON配布リポジトリに同梱される他言語実装は無視する（このリポジトリはRuby実装専用のため）
+# パスの深さに関わらずマッチさせるため先頭にスラッシュを付けない（例: webapp/php も対象になる）
+php
+java
+node
+nodejs
+python
+go
+perl
+rust
+
+vendor/bundle
+log/
+tmp/
+*.gem
+/.bundle/
+/tool-config/alp/notify-slack.toml
+/tool-config/slow-query/notify-slack.toml
