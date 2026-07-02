@@ -60,6 +60,8 @@ make get-conf
 | `make deploy-conf` | リポジトリ管理下のDB/nginx設定をサーバーに反映する |
 | `make bench` | **ベンチマーク実行直前に手動で叩く。** `git pull` → `bundle install` → ログ削除 → 設定反映 → DB/nginx含む全再起動 |
 | `make deploy` | **mainマージ時にCIから自動実行される軽量デプロイ。** `git pull` → `bundle install` → アプリのみ再起動（ログは消さない、DB/nginxは再起動しない） |
+| `make remote-deploy-s1` | **ローカルから実行。** SSHで対象サーバーの`deploy.sh`を叩く（`-s2` / `-s3` も同様。[ローカルからのデプロイ](#ローカルからのデプロイ手動フォールバック兼用)参照） |
+| `make remote-deploy-all` | **ローカルから実行。** 全サーバーに順次デプロイし、失敗したサーバーがあれば最後にまとめて報告する |
 | `make add-profiling-gems` | `bundle add vernier` を実行する。**ローカル専用**（[Vernierの導入](#vernierサンプリングプロファイラの導入)参照） |
 | `make vernier-view` | `$(APP_DIR)/tmp/vernier` 以下の最新プロファイルをビューアで開く |
 | `make alp` | nginxアクセスログ（ltsv）を`alp`で集計する |
@@ -158,13 +160,34 @@ CIからの自動デプロイ（`.github/workflows/deploy.yml`）に必要。
 2. 公開鍵（`ci_deploy_key.pub`）を **各サーバー** の `~/.ssh/authorized_keys` に追記する
 3. 秘密鍵（`ci_deploy_key`）の内容をGitHub Secretsの `SSH_PRIVATE_KEY` に登録する
 
-### 手動フォールバック
+### ローカルからのデプロイ（手動フォールバック兼用）
 
-競技環境によってはGitHub ActionsのランナーからサーバーへSSH到達できないことがある。その場合は手元から各サーバーに入って実行する。
+mainマージを待たずに手元からデプロイしたいときや、GitHub ActionsのランナーからサーバーへSSH到達できないときは、ローカルから直接デプロイできる。
 
 ```bash
-ssh isucon@<host> "cd <DEPLOY_PATH> && ./deploy.sh"
+make remote-deploy-s1    # 対象サーバーのみ（remote-deploy-s2 / -s3 も同様）
+make remote-deploy-all   # 全サーバーに順次デプロイ
 ```
+
+前提として、ローカルの `~/.ssh/config` に各サーバーのHostを `s1` / `s2` / `s3` の名前で定義しておくこと:
+
+```
+Host s1
+  HostName <s1のIPアドレス>
+  User isucon
+
+Host s2
+  HostName <s2のIPアドレス>
+  User isucon
+
+Host s3
+  HostName <s3のIPアドレス>
+  User isucon
+```
+
+- サーバー上の配置パスがホームディレクトリ以外の場合は `make remote-deploy-s1 REMOTE_DEPLOY_PATH=<パス>` で上書きする
+- 使わないサーバーがある場合は `make remote-deploy-all SERVERS="s1 s2"` のように対象を絞れる
+- `remote-deploy-all` は途中で失敗しても残りのサーバーへ続行し、最後に失敗サーバーを報告して非0で終了する
 
 ### deploy.shの既知の制約
 

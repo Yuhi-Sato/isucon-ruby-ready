@@ -152,15 +152,18 @@ make deploy
 2. 公開鍵を **各サーバー**の `~/.ssh/authorized_keys` に追記する
 3. 秘密鍵を GitHub Secrets の `SSH_PRIVATE_KEY` に登録する
 
-### 手動フォールバック
+### ローカルからのデプロイ（手動フォールバック兼用）
 
-競技環境によっては GitHub Actions のランナーからサーバーへSSH到達できない可能性がある。その場合は手元から各サーバーに入って実行する:
+競技環境によっては GitHub Actions のランナーからサーバーへSSH到達できない可能性があるほか、mainマージを待たずに手元から直接デプロイしたいケースもある。そのため、ローカルマシンから実行するMakefileターゲットを用意する:
 
 ```bash
-ssh isucon@<host> "cd <DEPLOY_PATH> && ./deploy.sh"
+make remote-deploy-s1    # 対象サーバーのみ（remote-deploy-s2 / -s3 も同様）
+make remote-deploy-all   # 全サーバーに順次デプロイ。失敗したサーバーがあれば最後にまとめて報告
 ```
 
-この手順もREADMEに記載する。
+- `~/.ssh/config` に `Host s1` / `s2` / `s3`（User isucon、各サーバーのIP）を定義しておくことが前提。設定例をREADMEに記載する
+- サーバー上の配置パスは `REMOTE_DEPLOY_PATH`（デフォルト `/home/isucon`）、対象サーバーは `SERVERS`（デフォルト `s1 s2 s3`）で調整する
+- `remote-deploy-all` は途中のサーバーで失敗しても残りのサーバーへのデプロイを続行し、最後に失敗サーバーを報告して非0で終了する（1台の不調が全体のデプロイを止めないようにするため）
 
 ## .gitignore
 
