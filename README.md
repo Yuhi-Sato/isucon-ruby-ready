@@ -97,7 +97,7 @@ EC2インスタンス内のコードをGit管理するためのSSH鍵生成・Gi
 
 ### s1（メインサーバー）
 
-競技用サーバーにSSH接続し、ISUCON運営配布リポジトリのディレクトリ直下で以下を実行する。
+競技用サーバーにSSH接続し、ISUCON運営配布リポジトリのディレクトリ直下（`webapp/`と同階層）で以下を実行する。SSHログイン直後のカレントディレクトリがそこと一致するとは限らないため（例: private_isuなど問題によってはログイン直後は別のディレクトリにいる）、まず`webapp/`が見える階層まで`cd`してから実行すること。
 
 ```bash
 curl -L https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
