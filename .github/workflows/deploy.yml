@@ -1,5 +1,5 @@
 # mainマージ時にs1/s2/s3の各サーバーへSSHで自動デプロイする。
-# 使わないサーバーがある場合は、該当するジョブをまるごと削除して使うこと。
+# s2/s3は対応するSSH_HOST_S*シークレットが未登録の場合ジョブごとskipされる（s1は必須）。
 name: Deploy
 
 on:
@@ -26,6 +26,7 @@ jobs:
 
   deploy-s2:
     runs-on: ubuntu-latest
+    if: ${{ secrets.SSH_HOST_S2 != '' }}
     concurrency:
       group: deploy-s2
       cancel-in-progress: true
@@ -42,6 +43,7 @@ jobs:
 
   deploy-s3:
     runs-on: ubuntu-latest
+    if: ${{ secrets.SSH_HOST_S3 != '' }}
     concurrency:
       group: deploy-s3
       cancel-in-progress: true

@@ -132,7 +132,7 @@ CIからの自動デプロイ（`.github/workflows/deploy.yml`）に必要。
 | `SSH_HOST_S1` / `SSH_HOST_S2` / `SSH_HOST_S3` | 各サーバーのホスト名/IP |
 | `DEPLOY_PATH` | サーバー上のリポジトリ配置パス |
 
-使わないサーバーがある場合は、`.github/workflows/deploy.yml`から該当する`deploy-sN`ジョブを削除すること。削除しないとpushのたびに失敗ジョブの赤いXが出続ける。
+s2 / s3を使わない場合は、対応する `SSH_HOST_S2` / `SSH_HOST_S3` を登録しなければそのジョブは自動的にskipされる（`deploy.yml`内で`if: secrets.SSH_HOST_S2 != ''`のように判定している）。ワークフローファイルを編集する必要はない。s1は必須のため常に実行される。
 
 ### CI用SSH鍵のセットアップ
 
