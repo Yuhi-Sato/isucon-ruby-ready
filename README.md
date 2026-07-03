@@ -50,26 +50,12 @@ Host practice
 ssh practice
 ```
 
-### 3. EC2インスタンス内のコードをGit管理する
+### 3. isucon-ruby-readyをセットアップする
 
-EC2上のコードをチームリポジトリにpushできるようにするため、インスタンス上でSSH鍵を作成しGitHubに登録する。
+EC2インスタンス内のコードをGit管理するためのSSH鍵生成・GitHubへの登録は手動作業不要。以下の[セットアップ](#セットアップ)のs1手順（tarball展開 → `setup.sh` → `git.sh`）が自動で行う。
 
-```zsh
-ssh-keygen -t ed25519
-cat ~/.ssh/id_ed25519.pub
-```
-
-出力された公開鍵をGitHubに登録する（個人アカウントのSSH鍵、またはチームリポジトリのDeploy keyとして登録する）。
-
-```zsh
-ssh -T git@github.com
-```
-
-`Hi <username>! You've successfully authenticated...` と表示されれば接続確認は完了。
-
-### 4. isucon-ruby-readyをセットアップする
-
-ここまで完了したら、以下の[セットアップ](#セットアップ)のs1手順（tarball展開 → `setup.sh` → `git.sh`）に進む。
+- `setup.sh`が呼ぶ`make git-setup`が`~/.ssh/id_ed25519`を生成する（既にあればスキップ）
+- `git.sh`がその公開鍵を対象リポジトリのDeploy keyとして登録する（`gh` CLIが認証済みなら自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
 
 ## セットアップ
 
