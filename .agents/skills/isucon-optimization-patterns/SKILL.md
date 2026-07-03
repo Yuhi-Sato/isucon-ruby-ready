@@ -60,18 +60,24 @@ ALTER TABLE livestreams ADD INDEX idx_user_score (user_id, score DESC);
 
 ## 3. アプリ内キャッシュ
 
-外部ミドルウェア（Redis等）を入れる前に、プロセス内メモリキャッシュで足りるか検討する（導入・運用コストが圧倒的に低い）。
+Redisなどの外部ミドルウェアを入れる前に、プロセス内メモリキャッシュで足りるか検討する（導入・運用コストが圧倒的に低く、ネットワークホップも発生しない）。**保存先は`concurrent-ruby`のスレッドセーフなコレクションを使い、生の`Hash`は使わない。**
 
 ```ruby
+# Gemfile: gem "concurrent-ruby"
+# ローカルで `bundle add concurrent-ruby` して Gemfile/Gemfile.lock をコミット・push する
+# （サーバー上で直接bundle addしない。理由はVernier導入時と同じ）
+require "concurrent"
+
 # 更新頻度が低いマスタデータや集計値に。TTLはデータの更新頻度と
 # ベンチの整合性チェックの厳しさに合わせて決める（迷ったら1秒から）
-CACHE = {}
+CACHE = Concurrent::Map.new
 CACHE_MUTEX = Mutex.new
 
 def cached(key, ttl: 1)
   CACHE_MUTEX.synchronize do
     entry = CACHE[key]
     return entry[:value] if entry && entry[:expires_at] > Time.now
+
     value = yield
     CACHE[key] = { value: value, expires_at: Time.now + ttl }
     value
@@ -79,8 +85,15 @@ def cached(key, ttl: 1)
 end
 ```
 
+`Concurrent::Map`自体は個々の読み書きがスレッドセーフだが、「読む→期限切れなら計算→書く」という一連の処理はそれだけではアトミックにならない。`Mutex`でこの一連の処理全体を囲むことで、複数スレッドが同時に同じ重い処理を再計算してしまう（キャッシュスタンピード）のを防ぐ。
+
+なぜRedis等の外部サービスを基本にしないか:
+- プロセス内キャッシュはネットワークホップが無く高速。競技時間中に新たにミドルウェアを追加・監視対象を増やす運用コストも避けられる
+- ISUCONのボトルネックは大抵「同じクエリを何度も投げている」ことなので、プロセス内キャッシュで十分なケースがほとんど
+
 注意:
-- **マルチプロセス（puma workers / unicorn）ではプロセスごとに別キャッシュ**。整合性が問題になるデータには使わない
+- **マルチプロセス（puma workers / unicorn）ではプロセスごとに別インスタンス**。`concurrent-ruby`に変えてもこの制約は変わらない（プロセスを跨いだ共有はできない）。整合性が問題になるデータには使わない
+- 複数のアプリケーションサーバー間でキャッシュを共有する必要が明確にある場合のみRedis等の外部サービスを検討する（マルチプロセス/マルチサーバーでの強い整合性が要件になったとき）
 - `POST /initialize` でキャッシュをクリアすること（前回ベンチのデータが残ると整合性チェックで落ちる）
 - ベンチの整合性チェックが厳しい値（更新直後に読まれる値）はキャッシュしない
 
