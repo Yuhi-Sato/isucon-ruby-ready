@@ -26,10 +26,14 @@ sync_binlog = 0
 
 # バイナリログが有効ならば無効化（MySQL 8はデフォルト有効）
 disable-log-bin
+
+# make slow-query（performance_schema集計）で長いクエリが切り詰められる場合に拡大（要再起動）
+# max_digest_length = 4096
+# performance_schema_max_digest_length = 4096
 ```
 
 - 接続数エラー（Too many connections）が出たら `max_connections` を増やし、アプリ側の接続プールと辻褄を合わせる
-- **スロークエリログ（long_query_time=0）は計測時のみ有効。最終ベンチ前に無効化する**（isucon-final-check スキル）
+- **スロークエリログは常時OFF（`slow_query_log = 0`）**。クエリ計測はperformance_schema（`make slow-query`）で行うため有効化しない。performance_schemaが使えない場合（MariaDB等）のみ `long_query_time = 0` で一時的に有効化してpt-query-digestで集計し、最終ベンチ前に必ず無効化する（isucon-final-check スキル）
 
 ## nginx（sN/etc/nginx/ 以下を編集）
 
