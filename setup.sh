@@ -60,7 +60,10 @@ echo "サーバー ${SERVER} 上でリポジトリのセットアップを行い
 
 # ここではローカルの変数をヒアドキュメント内で展開させず、
 # bash -s -- の位置引数としてサーバー側スクリプトへ渡す。
-ssh -A "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
+# -o RemoteCommand=none: ~/.ssh/configでそのHostにRemoteCommandが設定されていると
+# 「コマンドライン上のコマンド」との併用をsshが拒否する（Cannot execute command-line
+# and remote command.）ため、コマンドライン指定を優先させるために明示的に無効化する。
+ssh -A -o RemoteCommand=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
 set -euo pipefail
 
 TARGET_DIR="$1"
