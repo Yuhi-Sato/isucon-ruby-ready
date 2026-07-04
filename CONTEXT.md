@@ -1,0 +1,31 @@
+# 用語集
+
+このリポジトリ（ISUCON当日用ツール一式）で使う用語の定義。実装詳細は各スクリプト・[README.md](README.md)・[docs/superpowers/specs/](docs/superpowers/specs/)を参照。
+
+## セットアップ
+
+問題によらず同一の手順で行う、サーバーのインフラ準備。ツール導入（alp/notify_slack/pt-query-digest等）・git配線（チームリポジトリの作成/取得）・サーバー実設定（DB/nginx）の取得までを指す。`setup.sh`（ローカル）と`server-setup.sh`（サーバー）の責務。
+
+対比: [[初動調査]]は問題ごとに異なる適応作業であり、セットアップの範囲に含めない。
+
+## 初動調査
+
+競技開始直後にエージェント（`isucon-initial-recon`スキル）が行う、問題固有の適応作業。Makefile変数（`APP_DIR`/`SERVICE_NAME`/`DB_SERVICE_NAME`）の確認・修正、`tool-config/alp/config.yml`のmatching_groups調整、クエリ抽出（`make extract-sql`）などを含む。
+
+対比: [[セットアップ]]が完了した後に始まる作業であり、setup.sh自体はこの作業を行わない。
+
+## 役割（s1/s2/s3）
+
+競技サーバー1台ごとに割り当てるラベル。`~/.ssh/config`のHostエイリアス名として使う。
+
+- **s1**: メインサーバー。チームリポジトリの新規作成・初回pushを行う
+- **s2 / s3**: 2台目以降。s1が作成したチームリポジトリを取得してセットアップに参加する
+
+`setup.sh`は第1引数のサーバー指定がこの`s[1-3]`パターンにマッチするかで役割を推定する。マッチしない場合（`isucon@<IP>`形式など）は`--role`で明示する。
+
+## deploy と bench
+
+- **`make deploy`**: mainマージ時にCIから自動実行される軽量デプロイ。ログを消さず、DB/nginxを再起動しない
+- **`make bench`**: ベンチマーク実行直前に人間が手動で叩く。ログ削除・設定反映・DB/nginx含む全再起動を伴う
+
+両者を混同して`make bench`を計測中に実行すると、他メンバーの計測ログが消え、DB/nginxが瞬断する。

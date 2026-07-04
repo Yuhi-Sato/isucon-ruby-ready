@@ -1,5 +1,10 @@
 # mainマージ時にs1/s2/s3の各サーバーへSSHで自動デプロイする。
-# s2/s3は対応するSSH_HOST_S*シークレットが未登録の場合ジョブごとskipされる（s1は必須）。
+# s2/s3は対応するSSH_HOST_S*変数が未登録の場合ジョブごとskipされる（s1は必須）。
+#
+# ホスト名・SSHユーザー・デプロイパスはSecretsではなくRepository Variables
+# （vars.*）に登録する。ジョブレベルのif条件はsecretsコンテキストを参照できず
+# 常に空文字扱いになるため、if判定にはvars.*を使う必要がある。秘密情報として
+# 扱うのはSSH_PRIVATE_KEY（Secrets）のみ。
 name: Deploy
 
 on:
@@ -17,16 +22,16 @@ jobs:
       - name: Deploy to s1
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST_S1 }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST_S1 }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ vars.DEPLOY_PATH }}
             ./deploy.sh
 
   deploy-s2:
     runs-on: ubuntu-latest
-    if: ${{ secrets.SSH_HOST_S2 != '' }}
+    if: ${{ vars.SSH_HOST_S2 != '' }}
     concurrency:
       group: deploy-s2
       cancel-in-progress: true
@@ -34,16 +39,16 @@ jobs:
       - name: Deploy to s2
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST_S2 }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST_S2 }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ vars.DEPLOY_PATH }}
             ./deploy.sh
 
   deploy-s3:
     runs-on: ubuntu-latest
-    if: ${{ secrets.SSH_HOST_S3 != '' }}
+    if: ${{ vars.SSH_HOST_S3 != '' }}
     concurrency:
       group: deploy-s3
       cancel-in-progress: true
@@ -51,9 +56,9 @@ jobs:
       - name: Deploy to s3
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST_S3 }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST_S3 }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
+            cd ${{ vars.DEPLOY_PATH }}
             ./deploy.sh

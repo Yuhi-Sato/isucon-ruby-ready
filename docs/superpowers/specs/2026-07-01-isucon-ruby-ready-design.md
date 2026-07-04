@@ -1,5 +1,7 @@
 # isucon-ruby-ready 設計書
 
+> **Note:** 本設計書のうち、セットアップフロー（`setup.sh`/`server-setup.sh`/s2・s3手順）とCIのSecrets/Variables方式は、[2026-07-04-setup-flow-unification.md](2026-07-04-setup-flow-unification.md)で更新されている。以下の本文（特に「## Makefile」「## deploy.sh」「## .github/workflows/deploy.yml」節のセットアップ関連記述）は当時の設計判断の記録として残すが、現行の実装・READMEは新設計書に従う。
+
 ## 背景・目的
 
 ISUCON本番当日に使う「サーバーセットアップ・ログ解析・デプロイ」用のツール一式を集約したリポジトリを作成する。
