@@ -93,6 +93,13 @@ notify-slack-%: FORCE ## alp / slow-query の結果をSlackに通知する（not
 	mkdir -p tmp && $(MAKE) -s $* >> $(NOTIFY_SLACK_TMPFILE)
 	cat $(NOTIFY_SLACK_TMPFILE) | notify_slack -c tool-config/$*/notify-slack.toml -snippet -filename=$$(date "+%Y-%m-%d-%H:%M:%S").txt
 
+# duckdb-flow / duckdb-repeat / duckdb-heavy-users
+# init.sql（LTSVアクセスログ→VIEW定義）を前置してtool-config/duckdb/のレシピを実行する。
+# アクセスログの読み取りにroot権限が必要なためsudoで実行する
+duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
+	@test -f tool-config/duckdb/$*.sql || { echo "unknown recipe: $* (see tool-config/duckdb/)"; exit 1; }
+	@cat tool-config/duckdb/init.sql tool-config/duckdb/$*.sql | sudo duckdb
+
 .PHONY: add-profiling-gems
 add-profiling-gems: ## Vernier用gemを追加する（ローカル専用。詳細はREADME参照）
 	./scripts/add-profiling-gems.sh $(APP_DIR)
@@ -134,6 +141,12 @@ install-tools:
 	tar -xvf notify_slack-linux-$(ARCH).tar.gz
 	sudo install notify_slack /usr/local/bin/notify_slack
 	rm notify_slack-linux-$(ARCH).tar.gz notify_slack LICENSE CHANGELOG.md README.md
+
+	# DuckDB CLIのインストール（ユーザー行動履歴の分析用。isucon-user-behavior-analysis スキル参照）
+	wget https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-$(ARCH).zip
+	unzip -o duckdb_cli-linux-$(ARCH).zip
+	sudo install duckdb /usr/local/bin/duckdb
+	rm duckdb_cli-linux-$(ARCH).zip duckdb
 
 .PHONY: dir-setup
 dir-setup:
