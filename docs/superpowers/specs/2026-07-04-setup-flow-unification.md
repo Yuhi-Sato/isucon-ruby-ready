@@ -28,4 +28,19 @@
 ## 検証状況
 
 - `shellcheck` / `bash -n` / `actionlint`による静的検証、および`setup.sh`の引数パース・役割推定ロジックのローカル実行確認は実施済み
-- 実サーバー（練習用EC2）でのend-to-end検証（tarball展開→server-setup.sh→git push、およびs2/s3のgit init+fetch+checkout）は未実施。次回素振り時に確認する
+- s1フロー（tarball展開→server-setup.sh→git push）はprivate_isu練習環境で実機検証済み（この過程で下記改訂に至る問題を複数発見）。s2/s3のgit init+fetch+checkoutは非空ディレクトリを模したローカルgitシミュレーションで検証済みで、実サーバーでの確認は次回素振り時に行う
+
+## 改訂: agent forwarding方式からDeploy key方式へ回帰（2026-07-04 同日追記）
+
+初版実装（`ssh -A`によるagent forwardingでローカルのGitHub認証を借用する方式）を実サーバー（private_isu練習環境）で検証した結果、以下の理由でサーバーごとのDeploy key登録方式（旧git.sh方式のgh CLIによる自動化版）に戻した。
+
+1. **agent forwardingが実運用で不安定**: `sudo -iu isucon`等のユーザー切り替えで`SSH_AUTH_SOCK`が引き継がれない（環境変数が残ってもソケットファイル自体が接続ユーザー所有・mode 600のため他ユーザーから開けない）。`~/.ssh/config`の`RemoteCommand`との併用制約、ネストしたsshによるヒアドキュメントstdin横取り事故（別コミットで修正済み）も同根であり、「実行のたびにローカルのagent状態と転送経路に依存する」こと自体が競技当日の不確実性になる。
+2. **サーバー上の日常的なgit操作が実は動かない**: `make deploy` / `make bench`の先頭は`git pull`であり、CI経由や手動SSHでの実行時にはforwardingが無いためサーバー自身のGitHub認証が必要。初回pushだけforwardingで済ませても、以後の運用がサーバー側credentialを前提としており、方式として穴があった。
+3. **Deploy keyなら権限を1リポジトリに限定できる**: サーバーに置くのは対象チームリポジトリ限定・書き込み可のDeploy keyのみで、アカウント全体に効く認証情報は置かない。登録は`gh repo deploy-key add --allow-write`で自動化し、GitHub UIでの手作業は発生しない。
+
+実装上の要点:
+
+- 鍵はサーバー上で`~/.ssh/github_deploy_<repo-name>`として自動生成する（ed25519・パスフレーズ無し）。Deploy keyはGitHub全体で1つのリポジトリにしか登録できないため、リポジトリ名を含むファイル名で競技ごとに別鍵とし、練習をまたいだ使い回し衝突を防ぐ
+- リポジトリの`core.sshCommand`にこの鍵を固定し、以後の`git pull` / `push`（deploy / bench含む）が追加設定なしで動くようにする
+- 鍵の登録はローカルの`gh` CLIで行うため、`gh auth login`はs1だけでなく**s2/s3のセットアップでも必須**になった
+- 再実行時の`gh repo deploy-key add`は`key is already in use`エラーになるため、このメッセージを検出してスキップする（冪等）。private_isu練習環境で登録・重複登録・`isucon`ユーザーでの`git pull`まで実機確認済み
