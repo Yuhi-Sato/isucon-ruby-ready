@@ -200,62 +200,7 @@ s2 / s3を使わない場合は、対応する `SSH_HOST_S2` / `SSH_HOST_S3` を
 
 ## Vernier（サンプリングプロファイラ）の導入
 
-[Vernier](https://github.com/jhawthorn/vernier) はRuby 3.2.1以上が必要。問題のRubyバージョンが古い場合は導入できない。
-
-### gemの追加
-
-**ローカル（手元のリポジトリ）で実行し、`Gemfile` / `Gemfile.lock` の変更をコミット・pushする。** サーバー上で直接実行しないこと（[理由](#makefileターゲット)）。
-
-```bash
-make add-profiling-gems
-git add Gemfile Gemfile.lock
-git commit -m "Add vernier"
-git push
-```
-
-### アプリへの組み込み
-
-`config.ru` に以下のようなmiddlewareを追加する（Sinatra/Rackアプリを想定）。リクエストごとに記録すると重いため、環境変数などで有効/無効を切り替えられるようにしておくと当日の計測がしやすい。
-
-出力形式はVernierのMarkdown形式（AI向けフォーマット。ホットスポット・スレッド別集計をテキストで出す）を使う。GUIビューアを開かずに`cat`やSSH経由でエージェントがそのまま読める。
-
-```ruby
-# config.ru
-require "vernier"
-require "fileutils"
-
-use Rack::Static # など、既存のmiddlewareの後に追加
-
-if ENV["ENABLE_VERNIER"] == "1"
-  use Class.new do
-    def initialize(app)
-      @app = app
-    end
-
-    def call(env)
-      FileUtils.mkdir_p("tmp/vernier")
-      response = nil
-      result = Vernier.trace do
-        response = @app.call(env)
-      end
-      result.write(out: "tmp/vernier/#{Time.now.strftime('%Y%m%d-%H%M%S-%L')}.md", format: "markdown")
-      response
-    end
-  end
-end
-```
-
-`Vernier.trace(out: "...")`のように直接パスを渡すと（Firefox Profiler向けの）JSON形式でネイティブに書き出されてしまいMarkdown形式を選べないため、必ず`Vernier.trace`が返す`Result`を受け取ってから`result.write(out:, format: "markdown")`で明示的に書き出す。
-
-### プロファイルの閲覧
-
-```bash
-make vernier-view
-```
-
-直近のMarkdownファイルをそのまま標準出力に表示する（サーバー上で`cat`するだけなので、SSH経由でエージェントが直接読める）。
-
-視覚的にフレームグラフを見たい場合は、上記middlewareの`format: "markdown"`を`format: "firefox"`に変えて出力したJSONファイルを [profiler.firefox.com](https://profiler.firefox.com) にドラッグ&ドロップする。
+gem追加・Rack middlewareへの組み込み・CLIでの単発プロファイリング・プロファイルの読み方は[isucon-vernier-profiling](.agents/skills/isucon-vernier-profiling/SKILL.md)スキルを参照。
 
 ## N+1検出の運用
 
