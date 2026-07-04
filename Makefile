@@ -146,9 +146,6 @@ git-setup:
 	git config --global user.email "yuhi120101@gmail.com"
 	git config --global user.name "Yuhi-Sato"
 
-	# deploykeyの作成（既にあればスキップ。パスフレーズなしで非対話生成）
-	test -f ~/.ssh/id_ed25519 || ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
-
 .PHONY: check-server-id
 check-server-id:
 ifdef SERVER_ID
