@@ -74,7 +74,11 @@ echo "サーバー ${SERVER} 上でリポジトリのセットアップを行い
 # -o RemoteCommand=none: ~/.ssh/configでそのHostにRemoteCommandが設定されていると
 # 「コマンドライン上のコマンド」との併用をsshが拒否する（Cannot execute command-line
 # and remote command.）ため、コマンドライン指定を優先させるために明示的に無効化する。
-ssh -A -o RemoteCommand=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
+# -o ControlPath=none: ~/.ssh/configのControlMaster/ControlPersist設定により、
+# 過去に-Aなしで確立された既存のマスター接続に相乗りしてしまうと、ここで指定した
+# -Aが無視されagent forwardingされない。この呼び出しだけ接続の使い回しを止め、
+# 必ず新規接続でagent forwardingを効かせる。
+ssh -A -o RemoteCommand=none -o ControlPath=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
 set -euo pipefail
 
 TARGET_DIR="$1"
