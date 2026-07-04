@@ -45,6 +45,17 @@ if ! ssh-add -l >/dev/null 2>&1; then
   fi
 fi
 
+# ssh-agentに鍵はあっても、その鍵がGitHubアカウントのSSH keyとして登録されているとは限らない
+# （'gh auth login'のHTTPS認証とgit操作用のSSH鍵は別物）。サーバーへ行く前にローカルで検証する。
+LOCAL_AUTH_CHECK="$(ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new git@github.com 2>&1 || true)"
+if ! echo "$LOCAL_AUTH_CHECK" | grep -q "successfully authenticated"; then
+  echo "エラー: ローカルマシンからGitHubへのSSH認証に失敗しました。" >&2
+  echo "ssh-agentに登録されている鍵が、GitHubアカウントのSSH keyとして登録されているか確認してください" >&2
+  echo "（https://github.com/settings/keys 。'gh auth login'のHTTPS認証とは別物です）。" >&2
+  echo "$LOCAL_AUTH_CHECK" >&2
+  exit 1
+fi
+
 # --- リポジトリ作成（既に存在すればスキップ。冪等） ---
 
 if gh repo view "$REPO_SLUG" >/dev/null 2>&1; then
@@ -63,7 +74,11 @@ echo "サーバー ${SERVER} 上でリポジトリのセットアップを行い
 # -o RemoteCommand=none: ~/.ssh/configでそのHostにRemoteCommandが設定されていると
 # 「コマンドライン上のコマンド」との併用をsshが拒否する（Cannot execute command-line
 # and remote command.）ため、コマンドライン指定を優先させるために明示的に無効化する。
-ssh -A -o RemoteCommand=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
+# -o ControlPath=none: ~/.ssh/configのControlMaster/ControlPersist設定により、
+# 過去に-Aなしで確立された既存のマスター接続に相乗りしてしまうと、ここで指定した
+# -Aが無視されagent forwardingされない。この呼び出しだけ接続の使い回しを止め、
+# 必ず新規接続でagent forwardingを効かせる。
+ssh -A -o RemoteCommand=none -o ControlPath=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" <<'REMOTE_SCRIPT'
 set -euo pipefail
 
 TARGET_DIR="$1"
