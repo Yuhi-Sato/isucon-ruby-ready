@@ -44,6 +44,8 @@ posts.each { |post| post[:user] = users[post[:user_id]] }
 
 注意: `user_ids` が空だと `IN ()` がSQLエラーになる。空なら早期return。
 
+注意: N+1解消でクエリ本数を減らしても、`WHERE user_id IN (...)` の対象カラムに元々インデックスが無ければ集約後の1クエリ自体がフルスキャンのまま残る。EXPLAINで確認し、必要ならパターン2（インデックス追加）も併せて適用する。
+
 ## 2. インデックス追加
 
 ```sql

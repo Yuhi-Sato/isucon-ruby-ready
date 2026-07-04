@@ -55,7 +55,7 @@ digraph triage {
 }
 ```
 
-画像URIかつ画像がDBにBLOB格納されている場合は両方に該当する。その場合は「DBから出してnginx配信」（isucon-optimization-patterns パターン5）が正解で、クエリ改善よりも優先する。
+画像URIかつ画像がDBにBLOB格納されている場合は両方に該当する。その場合は同じエンドポイント内で「SQL改善」と「nginx配信化」のどちらを選ぶかという話であり、「DBから出してnginx配信」（isucon-optimization-patterns パターン5）を優先する。**この優先ルールはエンドポイント内の手法選択のみに適用する**。どのエンドポイントから着手するか（エンドポイント間の優先順位）は手順1のSUM降順のまま変えない。
 
 補助: `reqtime`（nginx全体）と `apptime`（アプリ応答）の差が大きければnginx/ネットワーク側、ほぼ同じならアプリ以下が原因。
 
@@ -70,7 +70,7 @@ make slow-query
 - 冒頭の **Profile表**: `Response time %` 降順のランキング。上位から潰す
 - 各クエリ詳細の **Count**: 同一パターンの実行回数
 - **N+1の検出**: alpの該当エンドポイントのCOUNTに対してクエリCountが数倍以上ならN+1を疑い、一桁以上多ければ（例: リクエスト1,000件に対しクエリ50,000件）ほぼ確実にN+1
-- `Rows examined` が `Rows sent` の数十倍以上 → インデックス不足。`EXPLAIN` で確認する
+- `Rows examined` が `Rows sent` の数十倍以上（各クエリ詳細セクションの1回あたりの値。Profile表のCount×平均ではなく、個々のクエリブロックに出る数値を見る） → インデックス不足。`EXPLAIN` で確認する
 
 ```bash
 sudo mysql <db> -e "EXPLAIN <該当クエリ>\G"   # type=ALL（フルスキャン）ならインデックス候補
