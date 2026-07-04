@@ -88,15 +88,16 @@ ssh s1
 
 ### 3. isucon-ruby-readyをセットアップする
 
-EC2インスタンス内のコードをGit管理するためのSSH鍵生成・GitHubへの登録は手動作業不要。以下の[セットアップ](#セットアップ)のs1手順（tarball展開 → `setup.sh` → `git.sh`）が自動で行う。
+サーバーにはGitHubの認証情報を一切置かない。ローカルマシンの`gh` CLI認証とSSH agent forwardingだけでチームリポジトリの作成・pushを行う（以下の[セットアップ](#セットアップ)のs1手順を参照）。事前に以下をローカルマシンで済ませておく。
 
-- `setup.sh`が呼ぶ`make git-setup`が`~/.ssh/id_ed25519`を生成する（既にあればスキップ）
-- `git.sh`に渡したURLのリポジトリがまだ存在しない場合、`gh` CLIが認証済みなら`gh repo create`で自動作成する（private固定）。個人練習でリポジトリを事前に作っていなくても、GitHub上の存在しないリポジトリのURLをそのまま渡してよい
-- `git.sh`がその公開鍵を対象リポジトリのDeploy keyとして登録する（`gh` CLIが認証済みなら自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
+- `gh auth login`でGitHub CLIを認証済みにしておく
+- `ssh-add -l`で鍵がssh-agentに登録されていることを確認する（`setup.sh`が未登録なら自動で`ssh-add`を試みる）
 
 ## セットアップ
 
 ### s1（メインサーバー）
+
+#### 1. サーバー上でツールをセットアップする
 
 競技用サーバーにSSH接続し、ISUCON運営配布リポジトリのディレクトリ直下（`webapp/`と同階層）で以下を実行する。SSHログイン直後のカレントディレクトリがそこと一致するとは限らないため（例: private_isuなど問題によってはログイン直後は別のディレクトリにいる）、まず`webapp/`が見える階層まで`cd`してから実行すること。
 
@@ -104,19 +105,40 @@ EC2インスタンス内のコードをGit管理するためのSSH鍵生成・Gi
 curl -L https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
   | tar xz --strip-components=1
 
-sh setup.sh
-sh git.sh {自分たちのチームリポジトリのSSH URL}
+sh server-setup.sh
 ```
 
-- `setup.sh`: ツールのインストール・ディレクトリ準備・git設定・サーバー設定の取得を行う
-- `git.sh`: `git init`してチームリポジトリをリモートに設定し、初回コミット・pushを行う。渡したURLのリポジトリが存在しない場合は`gh` CLIが認証済みなら`gh repo create`で自動作成する（private固定。未認証なら`https://github.com/new`から手動作成した上で続行を待ち受ける）。あわせてSSH公開鍵のDeploy key登録も行う（`gh` CLIが認証済みなら`gh repo deploy-key add`で自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
+`server-setup.sh`: ツールのインストール・ディレクトリ準備・git設定・サーバー設定の取得を行う。GitHubの認証情報はここでは何も作らない。
+
+#### 2. ローカルマシンからチームリポジトリを作成・pushする
+
+`server-setup.sh`の実行後、**ローカルマシン**（サーバーではない）で以下を実行する。
+
+```bash
+./setup.sh <user@server> <repo-name>
+```
+
+- `<user@server>`: `~/.ssh/config`に設定した`s1`など、または`isucon@<IPアドレス>`
+- `<repo-name>`: チームリポジトリ名（オーナーは`Yuhi-Sato`固定）
+
+`setup.sh`が行うこと:
+1. ローカルの前提チェック（`gh auth status` / `ssh-add -l`）
+2. リポジトリが存在しなければ`gh repo create --private`で作成
+3. `ssh -A`でサーバーへ1回だけ接続し、その中で`git init` → `origin`設定 → `make extract-queries` → 初回コミット → `git push -u origin main`までを完結させる（agent forwardingによりサーバー上のgitがローカルのGitHub認証をそのまま借用してpushする）
+
+2回目以降の実行や別サーバーに対する再実行もそのまま行える（冪等）。
 
 ### s2 / s3（2台目以降）
 
-s1が作成・pushしたチームリポジトリを使う。tarball展開・`git.sh`は行わない。
+s1が作成・pushしたチームリポジトリを使う。tarball展開・`server-setup.sh`は行わない。サーバーにはGitHub認証情報がないため、cloneもagent forwarding経由でローカルから実行する。
 
 ```bash
-git clone {自分たちのチームリポジトリのSSH URL} .
+ssh -A <user@server> "cd /home/isucon && git clone git@github.com:Yuhi-Sato/<repo-name>.git ."
+```
+
+続けてサーバー上（このssh接続の中、または改めてSSH接続して）で以下を実行する。
+
+```bash
 make setup
 make set-as-s2   # s3の場合は set-as-s3
 make get-conf
@@ -165,7 +187,7 @@ s2 / s3を使わない場合は、対応する `SSH_HOST_S2` / `SSH_HOST_S3` を
 
 ### CI用SSH鍵のセットアップ
 
-1. 手元でCI専用の鍵ペアを作成する（`git-setup`がサーバー上で作るdeploy keyとは別物）
+1. 手元でCI専用の鍵ペアを作成する（`setup.sh`が使うローカルのGitHub認証用鍵とは別物。CIがサーバーにSSHログインするための鍵）
    ```bash
    ssh-keygen -t ed25519 -f ci_deploy_key -N ""
    ```
