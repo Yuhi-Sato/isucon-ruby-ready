@@ -213,8 +213,9 @@ restart-app: ## アプリのみ再起動する（自動デプロイ用。DB/ngin
 # 書き続けて新しいログが取れない。truncate ならプロセス再起動なしでログを空にできる
 .PHONY: rm-logs
 rm-logs: ## アクセスログ・スロークエリログを空にする
-	test ! -f $(NGINX_LOG) || sudo truncate -s 0 $(NGINX_LOG)
-	test ! -f $(DB_SLOW_LOG) || sudo truncate -s 0 $(DB_SLOW_LOG)
+	sudo test ! -f $(NGINX_LOG) || sudo truncate -s 0 $(NGINX_LOG)
+	# /var/log/mysql はisuconユーザーから読めない(750 mysql:adm)ため、存在確認もsudoで行う
+	sudo test ! -f $(DB_SLOW_LOG) || sudo truncate -s 0 $(DB_SLOW_LOG)
 
 .PHONY: refresh-notify-slack-tmp
 refresh-notify-slack-tmp:
