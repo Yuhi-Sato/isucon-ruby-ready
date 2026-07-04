@@ -10,15 +10,20 @@ set -euo pipefail
 REPO_OWNER="Yuhi-Sato"
 TARGET_DIR="/home/isucon"
 
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <user@server> <repo-name>" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  echo "Usage: $0 <user@server> [repo-name]" >&2
   exit 1
 fi
 
 SERVER="$1"
-REPO_NAME="$2"
+REPO_NAME="${2:-ISUCON-$(date +%Y%m%d%H%M%S)}"
 REPO_SLUG="${REPO_OWNER}/${REPO_NAME}"
 REPO_SSH_URL="git@github.com:${REPO_SLUG}.git"
+
+echo "リポジトリ: ${REPO_SLUG}"
+if [ "$#" -lt 2 ]; then
+  echo "（repo-name省略のため上記の名前を新規採番。2台目以降や再実行では明示的に指定すること）"
+fi
 
 # --- ローカル側の前提チェック ---
 

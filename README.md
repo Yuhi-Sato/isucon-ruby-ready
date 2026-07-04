@@ -115,18 +115,18 @@ sh server-setup.sh
 `server-setup.sh`の実行後、**ローカルマシン**（サーバーではない）で以下を実行する。
 
 ```bash
-./setup.sh <user@server> <repo-name>
+./setup.sh <user@server> [repo-name]
 ```
 
 - `<user@server>`: `~/.ssh/config`に設定した`s1`など、または`isucon@<IPアドレス>`
-- `<repo-name>`: チームリポジトリ名（オーナーは`Yuhi-Sato`固定）
+- `[repo-name]`: チームリポジトリ名（オーナーは`Yuhi-Sato`固定）。省略時は`ISUCON-<実行時刻>`（例: `ISUCON-20260704153000`）を新規採番する
 
 `setup.sh`が行うこと:
 1. ローカルの前提チェック（`gh auth status` / `ssh-add -l`）
 2. リポジトリが存在しなければ`gh repo create --private`で作成
 3. `ssh -A`でサーバーへ1回だけ接続し、その中で`git init` → `origin`設定 → `make extract-queries` → 初回コミット → `git push -u origin main`までを完結させる（agent forwardingによりサーバー上のgitがローカルのGitHub認証をそのまま借用してpushする）
 
-2回目以降の実行や別サーバーに対する再実行もそのまま行える（冪等）。
+2回目以降の実行や別サーバーに対する再実行もそのまま行える（冪等）。ただし`repo-name`を省略すると実行のたびに新しい名前が採番されるため、**同じリポジトリに対して再実行する場合は最初に採番された`repo-name`を明示的に指定すること**（s2/s3向けにも同じ名前を使う）。
 
 ### s2 / s3（2台目以降）
 
