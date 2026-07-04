@@ -194,9 +194,12 @@ git push
 
 `config.ru` に以下のようなmiddlewareを追加する（Sinatra/Rackアプリを想定）。リクエストごとに記録すると重いため、環境変数などで有効/無効を切り替えられるようにしておくと当日の計測がしやすい。
 
+出力形式はVernierのMarkdown形式（AI向けフォーマット。ホットスポット・スレッド別集計をテキストで出す）を使う。GUIビューアを開かずに`cat`やSSH経由でエージェントがそのまま読める。
+
 ```ruby
 # config.ru
 require "vernier"
+require "fileutils"
 
 use Rack::Static # など、既存のmiddlewareの後に追加
 
@@ -208,15 +211,18 @@ if ENV["ENABLE_VERNIER"] == "1"
 
     def call(env)
       FileUtils.mkdir_p("tmp/vernier")
-      result = nil
-      Vernier.trace(out: "tmp/vernier/#{Time.now.strftime('%Y%m%d-%H%M%S-%L')}.json") do
-        result = @app.call(env)
+      response = nil
+      result = Vernier.trace do
+        response = @app.call(env)
       end
-      result
+      result.write(out: "tmp/vernier/#{Time.now.strftime('%Y%m%d-%H%M%S-%L')}.md", format: "markdown")
+      response
     end
   end
 end
 ```
+
+`Vernier.trace(out: "...")`のように直接パスを渡すと（Firefox Profiler向けの）JSON形式でネイティブに書き出されてしまいMarkdown形式を選べないため、必ず`Vernier.trace`が返す`Result`を受け取ってから`result.write(out:, format: "markdown")`で明示的に書き出す。
 
 ### プロファイルの閲覧
 
@@ -224,7 +230,9 @@ end
 make vernier-view
 ```
 
-または出力されたJSONファイルを [profiler.firefox.com](https://profiler.firefox.com) にドラッグ&ドロップして閲覧する。
+直近のMarkdownファイルをそのまま標準出力に表示する（サーバー上で`cat`するだけなので、SSH経由でエージェントが直接読める）。
+
+視覚的にフレームグラフを見たい場合は、上記middlewareの`format: "markdown"`を`format: "firefox"`に変えて出力したJSONファイルを [profiler.firefox.com](https://profiler.firefox.com) にドラッグ&ドロップする。
 
 ## N+1検出の運用
 
