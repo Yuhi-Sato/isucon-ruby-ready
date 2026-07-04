@@ -45,6 +45,17 @@ if ! ssh-add -l >/dev/null 2>&1; then
   fi
 fi
 
+# ssh-agentに鍵はあっても、その鍵がGitHubアカウントのSSH keyとして登録されているとは限らない
+# （'gh auth login'のHTTPS認証とgit操作用のSSH鍵は別物）。サーバーへ行く前にローカルで検証する。
+LOCAL_AUTH_CHECK="$(ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new git@github.com 2>&1 || true)"
+if ! echo "$LOCAL_AUTH_CHECK" | grep -q "successfully authenticated"; then
+  echo "エラー: ローカルマシンからGitHubへのSSH認証に失敗しました。" >&2
+  echo "ssh-agentに登録されている鍵が、GitHubアカウントのSSH keyとして登録されているか確認してください" >&2
+  echo "（https://github.com/settings/keys 。'gh auth login'のHTTPS認証とは別物です）。" >&2
+  echo "$LOCAL_AUTH_CHECK" >&2
+  exit 1
+fi
+
 # --- リポジトリ作成（既に存在すればスキップ。冪等） ---
 
 if gh repo view "$REPO_SLUG" >/dev/null 2>&1; then
