@@ -91,6 +91,7 @@ ssh s1
 EC2インスタンス内のコードをGit管理するためのSSH鍵生成・GitHubへの登録は手動作業不要。以下の[セットアップ](#セットアップ)のs1手順（tarball展開 → `setup.sh` → `git.sh`）が自動で行う。
 
 - `setup.sh`が呼ぶ`make git-setup`が`~/.ssh/id_ed25519`を生成する（既にあればスキップ）
+- `git.sh`に渡したURLのリポジトリがまだ存在しない場合、`gh` CLIが認証済みなら`gh repo create`で自動作成する（private固定）。個人練習でリポジトリを事前に作っていなくても、GitHub上の存在しないリポジトリのURLをそのまま渡してよい
 - `git.sh`がその公開鍵を対象リポジトリのDeploy keyとして登録する（`gh` CLIが認証済みなら自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
 
 ## セットアップ
@@ -108,7 +109,7 @@ sh git.sh {自分たちのチームリポジトリのSSH URL}
 ```
 
 - `setup.sh`: ツールのインストール・ディレクトリ準備・git設定・サーバー設定の取得を行う
-- `git.sh`: `git init`してチームリポジトリをリモートに設定し、初回コミット・pushを行う。あわせてSSH公開鍵のDeploy key登録も行う（`gh` CLIが認証済みなら`gh repo deploy-key add`で自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
+- `git.sh`: `git init`してチームリポジトリをリモートに設定し、初回コミット・pushを行う。渡したURLのリポジトリが存在しない場合は`gh` CLIが認証済みなら`gh repo create`で自動作成する（private固定。未認証なら`https://github.com/new`から手動作成した上で続行を待ち受ける）。あわせてSSH公開鍵のDeploy key登録も行う（`gh` CLIが認証済みなら`gh repo deploy-key add`で自動登録、未認証なら公開鍵を表示して手動登録を待ち受ける）
 
 ### s2 / s3（2台目以降）
 
