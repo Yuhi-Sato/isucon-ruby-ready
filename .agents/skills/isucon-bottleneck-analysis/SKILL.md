@@ -94,7 +94,7 @@ ENABLE_VERNIER=1 でベンチ → make vernier-view
 
 ## 結論の出し方
 
-解析の最後に必ず以下の形式でまとめ、改善は isucon-optimization-patterns / isucon-server-tuning スキルに進む:
+解析の最後に必ず以下の形式でまとめ、改善は isucon-optimization-patterns / isucon-mysql-tuning / isucon-nginx-tuning / isucon-server-tuning スキルに進む:
 
 ```
 改善対象: GET /api/livestream/:id （N+1: commentsテーブルへのSELECTがリクエスト比50倍）

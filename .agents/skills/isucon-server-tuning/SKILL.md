@@ -1,80 +1,21 @@
 ---
 name: isucon-server-tuning
-description: ISUCONでMySQL・nginx・アプリサーバー（puma/unicorn）の設定チューニングや、複数台構成への分割（DB分離・アプリ複数台）を行うときに使う。「DBを2台目に移して」「nginxをチューニングして」「複数台構成にして」「my.cnfを調整して」などのリクエストで使用する。
+description: ISUCONで複数台構成への分割（DB分離・アプリ複数台）、systemdユニットの調整、使わないサービスの停止を行うときに使う。「DBを2台目に移して」「複数台構成にして」「アプリを2台に広げて」「systemdの起動順を直して」などのリクエストで使用する。MySQL/nginxの設定値チューニング自体は isucon-mysql-tuning / isucon-nginx-tuning スキルを使う。
 ---
 
-# ISUCON サーバーチューニング・複数台構成
+# ISUCON サーバー構成・複数台分割
 
 ## 概要
 
 インフラ設定の変更は `make get-conf` で取得した `s1/` `s2/` `s3/` 以下のファイルを編集し、
 `make bench`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
 
-設定変更も計測が前提: nginx側は alp の `reqtime - apptime` 差、DB側は slow-query とCPU使用率（`dstat` / `top`）で判断する。
+設定ファイルの中身のチューニングは専用スキルへ:
 
-## MySQL（sN/etc/mysql/ 以下を編集）
+- **MySQL（my.cnf・buffer pool・I/O設定など）** → isucon-mysql-tuning スキル
+- **nginx（worker・keepalive・静的配信・UNIXソケットなど）** → isucon-nginx-tuning スキル
 
-```ini
-[mysqld]
-# バッファプール: 専用DBサーバーならメモリの60-70%、アプリ同居なら控えめに
-# （例はメモリ4GB想定。free -h で実メモリを確認して決める）
-innodb_buffer_pool_size = 2G
-
-# コミット毎fsyncをやめる（クラッシュ耐性と引き換え。ISUCONでは定番）
-innodb_flush_log_at_trx_commit = 2
-sync_binlog = 0
-
-# バイナリログが有効ならば無効化（MySQL 8はデフォルト有効）
-disable-log-bin
-
-# make slow-query（performance_schema集計）で長いクエリが切り詰められる場合に拡大（要再起動）
-# max_digest_length = 4096
-# performance_schema_max_digest_length = 4096
-```
-
-- 接続数エラー（Too many connections）が出たら `max_connections` を増やし、アプリ側の接続プールと辻褄を合わせる
-- **スロークエリログは常時OFF（`slow_query_log = 0`）**。クエリ計測はperformance_schema（`make slow-query`）で行うため有効化しない。performance_schemaが使えない場合（MariaDB等）のみ `long_query_time = 0` で一時的に有効化してpt-query-digestで集計し、最終ベンチ前に必ず無効化する（isucon-final-check スキル）
-
-## nginx（sN/etc/nginx/ 以下を編集）
-
-```nginx
-# nginx.conf
-worker_processes auto;
-events {
-    worker_connections 4096;
-}
-http {
-    keepalive_timeout 65;
-
-    # アプリへのupstream keepalive（毎回TCP接続を張り直さない）
-    upstream app {
-        server 127.0.0.1:8080;
-        keepalive 128;
-    }
-    server {
-        location / {
-            proxy_pass http://app;
-            proxy_http_version 1.1;
-            proxy_set_header Connection "";
-        }
-        # 静的ファイルはnginxが直接配信（パスは問題に合わせる）
-        location ~ ^/(assets|css|js|images)/ {
-            root /home/isucon/webapp/public;
-            expires 24h;
-            add_header Cache-Control "public, max-age=86400";
-        }
-        # アプリが書き出した画像を優先し、なければアプリへ（isucon-optimization-patterns パターン5）
-        # root のパスは問題の構成に合わせる
-        location /image/ {
-            root /home/isucon/webapp/public;
-            try_files $uri @app;
-        }
-    }
-}
-```
-
-- アプリがUNIXソケットをlistenできるなら `server unix:/tmp/app.sock;` の方が速い（アプリ側の設定も必要）
-- ltsvログフォーマット（alp用）を消さないこと。計測できなくなる
+このスキルが扱うのは、サーバーの役割分担（複数台構成）・systemdユニット・サービスの止め方。
 
 ## アプリサーバー（puma / unicorn）
 
@@ -82,6 +23,7 @@ http {
 - 設定ファイルは `webapp/ruby` 以下（puma.rb / unicorn.rb）またはsystemdユニットの起動コマンドにある
 - **systemdユニット（`/etc/systemd/system/*.service` 等）は `make get-conf` / `sN/` の管理対象外。** `/etc` 直接編集禁止の原則の例外として、`sudo` で直接編集してよい（競技中いつでも）。ただし変更内容は必ず `docs/` にメモを残し、他メンバー・再起動試験時に再現できるようにする
 - systemdユニットを変更した場合は `sudo systemctl daemon-reload` が必要（`make restart` に含まれる）
+- アプリがDBより先に起動して接続失敗する場合は、アプリのユニットに `After=<DB_SERVICE_NAME>.service` / `Restart=always` を追加する（起動順の問題。再起動試験で発覚しやすい）
 
 ## 複数台構成への分割
 
@@ -94,7 +36,7 @@ http {
 3. アプリ用MySQLユーザーがリモート接続可能か確認: `CREATE USER 'isucon'@'%' ...` / `GRANT`
 4. s1の `s1/env.sh` のDBホスト環境変数（`ISUCON_DB_HOST` 等、問題により名前が異なる）をs2のプライベートIPに変更
 5. push → 各サーバーで `git pull && make deploy-conf && make restart` で反映（次のベンチ直前なら `make bench` にまとめても良い。ただし他メンバーの計測を破壊しないこと）
-6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、Makefileの `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す）
+6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、Makefileの `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す → isucon-mysql-tuning スキル）
 
 ### アプリを複数台に広げる手順
 
@@ -119,4 +61,4 @@ http {
 | initialize が s1 の localhost DB を初期化し続ける | initialize処理のDB接続先も env.sh 経由か確認する |
 | プロセス内キャッシュ/セッションのまま複数台化して整合性エラー | 先に外部化してから振り分ける |
 | 遊んでいるサーバーのmysql/nginxがメモリを食う | 使わないサービスは `disable --now` で止める |
-| buffer_pool を盛りすぎてOOM Killerに殺される | `free -h` で実メモリを確認して6-7割に留める |
+| systemdユニットの変更を記録せず再起動試験で再現不能 | 変更内容を必ず `docs/` にメモする |

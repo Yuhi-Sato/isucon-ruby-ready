@@ -63,7 +63,7 @@ sudo mysql <db> -e "SELECT table_name, table_rows FROM information_schema.tables
 sudo mysql -e "SELECT @@performance_schema;"   # make slow-query の計測ソース。1ならOK
 ```
 
-- `0` の場合（MariaDB出題など）: `make get-conf` 後に `sN/etc/mysql/` へ `performance_schema = ON` を追加して反映する。有効化できない場合は従来方式（`long_query_time = 0` でslow logを有効化し `sudo pt-query-digest /var/log/mysql/mysql-slow.log`）にフォールバックする（isucon-server-tuning スキル参照）
+- `0` の場合（MariaDB出題など）: `make get-conf` 後に `sN/etc/mysql/` へ `performance_schema = ON` を追加して反映する。有効化できない場合は従来方式（`long_query_time = 0` でslow logを有効化し `sudo pt-query-digest /var/log/mysql/mysql-slow.log`）にフォールバックする（isucon-mysql-tuning スキル参照）
 - `slow_query_log` は**常時OFF運用**（計測はperformance_schemaで行うためスロークエリログは不要。I/O削減でスコアにも効く）。`make get-conf` 後に `sN/etc/mysql/` へ `slow_query_log = 0` を明示しておく
 
 ### 5. alpのmatching_groupsを合わせる
