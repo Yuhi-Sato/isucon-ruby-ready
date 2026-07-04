@@ -74,7 +74,7 @@ http {
 
 ## アプリサーバー（puma / unicorn）
 
-- ワーカー数はコア数程度から調整（`nproc` で確認）。CPUが余っているのにスループットが出ないなら増やす
+- workers/threads構成の詳細な判断基準は `isucon-puma-tuning` スキルを参照。YJIT/GCなどランタイム設定は `isucon-ruby-runtime-tuning` スキルを参照
 - 設定ファイルは `webapp/ruby` 以下（puma.rb / unicorn.rb）またはsystemdユニットの起動コマンドにある
 - **systemdユニット（`/etc/systemd/system/*.service` 等）は `make get-conf` / `sN/` の管理対象外。** `/etc` 直接編集禁止の原則の例外として、`sudo` で直接編集してよい（競技中いつでも）。ただし変更内容は必ず `docs/` にメモを残し、他メンバー・再起動試験時に再現できるようにする
 - systemdユニットを変更した場合は `sudo systemctl daemon-reload` が必要（`make restart` に含まれる）
