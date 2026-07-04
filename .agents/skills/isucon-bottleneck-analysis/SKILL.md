@@ -1,6 +1,6 @@
 ---
 name: isucon-bottleneck-analysis
-description: ISUCONでベンチ実行後に計測結果を解釈し、次の改善対象を1つ決めるときに使う。alp・pt-query-digest・Vernierの出力の読み方、N+1検出を含む。「どこがボトルネック？」「alpの結果を見て」「スロークエリを分析して」「次に何を直す？」などのリクエストで使用する。
+description: ISUCONでベンチ実行後に計測結果を解釈し、次の改善対象を1つ決めるときに使う。alp・performance_schema（make slow-query）・Vernierの出力の読み方、N+1検出を含む。「どこがボトルネック？」「alpの結果を見て」「スロークエリを分析して」「次に何を直す？」などのリクエストで使用する。
 ---
 
 # ISUCON ボトルネック解析
@@ -59,18 +59,21 @@ digraph triage {
 
 補助: `reqtime`（nginx全体）と `apptime`（アプリ応答）の差が大きければnginx/ネットワーク側、ほぼ同じならアプリ以下が原因。
 
-## 手順3: pt-query-digestでクエリを特定する
+## 手順3: performance_schemaでクエリを特定する
 
 ```bash
-make slow-query
+make slow-query   # tool-config/slow-query/ranking.sql を実行（一瞬で終わる）
 ```
+
+出力は2部構成: **Profile表**（`pct` 降順の横テーブル）と **詳細ブロック**（`\G` 縦形式、完全なクエリ文入り）。
 
 読み方:
 
-- 冒頭の **Profile表**: `Response time %` 降順のランキング。上位から潰す
-- 各クエリ詳細の **Count**: 同一パターンの実行回数
-- **N+1の検出**: alpの該当エンドポイントのCOUNTに対してクエリCountが数倍以上ならN+1を疑い、一桁以上多ければ（例: リクエスト1,000件に対しクエリ50,000件）ほぼ確実にN+1
-- `Rows examined` が `Rows sent` の数十倍以上（各クエリ詳細セクションの1回あたりの値。Profile表のCount×平均ではなく、個々のクエリブロックに出る数値を見る） → インデックス不足。`EXPLAIN` で確認する
+- **pct / total_s**: 全クエリ時間に占める割合の降順ランキング。上位から潰す
+- **calls**: 同一パターンの実行回数
+- **N+1の検出**: alpの該当エンドポイントのCOUNTに対してcallsが数倍以上ならN+1を疑い、一桁以上多ければ（例: リクエスト1,000件に対しクエリ50,000件）ほぼ確実にN+1
+- **examined_per_sent**（rows_examined ÷ rows_sent）が数十以上 → インデックス不足。`EXPLAIN` で確認する
+- 統計は `make bench` のMySQL再起動でリセットされる累積値。直近ベンチ以降の値であることを確認する（「前提の確認」と同じ）
 
 ```bash
 sudo mysql <db> -e "EXPLAIN <該当クエリ>\G"   # type=ALL（フルスキャン）ならインデックス候補
@@ -95,11 +98,11 @@ ENABLE_VERNIER=1 でベンチ → make vernier-view
 
 ```
 改善対象: GET /api/livestream/:id （N+1: commentsテーブルへのSELECTがリクエスト比50倍）
-根拠: alp SUM 1位 320s / pt-query-digest Rank 1 (Response time 45%, Count 52,000)
+根拠: alp SUM 1位 320s / make slow-query rank 1 (pct 45%, calls 52,000)
 期待効果: 全DB時間の45%がこのクエリ由来。JOIN化でSUM 1位エンドポイントの大幅短縮を見込む
 ```
 
-期待効果は定性的で良い（「Response time X% を占めるクエリを排除」等）。スコア換算の正確な予測は不要で、次のベンチで実測する。
+期待効果は定性的で良い（「全クエリ時間のpct X% を占めるクエリを排除」等）。スコア換算の正確な予測は不要で、次のベンチで実測する。
 
 ## よくある失敗
 
