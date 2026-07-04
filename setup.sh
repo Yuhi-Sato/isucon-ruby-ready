@@ -148,7 +148,12 @@ if ! ssh-keygen -F github.com -f "$KNOWN_HOSTS" >/dev/null 2>&1; then
 fi
 
 # agent forwardingの疎通確認
-AUTH_CHECK="$(ssh -T git@github.com 2>&1 || true)"
+# </dev/null必須: このssh -Tはbash -s --（ヒアドキュメント経由でこのスクリプト自体を
+# 読み込み中）の子プロセスであり、stdinを明示的に切らないとヒアドキュメントの残り
+# （この行より後の全行）を横取りしてしまう。横取りされるとbash側は次の読み出しで
+# 即EOFとなり、エラーも出さずここでスクリプトが静かに終了する（tarball展開以降が
+# 一切実行されないままexit 0で返る）。
+AUTH_CHECK="$(ssh -T git@github.com </dev/null 2>&1 || true)"
 if ! echo "$AUTH_CHECK" | grep -q "successfully authenticated"; then
   echo "エラー: GitHubへのSSH認証に失敗しました。ssh -A で接続されていない可能性があります。" >&2
   echo "$AUTH_CHECK" >&2
