@@ -95,6 +95,12 @@ ssh s1
 
 ## セットアップ
 
+> [!WARNING]
+> **実行前に、配布リポジトリのルートが`/home/isucon`と一致するか必ず確認すること。**
+> ISUCON運営配布リポジトリのルート（`webapp/`と同階層）が`/home/isucon`直下でない問題がある（例: private_isuは`/home/isucon/private_isu`が本当のルート）。サーバーに一度SSHして`ls /home/isucon`し、`webapp/`が直下に見えない場合は`--dir`を省略せず必ず指定すること（[配布リポジトリのルートが異なる場合](#配布リポジトリのルートが異なる場合private_isuなど)参照）。
+>
+> `--dir`を付け忘れると、ツール一式が実際のアプリコードと無関係な場所に展開され、`Makefile`の`APP_DIR`/`SERVICE_NAME`が噛み合わないまま**エラーも出さずにセットアップが「完了」してしまう**。
+
 `setup.sh`1コマンドで、tarball展開・サーバー側ツールセットアップ・チームリポジトリへのgit配線までを行う。**ローカルマシン**（サーバーではない）から実行する。サーバーにはGitHubの認証情報を一切置かず、ローカルの`gh` CLI認証とSSH agent forwardingだけでチームリポジトリの作成・push（s1）または取得（s2/s3）を行う。事前に以下をローカルマシンで済ませておく。
 
 - `gh auth login`でGitHub CLIを認証済みにしておく
@@ -159,6 +165,19 @@ sh server-setup.sh s1   # s2/s3の場合は s2 / s3
 ```
 
 この場合、チームリポジトリへのgit初期化・push（s1）やgit配線（s2/s3）は別途手動で行う必要がある。
+
+### セットアップ後: ここからの作業拠点
+
+> [!IMPORTANT]
+> **`setup.sh`完了後は、この`isucon-ruby-ready`ではなく、s1がpushしたチームリポジトリをローカルにcloneしたディレクトリが以後の作業拠点になる。**
+> `isucon-ruby-ready`はツール一式のテンプレートにすぎない。Makefile変数の調整・`tool-config/alp/config.yml`編集・アプリコードの確認などは全てチームリポジトリ側で行う（[AGENTS.md](AGENTS.md)の「サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する」という前提）。
+
+```bash
+gh repo clone Yuhi-Sato/<repo-name>
+cd <repo-name>
+```
+
+以降は[isucon-initial-recon](.agents/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは、`systemctl`でのサービス名確認・DBスキーマ確認・`make bench`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
 
 ## デプロイ
 
