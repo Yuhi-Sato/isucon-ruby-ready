@@ -5,7 +5,10 @@
 # 異常時（gh未認証・ssh-agent不調等）はサーバー上で直接 `sh server-setup.sh <role>`
 # を実行するフォールバック手段としても使える。
 
-set -euo pipefail
+# setup.sh・README双方の想定呼び出しが `sh server-setup.sh <role>` であり、
+# Ubuntuの/bin/shはdash（pipefail非対応のPOSIX sh）のため、bash専用の
+# `-o pipefail` は使わない。
+set -eu
 cd "$(dirname "$0")"
 
 if [ "$#" -ne 1 ] || ! echo "$1" | grep -qE '^s[1-3]$'; then
