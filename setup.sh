@@ -121,13 +121,28 @@ else
   fi
 fi
 
+# --- サーバー側処理の実行ユーザーの決定 ---
+# 練習環境等ではSSH接続ユーザーがisuconでない（ubuntu等の管理ユーザー）ことがある。
+# そのままでは/home/isuconへのtar展開が権限エラーになり、Deploy keyも接続ユーザーの
+# homeに作られてisuconのgit操作と噛み合わない。接続ユーザーがisuconでなければ、
+# サーバー側処理（鍵生成・remote-setup.sh）全体をsudoでisuconとして実行する。
+# -n: パスワードが必要ならプロンプトで固まらず即失敗させる（passwordless sudo前提）
+# -H: $HOMEをisuconのものにする。-i（ログインシェル）は使わない。.profile等の
+#     出力が後続のpubkeyキャプチャを汚染しうるため。
+REMOTE_USER="$(ssh -o RemoteCommand=none "$SERVER" whoami)"
+REMOTE_BASH=(bash -s)
+if [ "$REMOTE_USER" != "isucon" ]; then
+  echo "SSH接続ユーザーが ${REMOTE_USER} のため、サーバー側処理は sudo -u isucon で実行します。"
+  REMOTE_BASH=(sudo -n -u isucon -H bash -s)
+fi
+
 # --- Deploy keyの生成（サーバー上）と登録（ローカルのgh CLI） ---
 
 echo "サーバー ${SERVER} 上でDeploy keyを準備します..."
 
 # -o RemoteCommand=none: ~/.ssh/configでそのHostにRemoteCommandが設定されていると
 # 「コマンドライン上のコマンド」との併用をsshが拒否するため明示的に無効化する。
-PUB_KEY="$(ssh -o RemoteCommand=none "$SERVER" bash -s -- "$KEY_BASENAME" "$ROLE" <<'KEYGEN_SCRIPT'
+PUB_KEY_RAW="$(ssh -o RemoteCommand=none "$SERVER" "${REMOTE_BASH[@]}" -- "$KEY_BASENAME" "$ROLE" <<'KEYGEN_SCRIPT'
 set -euo pipefail
 KEY_BASENAME="$1"
 ROLE="$2"
@@ -143,9 +158,13 @@ cat "$KEY_FILE.pub"
 KEYGEN_SCRIPT
 )"
 
-if ! echo "$PUB_KEY" | grep -q "^ssh-ed25519 "; then
+# sudo経由等で余計な出力が混ざる可能性に備え、公開鍵の行だけを取り出す
+PUB_KEY="$(echo "$PUB_KEY_RAW" | grep '^ssh-ed25519 ' | tail -n 1 || true)"
+
+if [ -z "$PUB_KEY" ]; then
   echo "エラー: サーバー上でのDeploy key生成に失敗しました。" >&2
-  echo "$PUB_KEY" >&2
+  echo "$PUB_KEY_RAW" >&2
+  echo "（sudoのパスワードが要求される環境の場合は、READMEのフォールバック手順でremote-setup.shを直接実行してください）" >&2
   exit 1
 fi
 
@@ -166,125 +185,13 @@ else
   fi
 fi
 
-# --- サーバー側処理（1回のSSH接続に集約する） ---
+# --- サーバー側処理（remote-setup.shを流し込んで実行する） ---
+# 中身はremote-setup.sh参照。サーバー上で単体実行して再開することもできる。
 
 echo "サーバー ${SERVER} 上でセットアップを行います..."
 
-# ここではローカルの変数をヒアドキュメント内で展開させず、
-# bash -s -- の位置引数としてサーバー側スクリプトへ渡す。
-ssh -o RemoteCommand=none "$SERVER" bash -s -- "$TARGET_DIR" "$REPO_SSH_URL" "$ROLE" "$KEY_BASENAME" <<'REMOTE_SCRIPT'
-set -euo pipefail
-
-TARGET_DIR="$1"
-REPO_SSH_URL="$2"
-ROLE="$3"
-KEY_BASENAME="$4"
-KEY_FILE="$HOME/.ssh/$KEY_BASENAME"
-KNOWN_HOSTS="$HOME/.ssh/known_hosts"
-
-# このリポジトリ専用のDeploy keyだけを使う（agentや他の鍵に依存しない）
-GIT_SSH_CMD="ssh -i $KEY_FILE -o IdentitiesOnly=yes"
-export GIT_SSH_COMMAND="$GIT_SSH_CMD"
-
-# github.comのホストキーがknown_hostsになければssh-keyscanで追加する
-mkdir -p "$HOME/.ssh"
-chmod 700 "$HOME/.ssh"
-if ! ssh-keygen -F github.com -f "$KNOWN_HOSTS" >/dev/null 2>&1; then
-  echo "github.comのホストキーが未登録のため追加します..."
-  ssh-keyscan -H github.com >> "$KNOWN_HOSTS" 2>/dev/null
-fi
-
-# Deploy keyでのGitHub認証疎通確認
-# </dev/null必須: このssh -Tはbash -s --（ヒアドキュメント経由でこのスクリプト自体を
-# 読み込み中）の子プロセスであり、stdinを明示的に切らないとヒアドキュメントの残り
-# （この行より後の全行）を横取りしてしまう。横取りされるとbash側は次の読み出しで
-# 即EOFとなり、エラーも出さずここでスクリプトが静かに終了する。
-AUTH_CHECK="$(ssh -i "$KEY_FILE" -o IdentitiesOnly=yes -T git@github.com </dev/null 2>&1 || true)"
-if ! echo "$AUTH_CHECK" | grep -q "successfully authenticated"; then
-  echo "エラー: Deploy keyでのGitHubへのSSH認証に失敗しました。" >&2
-  echo "Deploy keyがリポジトリに登録されているか（setup.shの直前の出力）を確認してください。" >&2
-  echo "$AUTH_CHECK" >&2
-  exit 1
-fi
-
-mkdir -p "$TARGET_DIR"
-cd "$TARGET_DIR"
-
-if [ "$ROLE" = "s1" ]; then
-  # ISUCON運営配布リポジトリのルート（webapp/と同階層）に、このリポジトリの
-  # ツール一式を展開する（既に展開済みでも上書きになるだけで冪等）。
-  echo "isucon-ruby-readyのツール一式を展開します..."
-  curl -fsSL https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
-    | tar xz --strip-components=1
-
-  # ツール導入・ディレクトリ準備・サーバー設定取得（env.sh作成 → make setup →
-  # make set-as-s1 → make get-conf）。get-confの結果（s1/etc/配下）を
-  # このあとの初回コミットに含める。
-  sh server-setup.sh s1
-
-  if [ ! -d .git ]; then
-    git init -b main
-  else
-    echo ".gitは既に初期化済みのため、git initをスキップします。"
-  fi
-
-  if git remote get-url origin >/dev/null 2>&1; then
-    if [ "$(git remote get-url origin)" != "$REPO_SSH_URL" ]; then
-      git remote set-url origin "$REPO_SSH_URL"
-    fi
-  else
-    git remote add origin "$REPO_SSH_URL"
-  fi
-
-  # 以後の git pull / push（make deploy / make bench 含む）が追加設定なしで
-  # このDeploy keyを使うよう、リポジトリ設定に固定する
-  git config core.sshCommand "$GIT_SSH_CMD"
-
-  git add .
-  if git diff --cached --quiet; then
-    echo "コミット対象の変更がないため、コミットをスキップします。"
-  else
-    git commit -m 'first commit'
-  fi
-
-  if ! git push -u origin main; then
-    echo "エラー: git pushに失敗しました。" >&2
-    echo "Deploy keyが書き込み権限付き（--allow-write）で登録されているかを確認してから再実行してください。" >&2
-    exit 1
-  fi
-else
-  # s2/s3: TARGET_DIRにはISUCON運営配布のアプリコード（webapp/等）が既に
-  # 展開された状態で置かれている（非空）。git cloneは非空ディレクトリを
-  # 拒否するため使えず、代わりにgit init + fetch + checkoutでチーム
-  # リポジトリの内容（Makefile・tool-config・webapp含む）を被せる。
-  if [ ! -d .git ]; then
-    git init -b main
-  else
-    echo ".gitは既に初期化済みのため、git initをスキップします。"
-  fi
-
-  if git remote get-url origin >/dev/null 2>&1; then
-    if [ "$(git remote get-url origin)" != "$REPO_SSH_URL" ]; then
-      git remote set-url origin "$REPO_SSH_URL"
-    fi
-  else
-    git remote add origin "$REPO_SSH_URL"
-  fi
-
-  # 以後の git pull / push（make deploy / make bench 含む）が追加設定なしで
-  # このDeploy keyを使うよう、リポジトリ設定に固定する
-  git config core.sshCommand "$GIT_SSH_CMD"
-
-  echo "チームリポジトリ (${REPO_SSH_URL}) からmainを取得します..."
-  git fetch origin main
-  git checkout -f -B main origin/main
-
-  # ツール導入・ディレクトリ準備・サーバー設定取得（env.sh作成 → make setup →
-  # make set-as-s2/s3 → make get-conf）。
-  sh server-setup.sh "$ROLE"
-fi
-
-echo "サーバー側のセットアップが完了しました（role: ${ROLE}）。"
-REMOTE_SCRIPT
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ssh -o RemoteCommand=none "$SERVER" "${REMOTE_BASH[@]}" -- "$ROLE" "$REPO_NAME" --dir "$TARGET_DIR" \
+  < "$SCRIPT_DIR/remote-setup.sh"
 
 echo "setup.shが完了しました: ${SERVER}:${TARGET_DIR} -> ${REPO_SSH_URL} (role: ${ROLE})"

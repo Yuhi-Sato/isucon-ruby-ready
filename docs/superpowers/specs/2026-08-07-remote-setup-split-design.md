@@ -41,9 +41,9 @@ curl -fsSL https://raw.githubusercontent.com/Yuhi-Sato/isucon-ruby-ready/main/re
 
 ### 3. `setup.sh`に自動sudoフォールバック
 
-サーバー側処理（Deploy key生成・`remote-setup.sh`実行）の前に`ssh <server> whoami`で接続ユーザーを確認し、`isucon`でなければ両フェーズを`sudo -iu isucon bash -s`でラップして実行する。
+サーバー側処理（Deploy key生成・`remote-setup.sh`実行）の前に`ssh <server> whoami`で接続ユーザーを確認し、`isucon`でなければ両フェーズを`sudo -n -u isucon -H bash -s`でラップして実行する。
 
-- `sudo -i`により`$HOME`・カレントが`isucon`のものになるため、鍵は必ず`isucon`のhomeに作られる
+- `-n`はパスワード要求時に即失敗させるため、`-H`は`$HOME`をisuconに差し替えるため。`-i`（ログインシェル）は`.profile`等の出力がpubkeyキャプチャを汚染しうるため使わない。これにより鍵は必ず`isucon`のhomeに作られる
 - 練習環境の管理ユーザーはpasswordless sudoを持つ前提（ISUCON系環境の標準構成）。sudoにパスワードが必要な環境ではエラーになるが、その場合は手動フォールバック（設計2）に誘導する
 - 本番の`isucon`直接続では従来どおりsudoなしで実行される
 
@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/Yuhi-Sato/isucon-ruby-ready/main/re
 ```
 setup.sh（ローカル）
   ├─ gh auth確認 / リポジトリ作成・存在確認（変更なし）
-  ├─ ssh <server> whoami → isuconでなければ以降を sudo -iu isucon でラップ
+  ├─ ssh <server> whoami → isuconでなければ以降を sudo -n -u isucon -H でラップ
   ├─ [SSH 1] Deploy key生成（ヒアドキュメント、既存ロジック）→ pubkey回収 → gh deploy-key add（変更なし）
   └─ [SSH 2] bash -s -- <role> <repo-name> [--dir ...] < remote-setup.sh
        └─ remote-setup.sh: known_hosts → 認証疎通（失敗時は登録手順を表示して終了）
