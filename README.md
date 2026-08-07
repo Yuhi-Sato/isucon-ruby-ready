@@ -16,7 +16,6 @@ ISUCON運営配布リポジトリのルートに、このリポジトリの内�
 - [ ] `Makefile` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）
 - [ ] `Makefile` の `DB_SERVICE_NAME` を確認する（MariaDBの場合は `mariadb` 等に変更）
 - [ ] `git-setup` 内の `git config` の `user.email` / `user.name` を確認する
-- [ ] GitHub Secrets / Variablesを登録する（[必要なGitHub Secrets / Variables](#必要なgithub-secretsvariables)、[CI用SSH鍵のセットアップ](#ci用ssh鍵のセットアップ)を参照）
 - [ ] `tool-config/alp/config.yml` の `matching_groups` を問題のURLパターンに合わせて編集する
 - [ ] `tool-config/nginx/ltsv-log-format.conf` の内容をnginx.confに反映する
 - [ ] `tool-config/alp/notify-slack.toml.example` / `tool-config/slow-query/notify-slack.toml.example` をコピーしてWebhook URLを設定する
@@ -189,13 +188,13 @@ cd <repo-name>
 | ターゲット | 用途・注意点 |
 |---|---|
 | `make bench` | **ベンチマーク実行直前のみ手動で叩く。** ログ削除・設定反映・DB/nginx含む全再起動を伴うため、計測中の他メンバーの作業を壊す |
-| `make deploy` | mainマージ時にCIから自動実行される軽量デプロイ。ログは消さず、DB/nginxも再起動しない |
-| `make remote-deploy-s1` / `-all` | ローカルから対象サーバー（全サーバー）へ`deploy.sh`をSSH経由で実行する（[ローカルからのデプロイ](#ローカルからのデプロイ手動フォールバック兼用)参照） |
+| `make deploy` | サーバー上で手動実行する軽量デプロイ。ログは消さず、DB/nginxも再起動しない |
+| `make remote-deploy-s1` / `-all` | ローカルから対象サーバー（全サーバー）へ`deploy.sh`をSSH経由で実行する（[ローカルからのデプロイ](#ローカルからのデプロイ)参照） |
 | `make add-profiling-gems` | `bundle add vernier`を実行する。**ローカル専用**（サーバーで実行するとGemfile.lockの変更が残り以後の`git pull`がconflictする） |
 
-### ローカルからのデプロイ（手動フォールバック兼用）
+### ローカルからのデプロイ
 
-mainマージを待たずに手元からデプロイしたいときや、GitHub ActionsのランナーからサーバーへSSH到達できないときは、ローカルから直接デプロイできる。
+変更をpushしたら、ローカルから各サーバーへ直接デプロイする。
 
 ```bash
 make remote-deploy-s1    # 対象サーバーのみ（remote-deploy-s2 / -s3 も同様）
@@ -207,31 +206,6 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 - サーバー上の配置パスがホームディレクトリ以外の場合は `make remote-deploy-s1 REMOTE_DEPLOY_PATH=<パス>` で上書きする
 - 使わないサーバーがある場合は `make remote-deploy-all SERVERS="s1 s2"` のように対象を絞れる
 - `remote-deploy-all` は並列実行（`make -k -j`）のため出力が交錯することがある。失敗したサーバーがあっても残りへ続行し、最後にまとめて報告して非0で終了する
-
-### 必要なGitHub Secrets/Variables
-
-CIからの自動デプロイ（`.github/workflows/deploy.yml`）に必要。ホスト名やパスなど秘密情報でないものは、ジョブレベルの`if`条件から参照できる **Variables** に登録する（`secrets`コンテキストはジョブレベルの`if`から参照できず常に空文字扱いになるため、Secretsに置くとs2/s3の自動skipが機能しない）。
-
-| Secret名 | 用途 |
-|---|---|
-| `SSH_PRIVATE_KEY` | CI専用のSSH秘密鍵（全サーバー共通） |
-
-| Variable名 | 用途 |
-|---|---|
-| `SSH_USER` | SSHユーザー名（通常 `isucon`） |
-| `SSH_HOST_S1` / `SSH_HOST_S2` / `SSH_HOST_S3` | 各サーバーのホスト名/IP |
-| `DEPLOY_PATH` | サーバー上のリポジトリ配置パス |
-
-s2 / s3を使わない場合は、対応する `SSH_HOST_S2` / `SSH_HOST_S3`（Variable）を登録しなければそのジョブは自動的にskipされる（`deploy.yml`内で`if: vars.SSH_HOST_S2 != ''`のように判定している）。ワークフローファイルを編集する必要はない。s1は必須のため常に実行される。
-
-### CI用SSH鍵のセットアップ
-
-1. 手元でCI専用の鍵ペアを作成する（`setup.sh`がサーバーごとに生成・登録するGitHub用Deploy keyとは別物。CIがサーバーにSSHログインするための鍵）
-   ```bash
-   ssh-keygen -t ed25519 -f ci_deploy_key -N ""
-   ```
-2. 公開鍵（`ci_deploy_key.pub`）を **各サーバー** の `~/.ssh/authorized_keys` に追記する
-3. 秘密鍵（`ci_deploy_key`）の内容をGitHub Secretsの `SSH_PRIVATE_KEY` に登録する
 
 ### deploy.shの既知の制約
 

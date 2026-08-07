@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# CI（GitHub Actions）・手動デプロイの両方から呼ばれるエントリポイント。
+# 手動デプロイ（make deploy / make remote-deploy-*）から呼ばれるエントリポイント。
 # 既知の制約: このファイル自体への変更は次回の `git pull` (make deploy 内) より前に
 # 実行されるため、1回のデプロイでは反映されず、次のデプロイから反映される。
 
