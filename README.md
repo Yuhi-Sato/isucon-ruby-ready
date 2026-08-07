@@ -102,6 +102,8 @@ ssh s1
 
 GitHubへの認証は、サーバーごとに自動生成する**Deploy key**（対象リポジトリ限定・書き込み権限付きの鍵、`~/.ssh/github_deploy_<repo-name>`）で行う。鍵の登録はローカルの`gh` CLIが自動で行うため、事前に`gh auth login`を済ませておく（**s1/s2/s3すべての実行で必要**）。鍵ファイル名にリポジトリ名を含むのは、Deploy keyがGitHub全体で1つのリポジトリにしか登録できず、競技をまたいだ鍵の使い回しが衝突するため。
 
+SSH接続ユーザーが`isucon`でない場合（練習環境等で`ubuntu`等の管理ユーザーで接続する構成）は、`setup.sh`がサーバー側処理を自動で`sudo -u isucon`として実行する（passwordless sudo前提）。これによりDeploy keyも必ず`isucon`のhomeに作られる。
+
 かつてのssh agent forwarding（`ssh -A`）方式は、sudoでのユーザー切り替えで転送が失われる等実運用で不安定なうえ、サーバー上の`git pull`（`make deploy` / `make bench`の先頭）がforwarding無しでは動かないため廃止した（経緯は[2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md)の改訂節を参照）。
 
 ### s1（メインサーバー、チームリポジトリの作成元）
@@ -153,18 +155,17 @@ SSHログイン直後のカレントディレクトリが、ISUCON運営配布�
 ./setup.sh s1 my-repo --dir /home/isucon/private_isu
 ```
 
-### ローカル経由が使えない場合のフォールバック
+### ローカル経由が使えない場合のフォールバック / 途中失敗からの再開
 
-`gh`が使えないなど、ローカルからの1コマンドが使えない場合は、サーバーに直接SSHして手動で行う。
+`gh`が使えない、または`setup.sh`がtar展開の権限エラー等で途中失敗した場合は、サーバー上で**isuconユーザーとして**`remote-setup.sh`を単体実行する。tarball展開・`server-setup.sh`・git配線（s1は初回push、s2/s3はfetch/checkout）までこれ1本で行い、何度実行しても安全（冪等）。
 
 ```bash
-# サーバー上（配布リポジトリのルートで）
-curl -L https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
-  | tar xz --strip-components=1
-sh server-setup.sh s1   # s2/s3の場合は s2 / s3
+# サーバー上。isuconユーザーでない場合は先に sudo -i -u isucon する
+curl -fsSL https://raw.githubusercontent.com/Yuhi-Sato/isucon-ruby-ready/main/remote-setup.sh \
+  | bash -s -- s1 <repo-name>   # s2/s3の場合は s2 / s3。ルートが異なる場合は --dir <path> を追加
 ```
 
-この場合、チームリポジトリへのgit初期化・push（s1）やgit配線（s2/s3）、Deploy keyの生成・登録は別途手動で行う必要がある。
+Deploy keyが未登録（または実行ユーザーのhomeに鍵が無い）場合は、鍵を生成したうえで公開鍵とローカルで実行すべき`gh repo deploy-key add`コマンドを表示して止まるので、登録してから再実行すると続きから進む。
 
 ### セットアップ後: ここからの作業拠点
 
