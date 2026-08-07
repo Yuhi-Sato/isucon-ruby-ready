@@ -142,6 +142,34 @@ if [ "$ROLE" = "s1" ]; then
 
   setup_git_remote
 
+  # ホームディレクトリがリポジトリルートの場合（isucon14等）、git add . が
+  # ランタイム・キャッシュ・鍵類（.rustup/.cargo/.ssh等で数GB）を巻き込むため、
+  # ホーム直下のdot要素と配布ランタイム(local/)を除外する（初回のみ追記・冪等）。
+  # .agents（スキル）・.github（デプロイCI）・.gitignore自体は管理対象に残す。
+  if ! grep -qF "# --- remote-setup.sh managed ignores ---" .gitignore 2>/dev/null; then
+    cat >> .gitignore <<'IGNORE_BLOCK'
+# --- remote-setup.sh managed ignores ---
+/.*
+!/.agents/
+!/.github/
+!/.gitignore
+/local/
+node_modules/
+IGNORE_BLOCK
+  fi
+
+  # GitHubは100MB超のファイルのpushを拒否するため、50MB以上のファイルは
+  # .gitignoreに追加して管理対象から除外する（ベンチ用初期データ等を想定）
+  find . -path ./.git -prune -o -type f -size +50M -print | sed 's|^\./||' | while IFS= read -r f; do
+    # 既に除外済み（managedブロックや既存.gitignoreでカバー済み）なら追記しない
+    if ! git check-ignore -q "$f"; then
+      echo "/$f" >> .gitignore
+      echo "サイズ超過（50MB以上）のため.gitignoreに追加: $f"
+    fi
+    # 以前の実行で追跡済みになっていた場合はインデックスからも外す
+    git rm --cached --quiet "$f" 2>/dev/null || true
+  done
+
   git add .
   if git diff --cached --quiet; then
     echo "コミット対象の変更がないため、コミットをスキップします。"
