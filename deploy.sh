@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# 手動デプロイ（make deploy / make remote-deploy-*）から呼ばれるエントリポイント。
-# 既知の制約: このファイル自体への変更は次回の `git pull` (make deploy 内) より前に
-# 実行されるため、1回のデプロイでは反映されず、次のデプロイから反映される。
+# 手動デプロイ（make deploy / make remote-deploy-*）のエントリポイント。
+# git pull 後に scripts/deploy.sh（pull済みの最新版。bundle install→デーモン再起動）へ
+# 委譲するので、デプロイロジックの変更は同じデプロイで反映される。
+# 既知の制約: このファイル自体への変更だけは `git pull` より前に読み込まれるため、
+# 1回のデプロイでは反映されず、次のデプロイから反映される。
 
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -13,4 +15,5 @@ cd "$(dirname "$0")"
 [ -f "$HOME/env.sh" ] && . "$HOME/env.sh"
 export PATH="$HOME/local/ruby/bin:$HOME/.rbenv/shims:$PATH"
 
-make deploy
+git pull
+exec ./scripts/deploy.sh

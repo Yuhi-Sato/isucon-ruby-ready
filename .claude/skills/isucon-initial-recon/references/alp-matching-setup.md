@@ -1,11 +1,4 @@
----
-name: isucon-alp-setup
-description: ISUCONで問題のAPIエンドポイントに合わせて `tool-config/alp/config.yml` の matching_groups を設定・更新するときに使う。「alpのmatching_groupsを設定して」「alpの集計がURLごとにバラける」「/api/users/1 と /api/users/2 が別々に集計される」などのリクエストで使用する。
----
-
-# ISUCON alp matching_groups セットアップ
-
-## 概要
+# alp matching_groups セットアップ
 
 `make alp` はアクセスログのURIをそのまま集計する。`/api/users/1` と `/api/users/2` のようにIDだけ違うURLは、正規表現でまとめる（`matching_groups`）設定をしないと別々の行に分散し、集計が使いものにならない。**ベースライン計測前に必ず設定する。**
 

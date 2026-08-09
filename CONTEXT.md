@@ -10,7 +10,7 @@
 
 ## 初動調査
 
-競技開始直後にエージェント（`isucon-initial-recon`スキル）が行う、問題固有の適応作業。Makefile変数（`APP_DIR`/`SERVICE_NAME`/`DB_SERVICE_NAME`）の確認・修正、`tool-config/alp/config.yml`のmatching_groups調整、クエリ抽出（`make extract-sql`）などを含む。
+競技開始直後にエージェント（`isucon-initial-recon`スキル）が行う、問題固有の適応作業。`scripts/vars.sh`の変数（`APP_DIR`/`SERVICE_NAME`/`DB_SERVICE_NAME`）の確認・修正、`tool-config/alp/config.yml`のmatching_groups調整、クエリ抽出（`make extract-sql`）などを含む。
 
 対比: [[セットアップ]]が完了した後に始まる作業であり、setup.sh自体はこの作業を行わない。
 
@@ -31,9 +31,9 @@
 
 対比: alpの集計はエンドポイント軸の横断集計であり、ユーザー軸の時系列（行動フロー）は扱えない。行動履歴の分析はそのギャップを埋める。
 
-## deploy と bench
+## deploy と bench-prep
 
 - **`make deploy`**: mainマージ時にCIから自動実行される軽量デプロイ。ログを消さず、DB/nginxを再起動しない
-- **`make bench`**: ベンチマーク実行直前に人間が手動で叩く。ログ削除・設定反映・DB/nginx含む全再起動を伴う
+- **`make bench-prep`**: ベンチマーク実行直前に人間が手動で叩く。ログ削除・設定反映・DB/nginx含む全再起動を伴う
 
-両者を混同して`make bench`を計測中に実行すると、他メンバーの計測ログが消え、DB/nginxが瞬断する。
+両者を混同して`make bench-prep`を計測中に実行すると、他メンバーの計測ログが消え、DB/nginxが瞬断する。

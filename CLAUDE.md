@@ -9,7 +9,7 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 - サーバー上のコマンドはローカルのエージェントから都度SSHで実行する（例: `ssh s1 "cd /home/isucon && make alp"`）。`make watch-service-log` など継続監視が必要なものはバックグラウンドSSHで実行する
 - 都度SSHの接続確立コストを避けるため、`~/.ssh/config`にControlMaster/ControlPersistを設定しておく（[ローカルからのデプロイ](README.md#ローカルからのデプロイ手動フォールバック兼用)参照）
 - サーバー上のコマンドは `/home/isucon`（リポジトリルート）で実行する
-- `SERVICE_NAME` / `APP_DIR` などの変数は `Makefile` 冒頭で定義。問題に合わせて変更済みか最初に確認する
+- `SERVICE_NAME` / `APP_DIR` などの変数は `scripts/vars.sh` で定義。問題に合わせて変更済みか最初に確認する。Makefileはショートカット集で、ロジックは `scripts/` 以下のシェルスクリプトにある
 - `./setup.sh <server> [repo-name]`（内部で `sh server-setup.sh <s1|s2|s3>` → `make setup` → `install-tools`）で `alp` / `notify_slack` / `pt-query-digest` は導入済み。エージェントが改めてインストールする必要はない
 
 ## 方針
@@ -23,9 +23,7 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 
 | スキル | 使うタイミング |
 |---|---|
-| [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録） |
-| [isucon-service-setup](.claude/skills/isucon-service-setup/SKILL.md) | 実サービス名の特定とMakefile変数（SERVICE_NAME/APP_DIR/DB_SERVICE_NAME）の修正 |
-| [isucon-alp-setup](.claude/skills/isucon-alp-setup/SKILL.md) | alpのmatching_groups設定（URLの可変部分をまとめて集計する） |
+| [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録）。サービス名・alp・nginx/MySQL計測設定の初期セットアップ手順は同スキルの`references/`以下を参照 |
 | [isucon-bottleneck-analysis](.claude/skills/isucon-bottleneck-analysis/SKILL.md) | ベンチ後、計測結果から次の改善対象を決めるとき |
 | [isucon-optimization-patterns](.claude/skills/isucon-optimization-patterns/SKILL.md) | アプリコードの改善（N+1・インデックス・キャッシュ等）を実装するとき |
 | [isucon-mysql2-to-trilogy](.claude/skills/isucon-mysql2-to-trilogy/SKILL.md) | mysql2からtrilogyへのDBクライアント移行を検討・実施するとき |
@@ -34,8 +32,8 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 | [isucon-puma-tuning](.claude/skills/isucon-puma-tuning/SKILL.md) | Pumaのworkers/threads構成を調整するとき |
 | [isucon-nginx-caching](.claude/skills/isucon-nginx-caching/SKILL.md) | nginxのHTTPキャッシュ（proxy_cache）でアプリへのリクエストを減らすとき |
 | [isucon-user-behavior-analysis](.claude/skills/isucon-user-behavior-analysis/SKILL.md) | ユーザー行動履歴（userid付きアクセスログ）の記録導入と、DuckDBでの行動フロー・リピート分析 |
-| [isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のセットアップ・チューニング（performance_schema・I/O・buffer pool・接続数等） |
-| [isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のセットアップ・チューニング（ltsvログフォーマット・keepalive・静的配信・UNIXソケット等） |
+| [isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のチューニング（I/O・buffer pool・接続数等） |
+| [isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のチューニング（keepalive・静的配信・UNIXソケット等） |
 | [isucon-server-tuning](.claude/skills/isucon-server-tuning/SKILL.md) | 複数台構成への分割（DB分離・アプリ複数台）やsystemdユニットの調整 |
 | [isucon-troubleshooting](.claude/skills/isucon-troubleshooting/SKILL.md) | ベンチFAIL・整合性エラー・アプリ起動しない・スコア急落などの障害対応 |
 | [isucon-final-check](.claude/skills/isucon-final-check/SKILL.md) | 終了約1時間前からの最終確認（ログ無効化・再起動試験・最終ベンチ） |
@@ -56,7 +54,7 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 
 | コマンド | 実行場所 | 用途 |
 |---|---|---|
-| `make bench` | サーバー | **ベンチ実行直前のみ。** ログ消去・設定反映・DB/nginx含む全再起動を伴う |
+| `make bench-prep` | サーバー | **ベンチ実行直前のみ。** ログ消去・設定反映・DB/nginx含む全再起動を伴う |
 | `make deploy` | サーバー | 軽量デプロイ（手動実行）。ログは消えない |
 | `make remote-deploy-s1` | ローカル | 対象サーバーだけデプロイ（`-s2` / `-s3` も同様） |
 | `make remote-deploy-all` | ローカル | 全サーバーへ並列デプロイ |
@@ -66,13 +64,13 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 | コマンド | 用途 |
 |---|---|
 | `make get-conf` | サーバーの実際のDB/nginx設定を`s1/`等のgit管理下にコピーする |
-| `make deploy-conf` | git管理下の設定をサーバーに反映する（`make bench`に含まれる） |
+| `make deploy-conf` | git管理下の設定をサーバーに反映する（`make bench-prep`に含まれる） |
 | `make restart` | DB→アプリ→nginxの順に全再起動する |
 | `make restart-app` | アプリのみ再起動する |
 
 ## 禁止・注意事項
 
-- **`make bench` を計測中に叩かない。** ログが消えてDB/nginxが再起動する。他メンバーの計測を破壊する
+- **`make bench-prep` を計測中に叩かない。** ログが消えてDB/nginxが再起動する。他メンバーの計測を破壊する
 - **`make add-profiling-gems` はローカル専用。** サーバーで実行するとGemfile.lockが変更され、以後の `git pull` がconflictで失敗する
 - サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する
-- `make bench` / `make deploy` 以外でログを消さない（`make rm-logs` 単体は原則使わない）
+- `make bench-prep` / `make deploy` 以外でログを消さない（`make rm-logs` 単体は原則使わない）
