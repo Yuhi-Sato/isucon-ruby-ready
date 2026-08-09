@@ -8,6 +8,20 @@ ISUCON運営配布リポジトリのルートに、このリポジトリの内�
 
 設計の背景・意図は [docs/superpowers/specs/2026-07-01-isucon-ruby-ready-design.md](docs/superpowers/specs/2026-07-01-isucon-ruby-ready-design.md)、セットアップフロー統合・CI変数化の経緯は [docs/superpowers/specs/2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md) を参照。
 
+## このリポジトリをテンプレートとして使う
+
+このリポジトリはGitHubの[テンプレートリポジトリ](https://docs.github.com/ja/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)として設定されている。`gh repo create`の`--template`オプションで、コミット履歴を持たない独立したリポジトリとして複製できる。
+
+```bash
+gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private --clone
+```
+
+- `<new-repo-name>`: 作成するリポジトリ名（`owner/repo`形式で他オーナー配下に作ることも可能）
+- `--private`: 非公開で作成する場合に指定（公開でよければ省略し`--public`）
+- `--clone`: 作成後にカレントディレクトリへそのままclone する
+
+自分用にカスタマイズしたベースリポジトリを作っておきたい場合や、`setup.sh`を使わず手元でリポジトリ内容だけを複製したい場合に使う。**当日のチーム用リポジトリ作成**（サーバーへの展開・Deploy key登録込み）は、この方法ではなく[セットアップ](#セットアップ)の`setup.sh`を使うこと。
+
 ## 当日チェックリスト
 
 セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
