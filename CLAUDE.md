@@ -23,7 +23,7 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 
 | スキル | 使うタイミング |
 |---|---|
-| [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録） |
+| [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録）。サービス名・alp・nginx/MySQL計測設定の初期セットアップ手順は同スキルの`references/`以下を参照 |
 | [isucon-bottleneck-analysis](.claude/skills/isucon-bottleneck-analysis/SKILL.md) | ベンチ後、計測結果から次の改善対象を決めるとき |
 | [isucon-optimization-patterns](.claude/skills/isucon-optimization-patterns/SKILL.md) | アプリコードの改善（N+1・インデックス・キャッシュ等）を実装するとき |
 | [isucon-mysql2-to-trilogy](.claude/skills/isucon-mysql2-to-trilogy/SKILL.md) | mysql2からtrilogyへのDBクライアント移行を検討・実施するとき |
