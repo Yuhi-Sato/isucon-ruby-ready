@@ -20,17 +20,6 @@ gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private 
 
 自分用にカスタマイズしたベースリポジトリを作っておきたい場合や、`setup.sh`を使わず手元でリポジトリ内容だけを複製したい場合に使う。**当日のチーム用リポジトリ作成**（サーバーへの展開・Deploy key登録込み）は、この方法ではなく[セットアップ](#セットアップ)の`setup.sh`を使うこと。
 
-## 当日チェックリスト
-
-セットアップ後、最初に以下を問題に合わせて確認・修正する。問題固有の適応全体の進め方は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査を参照。
-
-- [ ] `scripts/vars.sh` の `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` を問題の実環境に合わせて修正する（[references/service-name-setup.md](.claude/skills/isucon-initial-recon/references/service-name-setup.md)）
-- [ ] `scripts/setup.sh` 内の `git config` の `user.email` / `user.name` を確認する
-- [ ] `tool-config/alp/config.yml` の `matching_groups` を問題のURLパターンに合わせて編集する（[references/alp-matching-setup.md](.claude/skills/isucon-initial-recon/references/alp-matching-setup.md)）
-- [ ] `tool-config/nginx/ltsv-log-format.conf` の内容をnginx.confに反映する（[references/nginx-ltsv-setup.md](.claude/skills/isucon-initial-recon/references/nginx-ltsv-setup.md)）
-- [ ] `sN/etc/mysql/` で `performance_schema` / `slow_query_log` を確認・設定する（[references/mysql-measurement-setup.md](.claude/skills/isucon-initial-recon/references/mysql-measurement-setup.md)）
-- [ ] `tool-config/alp/notify-slack.toml.example` / `tool-config/slow-query/notify-slack.toml.example` をコピーしてWebhook URLを設定する
-
 ## SSH接続の設定
 
 競技サーバー・練習用EC2ともに、ローカルの `~/.ssh/config` は同じパターンで設定する。エージェントが都度SSHでコマンドを実行する前提（[CLAUDE.md](CLAUDE.md)参照）のため、接続を使い回すControlMaster設定を必ず入れる。

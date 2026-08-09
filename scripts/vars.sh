@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034  # 変数はsource元の各スクリプトで使われる
 # 共通変数定義。scripts/以下の各スクリプトから source される（単体では実行しない）。
-# 問題によって変わる変数はここに集約する（READMEの「当日チェックリスト」参照）。
+# 問題によって変わる変数はここに集約する（isucon-initial-recon スキル参照）。
 
 # SERVER_ID は env.sh 内で定義される（make set-as-s1 等で追記される）
 # shellcheck disable=SC1091
