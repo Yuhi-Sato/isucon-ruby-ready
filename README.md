@@ -22,7 +22,7 @@ gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private 
 
 ## 当日チェックリスト
 
-セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
+セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う。
 
 - [ ] `scripts/vars.sh` の `SERVICE_NAME` を問題のサービス名に変更する（例: `isupipe-ruby.service`）
 - [ ] `scripts/vars.sh` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）

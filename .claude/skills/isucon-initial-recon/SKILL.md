@@ -26,7 +26,7 @@ description: ISUCON競技開始直後の初動調査で使う。レギュレー�
 
 ### 並列実行のルール
 
-- サブエージェントは**調査（読み取り）専用**にする。ファイル編集や `docs/recon.md` への書き込みはさせず、調査結果をテキストで返させて、メインエージェントが `docs/recon.md` に統合する（並列書き込みでメモが消えるのを防ぐ）。例外はトラックCの `make extract-sql`（`queries/` を生成するが他トラックと衝突しない）
+- サブエージェントは**調査（読み取り）専用**にする。ファイル編集や `docs/recon.md` への書き込みはさせず、調査結果をテキストで返させて、メインエージェントが `docs/recon.md` に統合する（並列書き込みでメモが消えるのを防ぐ）
 - サーバーへの並列SSHは問題ない（ControlMasterで接続が多重化される）。CLAUDE.mdの「エージェントはローカル1体」は**サーバー上に常駐させない**という意味で、ローカルのサブエージェント並列は妨げない
 
 ## トラックA: レギュレーション・当日マニュアル（最優先）
@@ -75,9 +75,6 @@ sudo mysql -e "SELECT @@performance_schema;"   # make slow-query の計測ソー
 ```bash
 # ルート一覧（Sinatra想定）
 grep -nE "^\s*(get|post|put|delete|patch) " webapp/ruby/*.rb
-
-# SQLを queries/ 以下に抽出
-make extract-sql
 ```
 
 - エンドポイントごとに「何をするか」を1行でメモする

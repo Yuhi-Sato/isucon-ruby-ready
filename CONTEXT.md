@@ -10,7 +10,7 @@
 
 ## 初動調査
 
-競技開始直後にエージェント（`isucon-initial-recon`スキル）が行う、問題固有の適応作業。`scripts/vars.sh`の変数（`APP_DIR`/`SERVICE_NAME`/`DB_SERVICE_NAME`）の確認・修正、`tool-config/alp/config.yml`のmatching_groups調整、クエリ抽出（`make extract-sql`）などを含む。
+競技開始直後にエージェント（`isucon-initial-recon`スキル）が行う、問題固有の適応作業。`scripts/vars.sh`の変数（`APP_DIR`/`SERVICE_NAME`/`DB_SERVICE_NAME`）の確認・修正、`tool-config/alp/config.yml`のmatching_groups調整などを含む。
 
 対比: [[セットアップ]]が完了した後に始まる作業であり、setup.sh自体はこの作業を行わない。
 
