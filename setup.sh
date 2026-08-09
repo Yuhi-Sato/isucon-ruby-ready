@@ -8,7 +8,7 @@
 # GitHub認証はサーバー上に生成するDeploy key（対象リポジトリ限定・書き込み可）で行う。
 # 旧方式（ssh -A によるagent forwardingでローカル認証を借用）は、sudoでの
 # ユーザー切り替えでSSH_AUTH_SOCKが失われる等実運用で不安定なうえ、サーバー上の
-# `git pull`（make deploy / make bench の先頭）がforwarding無しでは動かないため廃止した。
+# `git pull`（make deploy / make bench-prep の先頭）がforwarding無しでは動かないため廃止した。
 
 set -euo pipefail
 

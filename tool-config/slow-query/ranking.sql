@@ -1,6 +1,6 @@
 -- make slow-query から実行される（sudo mysql --table < tool-config/slow-query/ranking.sql）
 -- ソース: performance_schema.events_statements_summary_by_digest（クエリダイジェスト単位の累積統計）
--- 統計は make bench のMySQL再起動、または make rm-logs のTRUNCATEでリセットされる
+-- 統計は make bench-prep のMySQL再起動、または make rm-logs のTRUNCATEでリセットされる
 -- pct はシステムスキーマ除外後の全クエリ時間に占める割合。TIMER系カラムの単位はピコ秒
 
 SELECT '===== Profile: 合計時間順 上位20（完全なクエリ文は下の詳細ブロック） =====' AS section;

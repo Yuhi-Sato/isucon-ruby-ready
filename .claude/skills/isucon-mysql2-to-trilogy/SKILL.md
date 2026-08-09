@@ -88,7 +88,7 @@ trilogyはGitHubが開発した、libmysqlclient/libmariadbに依存しない純
 5. **接続部分の差し替え**: `Mysql2::Client.new(...)`していた箇所（多くはスレッドローカルにコネクションを持つ`connect_db`的なメソッド）を`TrilogyDB.new(...)`に変える。呼び出し側は`db.xquery(sql, *params)`のままで動くはず
 6. **エラーハンドリング更新**: `rescue Mysql2::Error`を`rescue Trilogy::Error`に置換
 7. **ローカルで疎通確認**: 主要エンドポイントを一通り叩き、結果のhashがシンボルキーで返っていることを確認する
-8. **1台に適用してデプロイ → `make bench`で前後比較**。悪化したら即ロールバック（Gemfileの変更を戻してデプロイし直す）
+8. **1台に適用してデプロイ → `make bench-prep`で前後比較**。悪化したら即ロールバック（Gemfileの変更を戻してデプロイし直す）
 
 ## よくある失敗
 

@@ -8,7 +8,7 @@ description: ISUCONで複数台構成への分割（DB分離・アプリ複数�
 ## 概要
 
 インフラ設定の変更は `make get-conf` で取得した `s1/` `s2/` `s3/` 以下のファイルを編集し、
-`make bench`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
+`make bench-prep`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
 
 設定ファイルの中身のチューニングは専用スキルへ:
 
@@ -35,8 +35,8 @@ description: ISUCONで複数台構成への分割（DB分離・アプリ複数�
 2. s2の `s2/etc/mysql/` で `bind-address = 0.0.0.0` にする（デフォルトは127.0.0.1で外部から繋がらない）
 3. アプリ用MySQLユーザーがリモート接続可能か確認: `CREATE USER 'isucon'@'%' ...` / `GRANT`
 4. s1の `s1/env.sh` のDBホスト環境変数（`ISUCON_DB_HOST` 等、問題により名前が異なる）をs2のプライベートIPに変更
-5. push → 各サーバーで `git pull && make deploy-conf && make restart` で反映（次のベンチ直前なら `make bench` にまとめても良い。ただし他メンバーの計測を破壊しないこと）
-6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、Makefileの `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す → isucon-mysql-tuning スキル）
+5. push → 各サーバーで `git pull && make deploy-conf && make restart` で反映（次のベンチ直前なら `make bench-prep` にまとめても良い。ただし他メンバーの計測を破壊しないこと）
+6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、`scripts/vars.sh` の `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す → isucon-mysql-tuning スキル）
 
 ### アプリを複数台に広げる手順
 
