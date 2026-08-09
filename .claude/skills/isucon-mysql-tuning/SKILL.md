@@ -7,7 +7,7 @@ description: ISUCONでMySQLの設定ファイル（my.cnf）をチューニン�
 
 ## 概要
 
-`make get-conf` で取得した `sN/etc/mysql/` 以下を編集し、push → `make bench`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
+`make get-conf` で取得した `sN/etc/mysql/` 以下を編集し、push → `make bench-prep`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
 
 設定を触る前に必ず症状を計測で確認する: `make slow-query`（クエリ側）、`dstat` / `top`（CPU・iowait）、`free -h`（メモリ）。
 **DBのCPUが高く、slow-queryで特定クエリにpctが集中している場合、設定では直らない。** 先にインデックス/N+1解消（isucon-optimization-patterns スキル）。設定チューニングが効くのは「クエリは妥当なのにI/O・メモリ・接続数で頭打ち」のとき。
@@ -59,7 +59,7 @@ slow_query_log = 0       # 常時OFF。クエリ計測はperformance_schema（ma
 ## 効果検証
 
 1. `sN/etc/mysql/` を編集 → commit/push
-2. `make bench`（`deploy-conf` + 全再起動を含む）でベンチ実行
+2. `make bench-prep`（`deploy-conf` + 全再起動を含む）でベンチ実行
 3. 前後比較: スコア、`make slow-query` の総クエリ時間、`dstat` のiowait/CPU
 
 反映確認は実際の値を見る: `sudo mysql -e "SELECT @@innodb_buffer_pool_size, @@innodb_flush_log_at_trx_commit, @@max_connections;"`
@@ -72,4 +72,4 @@ slow_query_log = 0       # 常時OFF。クエリ計測はperformance_schema（ma
 | slow_query_log を有効化したまま最終ベンチ | 常時OFF運用（計測はperformance_schema）。フォールバックで有効化したら isucon-final-check で必ず戻す |
 | `SET GLOBAL` だけで済ませて再起動試験で設定が消える | `sN/etc/mysql/` に書いて `deploy-conf` で反映するのが正。SET GLOBALは検証用と割り切る |
 | my.cnf のtypoでMySQLが起動しない | 反映後に `sudo systemctl status <DB_SERVICE_NAME>` で起動確認。終了間際の初変更は避ける |
-| 設定変更したのに効かない（要再起動パラメータ） | `max_digest_length` 等は再起動必須。`make bench` / `make restart` を通す |
+| 設定変更したのに効かない（要再起動パラメータ） | `max_digest_length` 等は再起動必須。`make bench-prep` / `make restart` を通す |

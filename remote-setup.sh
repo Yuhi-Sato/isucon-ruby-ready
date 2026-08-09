@@ -123,7 +123,7 @@ setup_git_remote() {
     git remote add origin "$REPO_SSH_URL"
   fi
 
-  # 以後の git pull / push（make deploy / make bench 含む）が追加設定なしで
+  # 以後の git pull / push（make deploy / make bench-prep 含む）が追加設定なしで
   # このDeploy keyを使うよう、リポジトリ設定に固定する
   git config core.sshCommand "$GIT_SSH_CMD"
 }

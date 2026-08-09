@@ -7,7 +7,7 @@ description: ISUCONでnginxの設定ファイルをチューニングすると�
 
 ## 概要
 
-`make get-conf` で取得した `sN/etc/nginx/` 以下を編集し、push → `make bench`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
+`make get-conf` で取得した `sN/etc/nginx/` 以下を編集し、push → `make bench-prep`（内部で `deploy-conf`）で反映する。**サーバー上の /etc を直接編集しない**（git管理から外れて再現できなくなる）。
 
 判断材料は3つ: `make alp` の **`reqtime - apptime` 差**（差が大きい＝nginx〜アプリ間で詰まっている）、nginxのエラーログ（`/var/log/nginx/error.log`）、`top` でのnginx CPU。アプリ自体が遅い（apptime大）ならこのスキルではなく isucon-bottleneck-analysis → アプリ/DB改善へ。
 
@@ -84,7 +84,7 @@ localhostのTCPよりUNIXソケットの方が速い。**nginxとアプリの両
 ## 効果検証
 
 1. `sN/etc/nginx/` を編集 → commit/push
-2. `make bench`（`deploy-conf` + 全再起動を含む）でベンチ実行
+2. `make bench-prep`（`deploy-conf` + 全再起動を含む）でベンチ実行
 3. 前後比較: スコア、`make alp` の reqtime / apptime / BODY SUM
 
 構文チェックはサーバー上で `sudo nginx -t`。反映確認は `nginx -T | grep <設定名>` で実際の値を見る。

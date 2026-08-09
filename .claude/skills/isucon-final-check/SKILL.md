@@ -31,7 +31,7 @@ description: ISUCON競技終了の約1時間前から最終提出までの最終
 - **nginxアクセスログ**: レギュレーションで再起動試験時のログ出力が問題にならなければ `access_log off;` も検討（効果は小さいことが多い。alpでの計測ができなくなるため最後に行う）
 - デバッグ用の `puts` / `logger.debug` を仕込んでいたら除去
 
-設定ファイル（`sN/` 以下）の変更は push 後、各サーバーで `git pull && make deploy-conf && make restart` で反映する（手順4の最終ベンチの `make bench` でも反映されるが、再起動試験より前に反映を済ませておくこと）。
+設定ファイル（`sN/` 以下）の変更は push 後、各サーバーで `git pull && make deploy-conf && make restart` で反映する（手順4の最終ベンチの `make bench-prep` でも反映されるが、再起動試験より前に反映を済ませておくこと）。
 
 ## 手順2: 不要サービスの停止状態を永続化する
 
@@ -66,7 +66,7 @@ mysqladmin ping   # または systemctl status <DB_SERVICE_NAME>
 ## 手順4: 最終ベンチ
 
 ```bash
-make bench   # ベンチの「準備」（設定反映＋全再起動＋ログ消去）
+make bench-prep   # ベンチの「準備」（設定反映＋全再起動＋ログ消去）
 # → ベンチマーカー本体はポータル等から実行し、スコアを記録
 ```
 

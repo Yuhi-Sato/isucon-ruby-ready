@@ -103,7 +103,7 @@ GitHubへの認証は、サーバーごとに自動生成する**Deploy key**（
 
 SSH接続ユーザーが`isucon`でない場合（練習環境等で`ubuntu`等の管理ユーザーで接続する構成）は、`setup.sh`がサーバー側処理を自動で`sudo -u isucon`として実行する（passwordless sudo前提）。これによりDeploy keyも必ず`isucon`のhomeに作られる。
 
-かつてのssh agent forwarding（`ssh -A`）方式は、sudoでのユーザー切り替えで転送が失われる等実運用で不安定なうえ、サーバー上の`git pull`（`make deploy` / `make bench`の先頭）がforwarding無しでは動かないため廃止した（経緯は[2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md)の改訂節を参照）。
+かつてのssh agent forwarding（`ssh -A`）方式は、sudoでのユーザー切り替えで転送が失われる等実運用で不安定なうえ、サーバー上の`git pull`（`make deploy` / `make bench-prep`の先頭）がforwarding無しでは動かないため廃止した（経緯は[2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md)の改訂節を参照）。
 
 ### s1（メインサーバー、チームリポジトリの作成元）
 
@@ -177,7 +177,7 @@ gh repo clone Yuhi-Sato/<repo-name>
 cd <repo-name>
 ```
 
-以降は[isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは、`systemctl`でのサービス名確認・DBスキーマ確認・`make bench`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
+以降は[isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは、`systemctl`でのサービス名確認・DBスキーマ確認・`make bench-prep`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
 
 ## デプロイ
 
@@ -187,7 +187,7 @@ Makefileはターゲット名のショートカット集で、ロジックは`sc
 
 | ターゲット | 用途・注意点 |
 |---|---|
-| `make bench` | **ベンチマーク実行直前のみ手動で叩く。** ログ削除・設定反映・DB/nginx含む全再起動を伴うため、計測中の他メンバーの作業を壊す |
+| `make bench-prep` | **ベンチマーク実行直前のみ手動で叩く。** ログ削除・設定反映・DB/nginx含む全再起動を伴うため、計測中の他メンバーの作業を壊す |
 | `make deploy` | サーバー上で手動実行する軽量デプロイ（`deploy.sh`と同じ。git pull→bundle install→アプリのデーモン再起動）。ログは消さず、DB/nginxも再起動しない |
 | `make remote-deploy-s1` / `-all` | ローカルから対象サーバー（全サーバー）へ`deploy.sh`をSSH経由で実行する（[ローカルからのデプロイ](#ローカルからのデプロイ)参照） |
 | `make add-profiling-gems` | `bundle add vernier`を実行する。**ローカル専用**（サーバーで実行するとGemfile.lockの変更が残り以後の`git pull`がconflictする） |
