@@ -26,7 +26,7 @@ description: ISUCON競技開始直後の初動調査で使う。レギュレー�
 ### 2. リポジトリ・Makefile変数を問題に合わせる
 
 ```bash
-# Makefile冒頭の変数を確認・修正（AGENTS.mdの前提）
+# Makefile冒頭の変数を確認・修正（CLAUDE.mdの前提）
 # SERVICE_NAME / APP_DIR / DB_SERVICE_NAME
 systemctl list-units --type=service | grep -iE 'isu|ruby|mysql|maria|nginx'
 ```

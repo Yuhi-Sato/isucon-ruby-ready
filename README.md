@@ -22,7 +22,7 @@ ISUCON運営配布リポジトリのルートに、このリポジトリの内�
 
 ## SSH接続の設定
 
-競技サーバー・練習用EC2ともに、ローカルの `~/.ssh/config` は同じパターンで設定する。エージェントが都度SSHでコマンドを実行する前提（[AGENTS.md](AGENTS.md)参照）のため、接続を使い回すControlMaster設定を必ず入れる。
+競技サーバー・練習用EC2ともに、ローカルの `~/.ssh/config` は同じパターンで設定する。エージェントが都度SSHでコマンドを実行する前提（[CLAUDE.md](CLAUDE.md)参照）のため、接続を使い回すControlMaster設定を必ず入れる。
 
 ```bash
 mkdir -p ~/.ssh/sockets
@@ -170,7 +170,7 @@ Deploy keyが未登録（または実行ユーザーのhomeに鍵が無い）場
 
 > [!IMPORTANT]
 > **`setup.sh`完了後は、この`isucon-ruby-ready`ではなく、s1がpushしたチームリポジトリをローカルにcloneしたディレクトリが以後の作業拠点になる。**
-> `isucon-ruby-ready`はツール一式のテンプレートにすぎない。Makefile変数の調整・`tool-config/alp/config.yml`編集・アプリコードの確認などは全てチームリポジトリ側で行う（[AGENTS.md](AGENTS.md)の「サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する」という前提）。
+> `isucon-ruby-ready`はツール一式のテンプレートにすぎない。Makefile変数の調整・`tool-config/alp/config.yml`編集・アプリコードの確認などは全てチームリポジトリ側で行う（[CLAUDE.md](CLAUDE.md)の「サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する」という前提）。
 
 ```bash
 gh repo clone Yuhi-Sato/<repo-name>
