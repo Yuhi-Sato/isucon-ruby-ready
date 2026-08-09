@@ -46,7 +46,6 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 | `make slow-query` | performance_schemaのクエリダイジェスト集計を表示する。N+1はcalls列で検出する |
 | `make duckdb-<レシピ>` | ユーザー行動履歴の定型分析（`duckdb-flow` / `duckdb-repeat` / `duckdb-heavy-users`） |
 | `make ns` | alpとslow-queryの集計結果をまとめてSlackに通知する |
-| `make extract-sql` | アプリの`.rb`からSQLを`queries/`以下に抽出する |
 | `make watch-service-log` | アプリのsystemdログを追尾する |
 | `make vernier-view` | 最新のVernierプロファイル（Markdown形式）を標準出力に表示する |
 

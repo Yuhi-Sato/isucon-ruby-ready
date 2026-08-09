@@ -79,7 +79,7 @@ make slow-query   # tool-config/slow-query/ranking.sql を実行（一瞬で終�
 sudo mysql <db> -e "EXPLAIN <該当クエリ>\G"   # type=ALL（フルスキャン）ならインデックス候補
 ```
 
-該当クエリがアプリのどこかは `queries/` 以下（`make extract-sql` の出力）をgrepして特定する。
+該当クエリがアプリのどこかはアプリの`.rb`を直接grepして特定する。
 
 ## 手順4: アプリCPUが疑わしいときはVernier
 

@@ -22,7 +22,7 @@ gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private 
 
 ## 当日チェックリスト
 
-セットアップ後、最初に以下を問題に合わせて確認・修正する。問題固有の適応全体の進め方は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査を参照（`make extract-sql`もそちらの手順に含まれる）。
+セットアップ後、最初に以下を問題に合わせて確認・修正する。問題固有の適応全体の進め方は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査を参照。
 
 - [ ] `scripts/vars.sh` の `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` を問題の実環境に合わせて修正する（[references/service-name-setup.md](.claude/skills/isucon-initial-recon/references/service-name-setup.md)）
 - [ ] `scripts/setup.sh` 内の `git config` の `user.email` / `user.name` を確認する

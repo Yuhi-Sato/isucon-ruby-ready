@@ -99,16 +99,6 @@ notify-slack-%: FORCE ## alp / slow-query の結果をSlackに通知する（not
 duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
 	@./scripts/duckdb.sh $*
 
-.PHONY: extract-sql extract-queries
-extract-sql: ## SQLクエリを*.rbから抽出してqueries/以下に出力する
-	./scripts/extract-sql.sh all
-extract-queries:
-	./scripts/extract-sql.sh all
-
-# extract-select / extract-insert / extract-update / extract-delete
-extract-%: FORCE
-	./scripts/extract-sql.sh $*
-
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh

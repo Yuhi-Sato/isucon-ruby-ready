@@ -27,4 +27,4 @@
 | `SERVICE_NAME` が違うまま `make bench-prep` して古いアプリを計測する | 手順1で実サービス名を確認してから最初のベンチに進む |
 | `.service` 拡張子を含めて設定してしまう | `scripts/vars.sh` 内では拡張子なしの unit 名（`systemctl restart` にそのまま渡る値）を使う |
 | MariaDB出題なのに `DB_SERVICE_NAME=mysql` のまま | `systemctl list-units` の結果で `mariadb` 等になっていないか確認する |
-| `APP_DIR` を直さず `webapp/ruby` 前提のコマンド（`make extract-sql` 等）が空振りする | リポジトリ構成が異なる問題では `APP_DIR` も合わせて修正する |
+| `APP_DIR` を直さず `webapp/ruby` 前提のコマンドが空振りする | リポジトリ構成が異なる問題では `APP_DIR` も合わせて修正する |
