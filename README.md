@@ -6,8 +6,6 @@ ISUCON本番当日に使う「サーバーセットアップ・ログ解析・�
 このリポジトリは **ツール群のみ** を提供し、ISUCON問題のアプリケーションコード（`webapp/ruby`以下）は含まない。
 ISUCON運営配布リポジトリのルートに、このリポジトリの内容を展開して使う。
 
-設計の背景・意図は [docs/superpowers/specs/2026-07-01-isucon-ruby-ready-design.md](docs/superpowers/specs/2026-07-01-isucon-ruby-ready-design.md)、セットアップフロー統合・CI変数化の経緯は [docs/superpowers/specs/2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md) を参照。
-
 ## このリポジトリをテンプレートとして使う
 
 このリポジトリはGitHubの[テンプレートリポジトリ](https://docs.github.com/ja/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)として設定されている。`gh repo create`の`--template`オプションで、コミット履歴を持たない独立したリポジトリとして複製できる。
@@ -117,7 +115,7 @@ GitHubへの認証は、サーバーごとに自動生成する**Deploy key**（
 
 SSH接続ユーザーが`isucon`でない場合（練習環境等で`ubuntu`等の管理ユーザーで接続する構成）は、`setup.sh`がサーバー側処理を自動で`sudo -u isucon`として実行する（passwordless sudo前提）。これによりDeploy keyも必ず`isucon`のhomeに作られる。
 
-かつてのssh agent forwarding（`ssh -A`）方式は、sudoでのユーザー切り替えで転送が失われる等実運用で不安定なうえ、サーバー上の`git pull`（`make deploy` / `make bench`の先頭）がforwarding無しでは動かないため廃止した（経緯は[2026-07-04-setup-flow-unification.md](docs/superpowers/specs/2026-07-04-setup-flow-unification.md)の改訂節を参照）。
+かつてのssh agent forwarding（`ssh -A`）方式は、sudoでのユーザー切り替えで転送が失われる等実運用で不安定なうえ、サーバー上の`git pull`（`make deploy` / `make bench`の先頭）がforwarding無しでは動かないため廃止した。
 
 ### s1（メインサーバー、チームリポジトリの作成元）
 
