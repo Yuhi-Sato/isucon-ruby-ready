@@ -1,6 +1,6 @@
 ---
 name: isucon-initial-recon
-description: ISUCON競技開始直後の初動調査で使う。レギュレーション確認、問題アプリの構造把握、DBスキーマ・インデックス調査、vars.sh変数・alp設定の問題適応、ベースラインスコア記録まで。「初動調査して」「問題を把握して」「まず何をすればいい？」などのリクエストで使用する。
+description: ISUCON競技開始直後の初動調査で使う。レギュレーション確認、問題アプリの構造把握、DBスキーマ・インデックス調査、scripts/vars.sh変数・alp設定・nginx/MySQL計測設定の問題適応、ベースラインスコア記録まで。「初動調査して」「問題を把握して」「まず何をすればいい？」などのリクエストで使用する。
 ---
 
 # ISUCON 初動調査
@@ -11,6 +11,8 @@ description: ISUCON競技開始直後の初動調査で使う。レギュレー�
 ここで作った地図が以降の全改善の土台になる。**改善はまだしない。調査に徹する。**
 
 調査は独立した3トラックに分かれており、サブエージェント（Agentツール等）で**並列実行**できる。
+
+統合フェーズの各セットアップ項目は手順が長いため、詳細は `references/` 以下の個別ファイルに分けている。このSKILL.md自体は概要と参照先の案内に徹する。
 
 ## 実行モデル
 
@@ -48,7 +50,7 @@ description: ISUCON競技開始直後の初動調査で使う。レギュレー�
 systemctl list-units --type=service | grep -iE 'isu|ruby|mysql|maria|nginx'
 ```
 
-`SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME`（`scripts/vars.sh` の変数）に設定すべき値を特定して報告する。修正自体は統合フェーズで行う。
+`SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME`（`scripts/vars.sh` の変数）に設定すべき値を特定して報告する。修正手順は [references/service-name-setup.md](references/service-name-setup.md) を使い、統合フェーズで行う。
 
 ### B-2. DBスキーマ・データ量
 
@@ -67,8 +69,7 @@ sudo mysql <db> -e "SELECT table_name, table_rows FROM information_schema.tables
 sudo mysql -e "SELECT @@performance_schema;"   # make slow-query の計測ソース。1ならOK
 ```
 
-- `0` の場合（MariaDB出題など）: 統合フェーズで `make get-conf` 後に `sN/etc/mysql/` へ `performance_schema = ON` を追加して反映する。有効化できない場合は従来方式（`long_query_time = 0` でslow logを有効化し `sudo pt-query-digest /var/log/mysql/mysql-slow.log`）にフォールバックする（isucon-mysql-tuning スキル参照）
-- `slow_query_log` は**常時OFF運用**（計測はperformance_schemaで行うためスロークエリログは不要。I/O削減でスコアにも効く）。統合フェーズで `sN/etc/mysql/` へ `slow_query_log = 0` を明示しておく
+`0`の場合（MariaDB出題など）や`slow_query_log`の運用方針を含め、設定は [references/mysql-measurement-setup.md](references/mysql-measurement-setup.md) に従い統合フェーズで反映する。
 
 ## トラックC: アプリ調査（ローカルリポジトリ）
 
@@ -86,18 +87,20 @@ make extract-sql
 
 ## 統合フェーズ（3トラック完了後）
 
-以下の3つは**触るファイルが互いに異なるため、これも並列化できる**。編集はすべてローカル→push→サーバーで反映（サーバーのワーキングツリーは直接編集しない）。
+以下は**触るファイルが互いに異なるため、これも並列化できる**。編集はすべてローカル→push→サーバーで反映（サーバーのワーキングツリーは直接編集しない）。各項目の詳細手順は対応する`references/`ファイルを読んでから行う。
 
-1. **`scripts/vars.sh` の変数修正**（←トラックB-1）: `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` を実サービス名に合わせる。READMEの「当日チェックリスト」（alp設定・nginx ltsvフォーマット・Slack Webhook）も済んでいるか確認する
-2. **alpのmatching_groups**（←トラックC）: ルート一覧をもとに `tool-config/alp/config.yml` の `matching_groups` を編集する。可変部分（`:id` 等）を正規表現でまとめないと、alpの集計がURLごとにバラけて使いものにならない
-3. **ユーザー行動履歴ロガー**（←トラックC）: isucon-user-behavior-analysis スキルの導入手順に従い、Rackミドルウェア（`X-User-Id`ヘッダー付与）とnginxの`proxy_hide_header`を入れる。トラックCで特定したセッションのユーザーIDキーを使う。ここで入れておくと、ベースラインを含む**以降すべてのベンチで行動履歴が自動的に手に入る**。後から入れると、欲しくなった瞬間のベンチデータにはuseridが無い
+1. **scripts/vars.sh の変数修正**（←トラックB-1）: [references/service-name-setup.md](references/service-name-setup.md) — `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` を実サービス名に合わせる
+2. **alpのmatching_groups**（←トラックC）: [references/alp-matching-setup.md](references/alp-matching-setup.md) — ルート一覧をもとに `tool-config/alp/config.yml` を設定する
+3. **nginxのltsvログフォーマット**: [references/nginx-ltsv-setup.md](references/nginx-ltsv-setup.md) — `make alp` が読めるログ形式にする
+4. **MySQLの計測設定**（←トラックB-3）: [references/mysql-measurement-setup.md](references/mysql-measurement-setup.md) — `performance_schema` / `slow_query_log` の設定を反映する
+5. **ユーザー行動履歴ロガー**（←トラックC）: isucon-user-behavior-analysis スキルの導入手順に従い、Rackミドルウェア（`X-User-Id`ヘッダー付与）とnginxの`proxy_hide_header`を入れる（3のltsvセットアップとあわせて行う）。トラックCで特定したセッションのユーザーIDキーを使う。ここで入れておくと、ベースラインを含む**以降すべてのベンチで行動履歴が自動的に手に入る**。後から入れると、欲しくなった瞬間のベンチデータにはuseridが無い
 
-あわせてトラックB-3で必要になったMySQL設定（`performance_schema = ON` / `slow_query_log = 0`）を `sN/etc/mysql/` に反映し、全トラックの調査結果を `docs/recon.md` に統合する（書き込みはメインエージェントのみ）。
+READMEの「当日チェックリスト」（Slack Webhook設定等）も済んでいるか確認する。全トラック・全項目の結果は `docs/recon.md` に統合する（書き込みはメインエージェントのみ）。
 
 ## ベースライン記録（統合フェーズ完了後）
 
 ```bash
-make bench-prep          # サーバー上で実行するベンチの「準備」（ログ消去・設定反映・全再起動）
+make bench-prep     # サーバー上で実行するベンチの「準備」（ログ消去・設定反映・全再起動）
 # → ベンチマーカー本体はポータル等から実行し、初回スコアを docs/recon.md に記録
 make alp            # ベンチ後すぐ集計
 make slow-query
