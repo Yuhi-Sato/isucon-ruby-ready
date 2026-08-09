@@ -22,14 +22,13 @@ gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private 
 
 ## 当日チェックリスト
 
-セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
+セットアップ後、最初に以下を問題に合わせて確認・修正する。問題固有の適応全体の進め方は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査を参照（`make extract-sql`もそちらの手順に含まれる）。
 
-- [ ] `Makefile` の `SERVICE_NAME` を問題のサービス名に変更する（例: `isupipe-ruby.service`）
-- [ ] `Makefile` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）
-- [ ] `Makefile` の `DB_SERVICE_NAME` を確認する（MariaDBの場合は `mariadb` 等に変更）
+- [ ] `Makefile` の `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` を問題の実環境に合わせて修正する（[isucon-service-setup](.claude/skills/isucon-service-setup/SKILL.md)）
 - [ ] `git-setup` 内の `git config` の `user.email` / `user.name` を確認する
-- [ ] `tool-config/alp/config.yml` の `matching_groups` を問題のURLパターンに合わせて編集する
-- [ ] `tool-config/nginx/ltsv-log-format.conf` の内容をnginx.confに反映する
+- [ ] `tool-config/alp/config.yml` の `matching_groups` を問題のURLパターンに合わせて編集する（[isucon-alp-setup](.claude/skills/isucon-alp-setup/SKILL.md)）
+- [ ] `tool-config/nginx/ltsv-log-format.conf` の内容をnginx.confに反映する（[isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md)の初期セットアップ手順）
+- [ ] `sN/etc/mysql/` で `performance_schema` / `slow_query_log` を確認・設定する（[isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md)）
 - [ ] `tool-config/alp/notify-slack.toml.example` / `tool-config/slow-query/notify-slack.toml.example` をコピーしてWebhook URLを設定する
 
 ## SSH接続の設定

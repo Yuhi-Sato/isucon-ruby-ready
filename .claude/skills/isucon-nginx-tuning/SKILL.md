@@ -1,6 +1,6 @@
 ---
 name: isucon-nginx-tuning
-description: ISUCONでnginxの設定ファイルをチューニングするときに使う。alpでreqtimeとapptimeが乖離している・静的ファイルがSUM上位・"Too many open files"エラー・413/502が出る、といった症状で使う。「nginxをチューニングして」「静的ファイルをnginxで配信して」「UNIXソケットにして」「worker_connectionsを増やして」などのリクエストで使用する。レスポンスのHTTPキャッシュ（proxy_cache/Cache-Control）は isucon-nginx-caching スキルを使う。
+description: ISUCONでnginxの設定ファイルをチューニング・セットアップするときに使う。alpでreqtimeとapptimeが乖離している・静的ファイルがSUM上位・"Too many open files"エラー・413/502が出る、といった症状のほか、初動でalp用のltsvログフォーマットを反映するときにも使う。「nginxをチューニングして」「静的ファイルをnginxで配信して」「UNIXソケットにして」「worker_connectionsを増やして」「nginxのログをltsv形式にして」などのリクエストで使用する。レスポンスのHTTPキャッシュ（proxy_cache/Cache-Control）は isucon-nginx-caching スキルを使う。
 ---
 
 # ISUCON nginx設定チューニング
@@ -12,6 +12,15 @@ description: ISUCONでnginxの設定ファイルをチューニングすると�
 判断材料は3つ: `make alp` の **`reqtime - apptime` 差**（差が大きい＝nginx〜アプリ間で詰まっている）、nginxのエラーログ（`/var/log/nginx/error.log`）、`top` でのnginx CPU。アプリ自体が遅い（apptime大）ならこのスキルではなく isucon-bottleneck-analysis → アプリ/DB改善へ。
 
 同一GETリクエストが大量に来ていてレスポンスをキャッシュできる場合は isucon-nginx-caching スキル、アプリを複数台に広げる場合のupstream振り分けは isucon-server-tuning スキルを参照。
+
+## 初期セットアップ: alp用ltsvログフォーマット
+
+問題の初期nginx.confは`combined`等の標準フォーマットで、`make alp`が読めるltsv形式になっていないことが多い。**初動調査でベースラインを取る前に必ず反映する**（後から入れると、それ以前のベンチのalpデータが取れない）。
+
+1. `tool-config/nginx/ltsv-log-format.conf` の内容を `sN/etc/nginx/nginx.conf` の `http {}` ブロック内に貼り付ける（`log_format ltsv ...` 定義）
+2. `server {}` 内の `access_log` をltsv形式に変更する: `access_log /var/log/nginx/access.log ltsv;`
+3. アプリへproxyする `location` に `proxy_hide_header X-User-Id;` を追加する（ユーザー行動履歴ロガーを使う場合。isucon-user-behavior-analysis スキル参照。使わない場合は不要）
+4. commit・push → `make bench` で反映 → `make alp` が正常に集計できることを確認する
 
 ## 症状 → 設定 対応表
 
@@ -94,7 +103,7 @@ localhostのTCPよりUNIXソケットの方が速い。**nginxとアプリの両
 | 失敗 | 対策 |
 |---|---|
 | `proxy_http_version 1.1` / `Connection ""` を忘れてkeepaliveが効いていない | upstream keepaliveは3点セット。`netstat -tan \| grep 8080 \| wc -l` でTIME_WAIT大量なら効いていない |
-| ltsvログフォーマットを消して計測不能になる | `log_format ltsv` とaccess_log行は必ず残す |
+| ltsvログフォーマットが未反映・削除されて `make alp` が使えない | 初期セットアップの手順で `log_format ltsv` とltsvな`access_log`行を必ず入れる・残す |
 | 静的配信の `root` パス誤りで404・ベンチFAIL | `root` + URIの結合結果が実ファイルパスになるか確認（`alias` との違いに注意） |
 | UNIXソケットのパーミッションで502 | `ls -l` で確認。アプリの起動ユーザーとnginxユーザーの両方がアクセスできること |
 | worker_connections だけ増やして "Too many open files" | `worker_rlimit_nofile` もセットで増やす |

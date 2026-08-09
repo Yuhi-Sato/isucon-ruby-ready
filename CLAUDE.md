@@ -24,6 +24,8 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 | スキル | 使うタイミング |
 |---|---|
 | [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録） |
+| [isucon-service-setup](.claude/skills/isucon-service-setup/SKILL.md) | 実サービス名の特定とMakefile変数（SERVICE_NAME/APP_DIR/DB_SERVICE_NAME）の修正 |
+| [isucon-alp-setup](.claude/skills/isucon-alp-setup/SKILL.md) | alpのmatching_groups設定（URLの可変部分をまとめて集計する） |
 | [isucon-bottleneck-analysis](.claude/skills/isucon-bottleneck-analysis/SKILL.md) | ベンチ後、計測結果から次の改善対象を決めるとき |
 | [isucon-optimization-patterns](.claude/skills/isucon-optimization-patterns/SKILL.md) | アプリコードの改善（N+1・インデックス・キャッシュ等）を実装するとき |
 | [isucon-mysql2-to-trilogy](.claude/skills/isucon-mysql2-to-trilogy/SKILL.md) | mysql2からtrilogyへのDBクライアント移行を検討・実施するとき |
@@ -32,8 +34,8 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 | [isucon-puma-tuning](.claude/skills/isucon-puma-tuning/SKILL.md) | Pumaのworkers/threads構成を調整するとき |
 | [isucon-nginx-caching](.claude/skills/isucon-nginx-caching/SKILL.md) | nginxのHTTPキャッシュ（proxy_cache）でアプリへのリクエストを減らすとき |
 | [isucon-user-behavior-analysis](.claude/skills/isucon-user-behavior-analysis/SKILL.md) | ユーザー行動履歴（userid付きアクセスログ）の記録導入と、DuckDBでの行動フロー・リピート分析 |
-| [isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のチューニング（I/O・buffer pool・接続数等） |
-| [isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のチューニング（keepalive・静的配信・UNIXソケット等） |
+| [isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のセットアップ・チューニング（performance_schema・I/O・buffer pool・接続数等） |
+| [isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のセットアップ・チューニング（ltsvログフォーマット・keepalive・静的配信・UNIXソケット等） |
 | [isucon-server-tuning](.claude/skills/isucon-server-tuning/SKILL.md) | 複数台構成への分割（DB分離・アプリ複数台）やsystemdユニットの調整 |
 | [isucon-troubleshooting](.claude/skills/isucon-troubleshooting/SKILL.md) | ベンチFAIL・整合性エラー・アプリ起動しない・スコア急落などの障害対応 |
 | [isucon-final-check](.claude/skills/isucon-final-check/SKILL.md) | 終了約1時間前からの最終確認（ログ無効化・再起動試験・最終ベンチ） |

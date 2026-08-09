@@ -1,6 +1,6 @@
 ---
 name: isucon-mysql-tuning
-description: ISUCONでMySQLの設定ファイル（my.cnf）をチューニングするときに使う。DBのiowaitが高い・書き込みが遅い・Too many connectionsが出る・buffer pool不足・make slow-queryのクエリが切り詰められる、といった症状で使う。「my.cnfを調整して」「MySQLをチューニングして」「DBのディスクI/Oが高い」「接続数エラーが出た」などのリクエストで使用する。
+description: ISUCONでMySQLの設定ファイル（my.cnf）をチューニング・セットアップするときに使う。DBのiowaitが高い・書き込みが遅い・Too many connectionsが出る・buffer pool不足・make slow-queryのクエリが切り詰められる、といった症状のほか、初動でperformance_schemaの有効化やslow_query_logの運用方針を決めるときにも使う。「my.cnfを調整して」「MySQLをチューニングして」「DBのディスクI/Oが高い」「接続数エラーが出た」「performance_schemaを有効にして」などのリクエストで使用する。
 ---
 
 # ISUCON MySQL設定チューニング
