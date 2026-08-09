@@ -1,27 +1,37 @@
 #!/bin/bash
 
-# サーバー上で実行するセットアップスクリプト（tarball展開〜チームリポジトリのgit配線）。
+# サーバー上で実行するセットアップスクリプト（チームリポジトリの取得〜配布コードのpush）。
 # 通常は setup.sh がローカルから `ssh ... bash -s -- <args> < remote-setup.sh` で流し込む。
 #
-# setup.sh が使えない・途中で失敗した場合（tar展開の権限エラー等）は、サーバー上で
-# isuconユーザーとして（isuconでないユーザーなら sudo -i -u isucon した状態で）
-# 単体実行して途中から再開できる:
+# GitHubへの認証はssh agent forwardingで行う。このスクリプトはサーバー上に鍵を作らず、
+# 転送されてきたローカルのssh-agentをそのまま使う。したがって **agent転送付きの
+# SSHセッションから実行する必要がある**（setup.sh経由なら自動的にそうなる）。
+#
+# setup.sh が使えない・途中で失敗した場合は、サーバー上で isuconユーザーとして
+# 単体実行して途中から再開できる。冪等なので何度実行しても安全。
+#
+#   ssh -A s1                      # agent転送付きでログインする
+#   cd /home/isucon && bash remote-setup.sh s1 <owner>/<repo>
+#
+# サーバー上にこのファイルがまだ無い場合は、テンプレート本体から取得する:
 #
 #   curl -fsSL https://raw.githubusercontent.com/Yuhi-Sato/isucon-ruby-ready/main/remote-setup.sh \
-#     | bash -s -- s1 <repo-name>
-#
-# 何度実行しても安全（冪等）。Deploy keyが未登録の場合は復旧手順を表示して終了する。
+#     | bash -s -- s1 <owner>/<repo>
 
 set -euo pipefail
 
-REPO_OWNER="Yuhi-Sato"
 DEFAULT_TARGET_DIR="/home/isucon"
 
+die() { echo "エラー: $*" >&2; exit 1; }
+
 usage() {
-  echo "Usage: $0 <s1|s2|s3> <repo-name> [--dir <path>]" >&2
-  echo "  s1   : tarball展開〜チームリポジトリへの初回pushまで行う" >&2
-  echo "  s2/s3: チームリポジトリの取得とセットアップを行う" >&2
-  echo "  --dir: 配布リポジトリのルート（webapp/と同階層）。省略時は ${DEFAULT_TARGET_DIR}" >&2
+  cat >&2 <<'USAGE'
+Usage: remote-setup.sh <s1|s2|s3> <owner/repo> [--dir <path>]
+
+  s1   : チームリポジトリを取得し、配布アプリコードを初回pushする
+  s2/s3: チームリポジトリ（s1がpush済み）を取得してセットアップする
+  --dir: 配布リポジトリのルート（webapp/と同階層）。省略時は /home/isucon
+USAGE
   exit 1
 }
 
@@ -45,40 +55,25 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ "${#POSITIONAL[@]}" -ne 2 ]; then
-  usage
-fi
+[ "${#POSITIONAL[@]}" -eq 2 ] || usage
 
 ROLE="${POSITIONAL[0]}"
-REPO_NAME="${POSITIONAL[1]}"
+REPO="${POSITIONAL[1]}"
 
-if ! echo "$ROLE" | grep -qE '^s[1-3]$'; then
-  echo "エラー: 役割は s1 / s2 / s3 のいずれかで指定してください（指定値: ${ROLE}）" >&2
-  usage
-fi
+echo "$ROLE" | grep -qE '^s[1-3]$' \
+  || die "役割は s1 / s2 / s3 のいずれかで指定してください（指定値: ${ROLE}）"
 
-# setup.shと同じ導出（単体実行時の引数を最小にするため、ここでも導出する）
-REPO_SLUG="${REPO_OWNER}/${REPO_NAME}"
-REPO_SSH_URL="git@github.com:${REPO_SLUG}.git"
-KEY_BASENAME="github_deploy_${REPO_NAME}"
-KEY_FILE="$HOME/.ssh/$KEY_BASENAME"
+case "$REPO" in
+  */*/*|*/|/*) die "第2引数は owner/repo 形式で指定してください（指定値: ${REPO}）" ;;
+  */*) : ;;
+  *) die "第2引数は owner/repo 形式で指定してください。リポジトリ名だけでは足りません（指定値: ${REPO}）" ;;
+esac
+
+REPO_SSH_URL="git@github.com:${REPO}.git"
 KNOWN_HOSTS="$HOME/.ssh/known_hosts"
-
-# このリポジトリ専用のDeploy keyだけを使う（agentや他の鍵に依存しない）
-GIT_SSH_CMD="ssh -i $KEY_FILE -o IdentitiesOnly=yes"
-export GIT_SSH_COMMAND="$GIT_SSH_CMD"
 
 mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
-
-# Deploy keyの自己修復: setup.shがisucon以外のユーザーで失敗した後は、鍵が
-# そのユーザーのhomeにしか無いことがある。実行ユーザーのhomeに無ければ生成する。
-if [ ! -f "$KEY_FILE" ]; then
-  echo "Deploy key (${KEY_FILE}) が無いため生成します..."
-  # </dev/null: bash -s（stdin経由）で実行された場合に、stdinを読みうる子プロセスが
-  # 残りのスクリプトを横取りするのを防ぐ
-  ssh-keygen -q -t ed25519 -N "" -f "$KEY_FILE" -C "${ROLE}-${KEY_BASENAME}" </dev/null
-fi
 
 # github.comのホストキーがknown_hostsになければssh-keyscanで追加する
 if ! ssh-keygen -F github.com -f "$KNOWN_HOSTS" >/dev/null 2>&1; then
@@ -86,18 +81,27 @@ if ! ssh-keygen -F github.com -f "$KNOWN_HOSTS" >/dev/null 2>&1; then
   ssh-keyscan -H github.com >> "$KNOWN_HOSTS" 2>/dev/null
 fi
 
-# Deploy keyでのGitHub認証疎通確認
+# --- 転送されてきたssh-agentでGitHubに認証できるかの確認 ---
 # </dev/null必須: bash -s（stdin経由）実行時、stdinを切らないとこのssh -Tが
 # 残りのスクリプトを横取りし、エラーも出さずここで静かに終了してしまう。
-AUTH_CHECK="$(ssh -i "$KEY_FILE" -o IdentitiesOnly=yes -T git@github.com </dev/null 2>&1 || true)"
+AUTH_CHECK="$(ssh -T git@github.com </dev/null 2>&1 || true)"
 if ! echo "$AUTH_CHECK" | grep -q "successfully authenticated"; then
-  echo "エラー: Deploy keyでのGitHubへのSSH認証に失敗しました。" >&2
-  echo "以下の公開鍵を ${REPO_SLUG} のDeploy keyとして登録してから、このスクリプトを再実行してください。" >&2
+  echo "エラー: GitHubへのSSH認証に失敗しました。ssh agent forwardingが届いていません。" >&2
   echo "" >&2
-  cat "$KEY_FILE.pub" >&2
+  echo "  SSH_AUTH_SOCK: ${SSH_AUTH_SOCK:-(未設定)}" >&2
+  echo "  転送されている鍵:" >&2
+  if command -v ssh-add >/dev/null 2>&1; then
+    ssh-add -l 2>&1 | sed 's/^/    /' >&2 || true
+  else
+    echo "    (ssh-addコマンドが見つかりません)" >&2
+  fi
   echo "" >&2
-  echo "ローカルでの登録コマンド例（上記公開鍵を deploy_key.pub として保存した上で）:" >&2
-  echo "  gh repo deploy-key add deploy_key.pub --repo ${REPO_SLUG} --allow-write --title ${ROLE}" >&2
+  echo "確認すること:" >&2
+  echo "  1. ローカルの ~/.ssh/config の Host ${ROLE} に ForwardAgent yes があるか" >&2
+  echo "     （setup.sh が管理ブロックに自動で書き込む）" >&2
+  echo "  2. ローカルで ssh-add -l に鍵が出るか。出なければ ssh-add <鍵> する" >&2
+  echo "  3. その鍵がGitHubのSettings > SSH and GPG keysに登録されているか" >&2
+  echo "  4. 手動実行の場合は ssh -A でログインしているか" >&2
   echo "" >&2
   echo "sshの応答:" >&2
   echo "$AUTH_CHECK" >&2
@@ -107,7 +111,7 @@ fi
 mkdir -p "$TARGET_DIR"
 cd "$TARGET_DIR"
 
-# git init・origin設定・Deploy keyのcore.sshCommand固定（s1/s2/s3共通・冪等）
+# git init・origin設定（s1/s2/s3共通・冪等）
 setup_git_remote() {
   if [ ! -d .git ]; then
     git init -b main
@@ -123,44 +127,16 @@ setup_git_remote() {
     git remote add origin "$REPO_SSH_URL"
   fi
 
-  # 以後の git pull / push（make deploy / make bench-prep 含む）が追加設定なしで
-  # このDeploy keyを使うよう、リポジトリ設定に固定する
-  git config core.sshCommand "$GIT_SSH_CMD"
+  # 旧方式（Deploy key）でセットアップ済みのサーバーからの移行。
+  # core.sshCommandが残っていると転送されたagentではなく消えた鍵を見に行く。
+  git config --unset core.sshCommand 2>/dev/null || true
 }
 
-if [ "$ROLE" = "s1" ]; then
-  # ISUCON運営配布リポジトリのルート（webapp/と同階層）に、このリポジトリの
-  # ツール一式を展開する（既に展開済みでも上書きになるだけで冪等）。
-  echo "isucon-ruby-readyのツール一式を展開します..."
-  curl -fsSL https://github.com/Yuhi-Sato/isucon-ruby-ready/archive/refs/heads/main.tar.gz \
-    | tar xz --strip-components=1
-
-  # ツール導入・ディレクトリ準備・サーバー設定取得（env.sh作成 → make setup →
-  # make set-as-s1 → make get-conf）。get-confの結果（s1/etc/配下）を
-  # このあとの初回コミットに含める。
-  sh server-setup.sh s1
-
-  setup_git_remote
-
-  # ホームディレクトリがリポジトリルートの場合（isucon14等）、git add . が
-  # ランタイム・キャッシュ・鍵類（.rustup/.cargo/.ssh等で数GB）を巻き込むため、
-  # ホーム直下のdot要素と配布ランタイム(local/)を除外する（初回のみ追記・冪等）。
-  # .claude（スキル）と.gitignore自体は管理対象に残す。
-  if ! grep -qF "# --- remote-setup.sh managed ignores ---" .gitignore 2>/dev/null; then
-    cat >> .gitignore <<'IGNORE_BLOCK'
-# --- remote-setup.sh managed ignores ---
-/.*
-!/.claude/
-!/.gitignore
-/local/
-node_modules/
-IGNORE_BLOCK
-  fi
-
-  # GitHubは100MB超のファイルのpushを拒否するため、50MB以上のファイルは
-  # .gitignoreに追加して管理対象から除外する（ベンチ用初期データ等を想定）
+# GitHubは100MB超のファイルのpushを拒否するため、50MB以上のファイルは
+# .gitignoreに追加して管理対象から除外する（ベンチ用初期データ等を想定）
+exclude_large_files() {
   find . -path ./.git -prune -o -type f -size +50M -print | sed 's|^\./||' | while IFS= read -r f; do
-    # 既に除外済み（managedブロックや既存.gitignoreでカバー済み）なら追記しない
+    # 既に除外済み（.gitignoreでカバー済み）なら追記しない
     if ! git check-ignore -q "$f"; then
       echo "/$f" >> .gitignore
       echo "サイズ超過（50MB以上）のため.gitignoreに追加: $f"
@@ -168,33 +144,55 @@ IGNORE_BLOCK
     # 以前の実行で追跡済みになっていた場合はインデックスからも外す
     git rm --cached --quiet "$f" 2>/dev/null || true
   done
+}
 
-  git add .
+# 配布リポジトリのルートがホームディレクトリそのものになる問題（isucon14等）では、
+# .gitignoreの除外が効かないと秘密鍵ごとpushされる。最後の防波堤として確認する。
+assert_no_secrets_staged() {
+  local hits
+  hits="$(git diff --cached --name-only \
+    | grep -E '(^|/)\.(ssh|aws|gnupg)/|(^|/)id_(rsa|ecdsa|ed25519)$' || true)"
+  [ -z "$hits" ] || die "秘密情報らしきファイルがコミット対象に含まれています。中断しました:
+${hits}
+
+.gitignoreの除外設定（/.* など）が効いているか確認してください。"
+}
+
+# --- ここからs1/s2/s3共通 ---
+# 配布リポジトリのルートにはISUCON運営配布のアプリコード（webapp/等）が既に
+# 展開された状態で置かれている（非空）。git cloneは非空ディレクトリを拒否するため
+# 使えず、代わりにgit init + fetch + checkoutでチームリポジトリの内容
+# （Makefile・scripts・tool-config・.claude等）を被せる。
+
+setup_git_remote
+
+echo "チームリポジトリ (${REPO_SSH_URL}) からmainを取得します..."
+git fetch origin main
+git checkout -f -B main origin/main
+
+# ツール導入・ディレクトリ準備・サーバー設定取得
+# （env.sh作成 → make setup → make set-as-<role> → make get-conf）
+# </dev/null: このスクリプト自体がstdin経由で流れているため、stdinを読みうる
+# 子プロセス（apt-get等）に残りのスクリプトを横取りさせない
+sh server-setup.sh "$ROLE" </dev/null
+
+if [ "$ROLE" = "s1" ]; then
+  # 配布アプリコードはまだ未追跡なので、ここでチームリポジトリに取り込む。
+  # get-confの結果（s1/etc/配下）もこのコミットに含まれる。
+  exclude_large_files
+  git add -A
+  assert_no_secrets_staged
+
   if git diff --cached --quiet; then
     echo "コミット対象の変更がないため、コミットをスキップします。"
   else
-    git commit -m 'first commit'
+    git commit -m "chore: import distributed application code from s1"
   fi
 
   if ! git push -u origin main; then
-    echo "エラー: git pushに失敗しました。" >&2
-    echo "Deploy keyが書き込み権限付き（--allow-write）で登録されているかを確認してから再実行してください。" >&2
-    exit 1
+    die "git pushに失敗しました。
+origin/mainが他から進んでいる場合は 'git pull --rebase' してから再実行してください。"
   fi
-else
-  # s2/s3: TARGET_DIRにはISUCON運営配布のアプリコード（webapp/等）が既に
-  # 展開された状態で置かれている（非空）。git cloneは非空ディレクトリを
-  # 拒否するため使えず、代わりにgit init + fetch + checkoutでチーム
-  # リポジトリの内容（Makefile・tool-config・webapp含む）を被せる。
-  setup_git_remote
-
-  echo "チームリポジトリ (${REPO_SSH_URL}) からmainを取得します..."
-  git fetch origin main
-  git checkout -f -B main origin/main
-
-  # ツール導入・ディレクトリ準備・サーバー設定取得（env.sh作成 → make setup →
-  # make set-as-s2/s3 → make get-conf）。
-  sh server-setup.sh "$ROLE"
 fi
 
 echo "サーバー側のセットアップが完了しました（role: ${ROLE}）。"

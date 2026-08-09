@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # サーバー上で実行するセットアップスクリプト。
-# 通常は setup.sh がローカルから SSH 経由で呼び出すが、ローカル経由が使えない
-# 異常時（gh未認証等）はサーバー上で直接 `sh server-setup.sh <role>` を実行する
-# フォールバック手段としても使える。
+# 通常は remote-setup.sh が（チームリポジトリのcheckout後に）呼び出すが、
+# ツール導入とサーバー設定の取得だけをやり直したい場合は、サーバー上で直接
+# `sh server-setup.sh <role>` を実行してもよい。
 
 # setup.sh・README双方の想定呼び出しが `sh server-setup.sh <role>` であり、
 # Ubuntuの/bin/shはdash（pipefail非対応のPOSIX sh）のため、bash専用の

@@ -1,0 +1,37 @@
+# setup.sh が読むローカル設定のサンプル。コピーして使う。
+#
+#   cp servers.conf.example servers.conf
+#
+# servers.conf はgit管理外（.gitignore 済み）。秘密鍵そのものは書かない（パスだけ）。
+# チームリポジトリは origin から自動判別するので、ここに書く必要はない。
+#
+# シェルの `.` で読み込むため、`KEY=value` 形式のみ書くこと（Makefileからも -include する）。
+
+# --- サーバーのアドレス ---
+# 使わないロールは空のままにする。s1 は必須。
+S1_HOST=
+S2_HOST=
+S3_HOST=
+
+# --- サーバーへのログイン設定 ---
+# SSH_USER は isucon であること。ISUCON運営配布のサーバーは isucon でログインできる。
+# 練習用EC2など ubuntu でしか入れない環境では、先に isucon の
+# ~/.ssh/authorized_keys へ自分の公開鍵を追加しておく。
+SSH_USER=isucon
+
+# サーバーへのログインに使う秘密鍵。
+# "~/..." はシェルのチルダ展開が効かないので $HOME を使う。
+SSH_KEY="$HOME/.ssh/isucon.pem"
+
+# --- ISUCON運営配布リポジトリのルート ---
+# webapp/ と同じ階層のディレクトリ。サーバーに一度SSHして `ls` で確認すること。
+# private_isu など /home/isucon 直下がルートでない問題では実際のパスに変える
+# （例: REMOTE_DIR=/home/isucon/private_isu）。
+REMOTE_DIR=/home/isucon
+
+# --- GitHub 認証用の鍵 ---
+# サーバーからGitHubへの認証は ssh agent forwarding で行うため、この鍵は
+# ローカルの ssh-agent に載せて転送される。**サーバーへのログイン鍵とは別物**。
+# GitHub の Settings > SSH keys に登録済みの鍵を指定すること。
+# 既に ssh-add 済みなら空でよい。
+GITHUB_KEY="$HOME/.ssh/id_ed25519"
