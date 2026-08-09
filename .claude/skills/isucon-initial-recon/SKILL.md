@@ -92,7 +92,7 @@ grep -nE "^\s*(get|post|put|delete|patch) " webapp/ruby/*.rb
 4. **MySQLの計測設定**（←トラックB-3）: [references/mysql-measurement-setup.md](references/mysql-measurement-setup.md) — `performance_schema` / `slow_query_log` の設定を反映する
 5. **ユーザー行動履歴ロガー**（←トラックC）: isucon-user-behavior-analysis スキルの導入手順に従い、Rackミドルウェア（`X-User-Id`ヘッダー付与）とnginxの`proxy_hide_header`を入れる（3のltsvセットアップとあわせて行う）。トラックCで特定したセッションのユーザーIDキーを使う。ここで入れておくと、ベースラインを含む**以降すべてのベンチで行動履歴が自動的に手に入る**。後から入れると、欲しくなった瞬間のベンチデータにはuseridが無い
 
-READMEの「当日チェックリスト」（Slack Webhook設定等）も済んでいるか確認する。全トラック・全項目の結果は `docs/recon.md` に統合する（書き込みはメインエージェントのみ）。
+`tool-config/alp/notify-slack.toml.example` / `tool-config/slow-query/notify-slack.toml.example` をコピーしてWebhook URLを設定する。全トラック・全項目の結果は `docs/recon.md` に統合する（書き込みはメインエージェントのみ）。
 
 ## ベースライン記録（統合フェーズ完了後）
 
