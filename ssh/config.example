@@ -1,0 +1,18 @@
+# ssh-setup.sh が ssh/config として生成する内容のサンプル。
+# 実ファイル（ssh/config）は実IPと鍵の絶対パスを含むためgit管理外（.gitignore参照）。
+# 手で書かず、リポジトリルートで以下を実行して生成する:
+#   ./ssh-setup.sh --key <配られた秘密鍵> <ip1> [ip2] [ip3]
+
+Host s1
+  HostName <サーバーのグローバルIP>
+  User isucon
+  IdentityFile <リポジトリ絶対パス>/ssh/keys/<配られた鍵>
+  StrictHostKeyChecking accept-new
+  UserKnownHostsFile <リポジトリ絶対パス>/ssh/known_hosts
+  ServerAliveInterval 30
+  ServerAliveCountMax 3
+  ControlMaster auto
+  ControlPath ~/.ssh/sockets/%r@%h-%p
+  ControlPersist 600
+
+# 2台目以降は同様のブロックが Host s2 / s3 として続く

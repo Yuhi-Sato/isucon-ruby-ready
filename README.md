@@ -22,19 +22,27 @@ gh repo create <new-repo-name> --template Yuhi-Sato/isucon-ruby-ready --private 
 
 ## SSH接続の設定
 
-競技サーバー・練習用EC2ともに、ローカルの `~/.ssh/config` は同じパターンで設定する。エージェントが都度SSHでコマンドを実行する前提（[CLAUDE.md](CLAUDE.md)参照）のため、接続を使い回すControlMaster設定を必ず入れる。
+競技サーバー・練習用EC2ともに、配られた秘密鍵とサーバーIPを渡して**ローカルで**`ssh-setup.sh`を実行する。SSH接続情報（鍵・実IP入りconfig・known_hosts）はすべてこのリポジトリの`ssh/`配下で管理され、git管理外になる（コミット対象は[ssh/config.example](ssh/config.example)のみ）。
 
 ```bash
-mkdir -p ~/.ssh/sockets
+./ssh-setup.sh --key ~/Downloads/isucon.pem 203.0.113.1 203.0.113.2 203.0.113.3
 ```
+
+- `--key`: 配られた秘密鍵。`ssh/keys/`にコピーされ`chmod 600`される
+- IPは渡した順に`Host s1` / `s2` / `s3`になる（1〜3個。[Makefileターゲット](#makefileターゲット)の`remote-deploy-s1`等が対象にする名前）
+- 接続ユーザーが`isucon`でない場合は`--user ubuntu`等を指定する
+
+スクリプトは`ssh/config`を生成し、`~/.ssh/config`の**先頭**にマーカー付きの`Include`ブロックを冪等に差し込む。以降は`ssh s1`がそのまま使える。sshは各オプションで最初に見つけた値を採用するため、過去の競技で手書きした`Host s1`の残骸が`~/.ssh/config`に残っていてもリポジトリ側の設定が優先される。IP・鍵が変わったら同じコマンドを再実行すれば設定が丸ごと置き換わる。
+
+生成される`ssh/config`の各Hostブロックは以下の形（[ssh/config.example](ssh/config.example)）。エージェントが都度SSHでコマンドを実行する前提（[CLAUDE.md](CLAUDE.md)参照）のため、接続を使い回すControlMaster設定を含む。
 
 ```
 Host s1
   HostName <サーバーのグローバルIP>
   User isucon
-  IdentityFile ~/.ssh/<ログインに使う鍵>
+  IdentityFile <リポジトリ絶対パス>/ssh/keys/<配られた鍵>
   StrictHostKeyChecking accept-new
-  UserKnownHostsFile ~/.ssh/known_hosts_isucon
+  UserKnownHostsFile <リポジトリ絶対パス>/ssh/known_hosts
   ServerAliveInterval 30
   ServerAliveCountMax 3
   ControlMaster auto
@@ -42,11 +50,9 @@ Host s1
   ControlPersist 600
 ```
 
-- `StrictHostKeyChecking accept-new` + 専用の `UserKnownHostsFile`: 競技（練習）のたびにサーバーが新規払い出しされ、過去に使った `~/.ssh/known_hosts` の記録と衝突しがちなので、確認プロンプトなしで新規ホストキーを自動登録しつつ普段使いのknown_hostsは汚さない
+- `StrictHostKeyChecking accept-new` + リポジトリ内の専用`UserKnownHostsFile`: 競技（練習）のたびにサーバーが新規払い出しされ、過去に使った`~/.ssh/known_hosts`の記録と衝突しがちなので、確認プロンプトなしで新規ホストキーを自動登録しつつ普段使いのknown_hostsは汚さない
 - `ServerAliveInterval` / `ServerAliveCountMax`: NAT越しの接続が無通信で切れて`remote-deploy-all`などが固まるのを防ぐ
 - `ControlMaster` / `ControlPath` / `ControlPersist`: 初回接続後にマスター接続を600秒使い回すことで、都度`ssh`でコマンドを実行する際の接続確立コストをほぼゼロにする
-
-2台目以降を使う場合は同様のブロックを `Host s2` / `Host s3` として追加する（[Makefileターゲット](#makefileターゲット)の`remote-deploy-s2`等が対象にする）。
 
 ## 練習環境の準備（個人練習用）
 
@@ -60,26 +66,13 @@ Host s1
 
 ### 2. ローカルからのSSH接続を設定する
 
+本番と同じく[SSH接続の設定](#ssh接続の設定)の`ssh-setup.sh`を使う。接続ユーザーだけAMIに合わせて`--user`で指定する（`ubuntu` / `ec2-user`等）。
+
 ```zsh
-mv ~/Downloads/my_key.pem ~/.ssh/
-chmod 400 ~/.ssh/my_key.pem
+./ssh-setup.sh --key ~/Downloads/my_key.pem --user ubuntu <EC2のパブリックIP>
 ```
 
-`~/.ssh/config` は[SSH接続の設定](#ssh接続の設定)と同じ形式にする。本番の命名（`s1`）に揃えておくと、`make remote-deploy-s1`などのコマンドが練習でもそのまま使える。
-
-```
-Host s1
-  HostName <EC2のパブリックIP>
-  User ubuntu   # AMIに応じて ec2-user 等に読み替える
-  IdentityFile ~/.ssh/my_key.pem
-  StrictHostKeyChecking accept-new
-  UserKnownHostsFile ~/.ssh/known_hosts_isucon
-  ServerAliveInterval 30
-  ServerAliveCountMax 3
-  ControlMaster auto
-  ControlPath ~/.ssh/sockets/%r@%h-%p
-  ControlPersist 600
-```
+本番の命名（`s1`）に自動で揃うため、`make remote-deploy-s1`などのコマンドが練習でもそのまま使える。
 
 ```zsh
 ssh s1
@@ -111,7 +104,7 @@ SSH接続ユーザーが`isucon`でない場合（練習環境等で`ubuntu`等�
 ./setup.sh <user@server> [repo-name]
 ```
 
-- `<user@server>`: `~/.ssh/config`に設定した`s1`など、または`isucon@<IPアドレス>`
+- `<user@server>`: [SSH接続の設定](#ssh接続の設定)の`ssh-setup.sh`で設定した`s1`など、または`isucon@<IPアドレス>`
 - `[repo-name]`: チームリポジトリ名（オーナーは`Yuhi-Sato`固定）。省略時は`ISUCON-<実行時刻>`（例: `ISUCON-20260704153000`）を新規採番する
 
 `setup.sh`が（s1の場合に）行うこと:

@@ -16,3 +16,8 @@ tmp/
 /.bundle/
 /tool-config/alp/notify-slack.toml
 /tool-config/slow-query/notify-slack.toml
+
+# SSH接続情報（秘密鍵・実IP・known_hosts）はコミットしない。config.exampleのみgit管理する
+/ssh/*
+!/ssh/config.example
+*.pem
