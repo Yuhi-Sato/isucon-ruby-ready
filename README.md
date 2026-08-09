@@ -12,10 +12,10 @@ ISUCON運営配布リポジトリのルートに、このリポジトリの内�
 
 セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
 
-- [ ] `Makefile` の `SERVICE_NAME` を問題のサービス名に変更する（例: `isupipe-ruby.service`）
-- [ ] `Makefile` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）
-- [ ] `Makefile` の `DB_SERVICE_NAME` を確認する（MariaDBの場合は `mariadb` 等に変更）
-- [ ] `git-setup` 内の `git config` の `user.email` / `user.name` を確認する
+- [ ] `scripts/vars.sh` の `SERVICE_NAME` を問題のサービス名に変更する（例: `isupipe-ruby.service`）
+- [ ] `scripts/vars.sh` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）
+- [ ] `scripts/vars.sh` の `DB_SERVICE_NAME` を確認する（MariaDBの場合は `mariadb` 等に変更）
+- [ ] `scripts/setup.sh` 内の `git config` の `user.email` / `user.name` を確認する
 - [ ] `tool-config/alp/config.yml` の `matching_groups` を問題のURLパターンに合わせて編集する
 - [ ] `tool-config/nginx/ltsv-log-format.conf` の内容をnginx.confに反映する
 - [ ] `tool-config/alp/notify-slack.toml.example` / `tool-config/slow-query/notify-slack.toml.example` をコピーしてWebhook URLを設定する
@@ -95,7 +95,7 @@ ssh s1
 > **実行前に、配布リポジトリのルートが`/home/isucon`と一致するか必ず確認すること。**
 > ISUCON運営配布リポジトリのルート（`webapp/`と同階層）が`/home/isucon`直下でない問題がある（例: private_isuは`/home/isucon/private_isu`が本当のルート）。サーバーに一度SSHして`ls /home/isucon`し、`webapp/`が直下に見えない場合は`--dir`を省略せず必ず指定すること（[配布リポジトリのルートが異なる場合](#配布リポジトリのルートが異なる場合private_isuなど)参照）。
 >
-> `--dir`を付け忘れると、ツール一式が実際のアプリコードと無関係な場所に展開され、`Makefile`の`APP_DIR`/`SERVICE_NAME`が噛み合わないまま**エラーも出さずにセットアップが「完了」してしまう**。
+> `--dir`を付け忘れると、ツール一式が実際のアプリコードと無関係な場所に展開され、`scripts/vars.sh`の`APP_DIR`/`SERVICE_NAME`が噛み合わないまま**エラーも出さずにセットアップが「完了」してしまう**。
 
 `setup.sh`1コマンドで、Deploy keyの生成・登録、tarball展開・サーバー側ツールセットアップ・チームリポジトリへのgit配線までを行う。**ローカルマシン**（サーバーではない）から実行する。
 
@@ -170,7 +170,7 @@ Deploy keyが未登録（または実行ユーザーのhomeに鍵が無い）場
 
 > [!IMPORTANT]
 > **`setup.sh`完了後は、この`isucon-ruby-ready`ではなく、s1がpushしたチームリポジトリをローカルにcloneしたディレクトリが以後の作業拠点になる。**
-> `isucon-ruby-ready`はツール一式のテンプレートにすぎない。Makefile変数の調整・`tool-config/alp/config.yml`編集・アプリコードの確認などは全てチームリポジトリ側で行う（[CLAUDE.md](CLAUDE.md)の「サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する」という前提）。
+> `isucon-ruby-ready`はツール一式のテンプレートにすぎない。`scripts/vars.sh`の変数調整・`tool-config/alp/config.yml`編集・アプリコードの確認などは全てチームリポジトリ側で行う（[CLAUDE.md](CLAUDE.md)の「サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する」という前提）。
 
 ```bash
 gh repo clone Yuhi-Sato/<repo-name>
@@ -183,12 +183,12 @@ cd <repo-name>
 
 ### Makefileターゲット
 
-全ターゲットは `make help` で一覧できる。特に運用上の注意が必要なものだけ補足する。
+Makefileはターゲット名のショートカット集で、ロジックは`scripts/`以下のシェルスクリプトにある（問題によって変わる変数は`scripts/vars.sh`に集約）。全ターゲットは `make help` で一覧できる。特に運用上の注意が必要なものだけ補足する。
 
 | ターゲット | 用途・注意点 |
 |---|---|
 | `make bench` | **ベンチマーク実行直前のみ手動で叩く。** ログ削除・設定反映・DB/nginx含む全再起動を伴うため、計測中の他メンバーの作業を壊す |
-| `make deploy` | サーバー上で手動実行する軽量デプロイ。ログは消さず、DB/nginxも再起動しない |
+| `make deploy` | サーバー上で手動実行する軽量デプロイ（`deploy.sh`と同じ。git pull→bundle install→アプリのデーモン再起動）。ログは消さず、DB/nginxも再起動しない |
 | `make remote-deploy-s1` / `-all` | ローカルから対象サーバー（全サーバー）へ`deploy.sh`をSSH経由で実行する（[ローカルからのデプロイ](#ローカルからのデプロイ)参照） |
 | `make add-profiling-gems` | `bundle add vernier`を実行する。**ローカル専用**（サーバーで実行するとGemfile.lockの変更が残り以後の`git pull`がconflictする） |
 
@@ -209,7 +209,7 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 
 ### deploy.shの既知の制約
 
-`deploy.sh` 自身への変更は、その回の `git pull`（`make deploy`内）より前に実行されるため1回のデプロイでは反映されない。反映されるのは次のデプロイから。
+`deploy.sh` はエントリポイント（env読み込み→`git pull`→`scripts/deploy.sh`への委譲）に徹しており、デプロイロジック本体（bundle install・デーモン再起動）は `scripts/deploy.sh` にある。後者はpull済みの最新版が実行されるため変更が同じデプロイで反映されるが、**`deploy.sh` 自身への変更だけは `git pull` より前に読み込まれるため1回のデプロイでは反映されない**。反映されるのは次のデプロイから。
 
 ## Vernier（サンプリングプロファイラ）の導入
 

@@ -6,8 +6,9 @@
 # （make bench / make deploy の先頭ステップ）がconflictで失敗する。
 
 set -euo pipefail
+cd "$(dirname "$0")/.."
+. scripts/vars.sh
 
-APP_DIR="${1:-.}"
-cd "$APP_DIR"
+cd "${1:-$APP_DIR}"
 
 bundle add vernier

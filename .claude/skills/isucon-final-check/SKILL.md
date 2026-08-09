@@ -39,7 +39,7 @@ description: ISUCON競技終了の約1時間前から最終提出までの最終
 # 「止めた」だけ（stop）だと再起動で復活する。disableまで行う
 sudo systemctl disable --now <不要サービス>
 # 逆に、そのサーバーの役割で必要なサービスがenabledであることを確認
-# （サービス名はMakefileの SERVICE_NAME / DB_SERVICE_NAME に合わせる）
+# （サービス名は scripts/vars.sh の SERVICE_NAME / DB_SERVICE_NAME に合わせる）
 systemctl is-enabled nginx <DB_SERVICE_NAME> <SERVICE_NAME>
 ```
 

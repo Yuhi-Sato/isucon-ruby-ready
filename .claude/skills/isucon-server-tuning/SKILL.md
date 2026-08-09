@@ -36,7 +36,7 @@ description: ISUCONで複数台構成への分割（DB分離・アプリ複数�
 3. アプリ用MySQLユーザーがリモート接続可能か確認: `CREATE USER 'isucon'@'%' ...` / `GRANT`
 4. s1の `s1/env.sh` のDBホスト環境変数（`ISUCON_DB_HOST` 等、問題により名前が異なる）をs2のプライベートIPに変更
 5. push → 各サーバーで `git pull && make deploy-conf && make restart` で反映（次のベンチ直前なら `make bench` にまとめても良い。ただし他メンバーの計測を破壊しないこと）
-6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、Makefileの `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す → isucon-mysql-tuning スキル）
+6. s1のMySQL、s2のnginx/アプリなど**使わないサービスは止める**: `sudo systemctl disable --now <DB_SERVICE_NAME>`（サービス名は `mysql` / `mariadb` 等、`scripts/vars.sh` の `DB_SERVICE_NAME` に合わせる。空いたメモリをbuffer_poolに回す → isucon-mysql-tuning スキル）
 
 ### アプリを複数台に広げる手順
 
