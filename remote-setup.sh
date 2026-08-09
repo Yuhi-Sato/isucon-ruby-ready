@@ -145,12 +145,12 @@ if [ "$ROLE" = "s1" ]; then
   # ホームディレクトリがリポジトリルートの場合（isucon14等）、git add . が
   # ランタイム・キャッシュ・鍵類（.rustup/.cargo/.ssh等で数GB）を巻き込むため、
   # ホーム直下のdot要素と配布ランタイム(local/)を除外する（初回のみ追記・冪等）。
-  # .agents（スキル）と.gitignore自体は管理対象に残す。
+  # .claude（スキル）と.gitignore自体は管理対象に残す。
   if ! grep -qF "# --- remote-setup.sh managed ignores ---" .gitignore 2>/dev/null; then
     cat >> .gitignore <<'IGNORE_BLOCK'
 # --- remote-setup.sh managed ignores ---
 /.*
-!/.agents/
+!/.claude/
 !/.gitignore
 /local/
 node_modules/

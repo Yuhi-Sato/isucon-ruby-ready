@@ -10,7 +10,7 @@ ISUCON運営配布リポジトリのルートに、このリポジトリの内�
 
 ## 当日チェックリスト
 
-セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.agents/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
+セットアップ後、最初に以下を問題に合わせて確認・修正する。`APP_DIR`確認やクエリ抽出など問題固有の適応は [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) スキルの初動調査で行う（`make extract-sql`はそちらの手順に含まれる）。
 
 - [ ] `Makefile` の `SERVICE_NAME` を問題のサービス名に変更する（例: `isupipe-ruby.service`）
 - [ ] `Makefile` の `APP_DIR` を確認する（`webapp/ruby` 以外の構成の場合）
@@ -177,7 +177,7 @@ gh repo clone Yuhi-Sato/<repo-name>
 cd <repo-name>
 ```
 
-以降は[isucon-initial-recon](.agents/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは、`systemctl`でのサービス名確認・DBスキーマ確認・`make bench`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
+以降は[isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは、`systemctl`でのサービス名確認・DBスキーマ確認・`make bench`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
 
 ## デプロイ
 
@@ -213,7 +213,7 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 
 ## Vernier（サンプリングプロファイラ）の導入
 
-gem追加・Rack middlewareへの組み込み・CLIでの単発プロファイリング・プロファイルの読み方は[isucon-vernier-profiling](.agents/skills/isucon-vernier-profiling/SKILL.md)スキルを参照。
+gem追加・Rack middlewareへの組み込み・CLIでの単発プロファイリング・プロファイルの読み方は[isucon-vernier-profiling](.claude/skills/isucon-vernier-profiling/SKILL.md)スキルを参照。
 
 ## N+1検出の運用
 

@@ -16,27 +16,27 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 
 - **改善方法は必ず計測結果（`make alp` / `make slow-query` / `make ns` / Vernierプロファイル等）に基づいて決める。** 推測だけでコードを変更しない
 
-## スキル（`.agents/skills/`）
+## スキル（`.claude/skills/`）
 
-競技のフェーズに対応する作業手順書（スキル）を、クロスエージェント標準の配置である `.agents/skills/<名前>/SKILL.md` に用意している（[Agent Skills仕様](https://agentskills.io/specification)準拠）。
-**該当フェーズの作業を始める前に必ず対応するSKILL.mdを読むこと。** スキル機構を持つエージェントは自動認識し、持たないエージェントも通常のMarkdownとして参照できる（`.claude/skills` は `.agents/skills` へのシンボリックリンク）。
+競技のフェーズに対応する作業手順書（スキル）を `.claude/skills/<名前>/SKILL.md` に用意している。
+**該当フェーズの作業を始める前に必ず対応するSKILL.mdを読むこと。**
 
 | スキル | 使うタイミング |
 |---|---|
-| [isucon-initial-recon](.agents/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録） |
-| [isucon-bottleneck-analysis](.agents/skills/isucon-bottleneck-analysis/SKILL.md) | ベンチ後、計測結果から次の改善対象を決めるとき |
-| [isucon-optimization-patterns](.agents/skills/isucon-optimization-patterns/SKILL.md) | アプリコードの改善（N+1・インデックス・キャッシュ等）を実装するとき |
-| [isucon-mysql2-to-trilogy](.agents/skills/isucon-mysql2-to-trilogy/SKILL.md) | mysql2からtrilogyへのDBクライアント移行を検討・実施するとき |
-| [isucon-vernier-profiling](.agents/skills/isucon-vernier-profiling/SKILL.md) | Vernierの導入・実行・プロファイルの読み方 |
-| [isucon-ruby-runtime-tuning](.agents/skills/isucon-ruby-runtime-tuning/SKILL.md) | YJIT有効化・GC設定などコード変更なしのRubyランタイムチューニング |
-| [isucon-puma-tuning](.agents/skills/isucon-puma-tuning/SKILL.md) | Pumaのworkers/threads構成を調整するとき |
-| [isucon-nginx-caching](.agents/skills/isucon-nginx-caching/SKILL.md) | nginxのHTTPキャッシュ（proxy_cache）でアプリへのリクエストを減らすとき |
-| [isucon-user-behavior-analysis](.agents/skills/isucon-user-behavior-analysis/SKILL.md) | ユーザー行動履歴（userid付きアクセスログ）の記録導入と、DuckDBでの行動フロー・リピート分析 |
-| [isucon-mysql-tuning](.agents/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のチューニング（I/O・buffer pool・接続数等） |
-| [isucon-nginx-tuning](.agents/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のチューニング（keepalive・静的配信・UNIXソケット等） |
-| [isucon-server-tuning](.agents/skills/isucon-server-tuning/SKILL.md) | 複数台構成への分割（DB分離・アプリ複数台）やsystemdユニットの調整 |
-| [isucon-troubleshooting](.agents/skills/isucon-troubleshooting/SKILL.md) | ベンチFAIL・整合性エラー・アプリ起動しない・スコア急落などの障害対応 |
-| [isucon-final-check](.agents/skills/isucon-final-check/SKILL.md) | 終了約1時間前からの最終確認（ログ無効化・再起動試験・最終ベンチ） |
+| [isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md) | 競技開始直後の初動調査（レギュレーション確認〜ベースライン記録） |
+| [isucon-bottleneck-analysis](.claude/skills/isucon-bottleneck-analysis/SKILL.md) | ベンチ後、計測結果から次の改善対象を決めるとき |
+| [isucon-optimization-patterns](.claude/skills/isucon-optimization-patterns/SKILL.md) | アプリコードの改善（N+1・インデックス・キャッシュ等）を実装するとき |
+| [isucon-mysql2-to-trilogy](.claude/skills/isucon-mysql2-to-trilogy/SKILL.md) | mysql2からtrilogyへのDBクライアント移行を検討・実施するとき |
+| [isucon-vernier-profiling](.claude/skills/isucon-vernier-profiling/SKILL.md) | Vernierの導入・実行・プロファイルの読み方 |
+| [isucon-ruby-runtime-tuning](.claude/skills/isucon-ruby-runtime-tuning/SKILL.md) | YJIT有効化・GC設定などコード変更なしのRubyランタイムチューニング |
+| [isucon-puma-tuning](.claude/skills/isucon-puma-tuning/SKILL.md) | Pumaのworkers/threads構成を調整するとき |
+| [isucon-nginx-caching](.claude/skills/isucon-nginx-caching/SKILL.md) | nginxのHTTPキャッシュ（proxy_cache）でアプリへのリクエストを減らすとき |
+| [isucon-user-behavior-analysis](.claude/skills/isucon-user-behavior-analysis/SKILL.md) | ユーザー行動履歴（userid付きアクセスログ）の記録導入と、DuckDBでの行動フロー・リピート分析 |
+| [isucon-mysql-tuning](.claude/skills/isucon-mysql-tuning/SKILL.md) | MySQL設定（my.cnf）のチューニング（I/O・buffer pool・接続数等） |
+| [isucon-nginx-tuning](.claude/skills/isucon-nginx-tuning/SKILL.md) | nginx設定のチューニング（keepalive・静的配信・UNIXソケット等） |
+| [isucon-server-tuning](.claude/skills/isucon-server-tuning/SKILL.md) | 複数台構成への分割（DB分離・アプリ複数台）やsystemdユニットの調整 |
+| [isucon-troubleshooting](.claude/skills/isucon-troubleshooting/SKILL.md) | ベンチFAIL・整合性エラー・アプリ起動しない・スコア急落などの障害対応 |
+| [isucon-final-check](.claude/skills/isucon-final-check/SKILL.md) | 終了約1時間前からの最終確認（ログ無効化・再起動試験・最終ベンチ） |
 
 ## 計測・解析（サーバー上で実行）
 
