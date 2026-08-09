@@ -1,6 +1,6 @@
 # 用語集
 
-このリポジトリ（ISUCON当日用ツール一式）で使う用語の定義。実装詳細は各スクリプト・[README.md](README.md)・[docs/superpowers/specs/](docs/superpowers/specs/)を参照。
+このリポジトリ（ISUCON当日用ツール一式）で使う用語の定義。実装詳細は各スクリプト・[README.md](README.md)を参照。
 
 ## セットアップ
 
