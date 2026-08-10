@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# GitHub Actions からのSSHは非ログイン・非対話シェルのため、
+# ローカルからの `ssh <host> "..."`（make remote-deploy-*）は非ログイン・非対話シェルのため、
 # rbenv/xbuildでインストールしたRubyのPATHが通らないことがある。明示的に読み込む。
 # shellcheck disable=SC1091
 [ -f "$HOME/env.sh" ] && . "$HOME/env.sh"

@@ -7,10 +7,10 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 
 - **エージェントはローカル1体に限定する。** サーバー上に常駐エージェントを起動しない（コンテキスト分断を避け、サーバーのワーキングツリーを誤って直接編集するリスクを避けるため）
 - サーバー上のコマンドはローカルのエージェントから都度SSHで実行する（例: `ssh s1 "cd /home/isucon && make alp"`）。`make watch-service-log` など継続監視が必要なものはバックグラウンドSSHで実行する
-- 都度SSHの接続確立コストを避けるため、`~/.ssh/config`にControlMaster/ControlPersistを設定しておく（[ローカルからのデプロイ](README.md#ローカルからのデプロイ手動フォールバック兼用)参照）
+- SSH接続の設定（ControlMaster/ControlPersistによる接続の使い回し、GitHub認証用のForwardAgent）は`setup.sh`が`~/.ssh/config`に自動生成済み（[SSH接続の設定](README.md#ssh接続の設定)参照）
 - サーバー上のコマンドは `/home/isucon`（リポジトリルート）で実行する
 - `SERVICE_NAME` / `APP_DIR` などの変数は `scripts/vars.sh` で定義。問題に合わせて変更済みか最初に確認する。Makefileはショートカット集で、ロジックは `scripts/` 以下のシェルスクリプトにある
-- `./setup.sh <server> [repo-name]`（内部で `sh server-setup.sh <s1|s2|s3>` → `make setup` → `install-tools`）で `alp` / `notify_slack` / `pt-query-digest` は導入済み。エージェントが改めてインストールする必要はない
+- `./setup.sh`（内部で `remote-setup.sh` → `sh server-setup.sh <s1|s2|s3>` → `make setup` → `install-tools`）で `alp` / `notify_slack` / `pt-query-digest` は導入済み。エージェントが改めてインストールする必要はない
 
 ## 方針
 
@@ -72,4 +72,5 @@ ISUCON競技当日にエージェントが使うコマンド一覧。詳細な�
 - **`make bench-prep` を計測中に叩かない。** ログが消えてDB/nginxが再起動する。他メンバーの計測を破壊する
 - **`make add-profiling-gems` はローカル専用。** サーバーで実行するとGemfile.lockが変更され、以後の `git pull` がconflictで失敗する
 - サーバーのワーキングツリーを直接編集しない。変更はローカル→push→デプロイの流れで反映する
+- サーバー上のgitはローカルから転送されたssh-agent（ForwardAgent）でGitHubに認証する。サーバー単体（cron等、転送なしのセッション）では `git pull` が失敗する
 - `make bench-prep` / `make deploy` 以外でログを消さない（`make rm-logs` 単体は原則使わない）

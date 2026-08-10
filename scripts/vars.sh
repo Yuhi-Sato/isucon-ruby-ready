@@ -7,7 +7,7 @@
 # shellcheck disable=SC1091
 if [ -f "$HOME/env.sh" ]; then . "$HOME/env.sh"; fi
 
-# GitHub ActionsやControlMaster経由のSSHは非ログイン・非対話シェルのため、
+# ローカルからの `ssh <host> "..."` やControlMaster経由のSSHは非ログイン・非対話シェルのため、
 # rbenv/xbuildでインストールしたRubyのPATHが通らないことがある。明示的に通す
 export PATH="$HOME/local/ruby/bin:$HOME/.rbenv/shims:$PATH"
 
