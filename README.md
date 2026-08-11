@@ -224,6 +224,27 @@ make remote-deploy-all   # 全サーバーへ並列デプロイ
 
 gem追加・Rack middlewareへの組み込み・CLIでの単発プロファイリング・プロファイルの読み方は[isucon-vernier-profiling](.claude/skills/isucon-vernier-profiling/SKILL.md)スキルを参照。
 
+## エラーログの抽出
+
+アプリのsystemdログ（journal）からwarning/errorレベルだけを抜き出す。ベンチがFAILしたときや5xxが出ているときに、`make watch-service-log`で全量を追う前にまずこれを見る。
+
+```bash
+make journal-errors                    # 全期間（各セクション最大200行）
+make journal-errors SINCE=-10min       # 直近10分だけ
+make journal-errors UNIT=nginx         # アプリ以外のユニットを見る
+```
+
+出力は2セクションに分かれる。
+
+1. **優先度 warning 以上** — journaldのsyslog優先度（emerg/alert/crit/err/warning）による抽出
+2. **本文マッチ** — 優先度がnotice以下のエントリのうち、本文が `warn|error|fatal|exception|critical` にマッチするもの
+
+2が必要なのは、Puma/Sinatraが標準出力に書いたログはjournaldでは一律 `info`(6) 扱いになるためで、優先度だけで絞るとアプリが自分で出した `ERROR` 行を取りこぼす（標準エラー出力に出る例外は `err`(3) になるので1で拾える）。2つのセクションは優先度の範囲が重ならないため、同じエントリが二重に出ることはない。
+
+調整用の環境変数は `UNIT` / `SINCE` / `UNTIL` / `LINES` / `RAW_LINES` / `PATTERN`（詳細は`scripts/journal-errors.sh`の冒頭コメント）。
+
+2は「直近`RAW_LINES`件（デフォルト5000）の生エントリのうち、マッチした最新`LINES`件」を出す。取りこぼしが疑われるときは`RAW_LINES`を増やす。なおjournalctlにも本文マッチ用の`--grep`があるが、1件もマッチしなかったときとジャーナル自体を読めなかったときの終了ステータスが区別できず、「エラー無し」を「取得失敗」と誤報告しうるため使っていない。
+
 ## N+1検出の運用
 
 ISUCON公式のRuby参考実装は近年一貫してSinatra + mysql2（またはpg）を直接使う構成であり、ActiveRecordを前提とするN+1検出gem（Prosopiteなど）は検出対象のイベントが流れず機能しない。そのため本リポジトリではN+1検出をgemに頼らず、performance_schemaのクエリダイジェスト集計で代用する。
