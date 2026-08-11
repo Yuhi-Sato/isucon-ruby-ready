@@ -16,8 +16,8 @@ echo "$HOST" | grep -qE '^s[1-3]$' || {
 
 case "$ACTION" in
   deploy)
-    # サーバー側の deploy.sh が git pull → scripts/deploy.sh する
-    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && ./deploy.sh"
+    # pull 後に scripts/deploy.sh を叩くので、デプロイロジックの更新も同じデプロイで効く
+    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && git pull && ./scripts/deploy.sh"
     ;;
   deploy-conf)
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && git pull && make deploy-conf && make restart"
