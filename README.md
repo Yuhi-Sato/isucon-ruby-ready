@@ -55,7 +55,7 @@ sudo chmod 700 /home/isucon/.ssh && sudo chmod 600 /home/isucon/.ssh/authorized_
 4. 上記の`~/.ssh/config`に`ForwardAgent yes`があること
 
 ### 3. セットアップする
-サーバー上で以下を実行し、本リポジトリのコードを引っ張る
+サーバー上で以下を実行し、本リポジトリのコードを引っ張ったあと `make setup-sN` でツール導入と `SERVER_ID` 設定まで行う（`s2` / `s3` も同様）。
 
 ```bash
 cd /home/isucon   # webapp/ がある配布ルート
@@ -63,6 +63,7 @@ git init -b main
 git remote add origin git@github.com:<repo-owner>/<repo-name>.git
 git fetch origin main
 git checkout -f -B main origin/main
+make setup-s1     # s2 なら make setup-s2
 ```
 
 ## 練習環境の準備（個人練習用）
@@ -78,6 +79,6 @@ mv ~/Downloads/my_key.pem ~/.ssh/
 chmod 400 ~/.ssh/my_key.pem
 ```
 
-`IdentityFile`にこの`.pem`を指定する。AMIによっては初期状態で`isucon`ユーザーが存在しないため、[サーバーへのログイン](#サーバーへのログイン)どおり`isucon`に入れるようにしてから`./setup.sh`を実行する。
+`IdentityFile`にこの`.pem`を指定する。AMIによっては初期状態で`isucon`ユーザーが存在しないため、[サーバーへのログイン](#サーバーへのログイン)どおり`isucon`に入れるようにしてから`make setup-s1`を実行する。
 
 ## デプロイ

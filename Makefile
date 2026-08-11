@@ -11,15 +11,19 @@ help: ## ターゲット一覧を表示する
 
 # セットアップ ------------------------
 
+# setup-s1 / setup-s2 / setup-s3
+setup-%: FORCE ## サーバーの環境構築（setup-s1 など）。ツール・SERVER_ID・初回commit
+	./scripts/setup.sh $*
+
 .PHONY: setup
-setup: ## サーバーの環境構築（ツールのインストール、gitまわりのセットアップ）
-	./scripts/setup.sh
+setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
+	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
 
 .PHONY: install-tools
 install-tools: ## 解析ツール（alp / notify_slack / DuckDB等）をインストールする
 	./scripts/install-tools.sh
 
-# set-as-s1 / set-as-s2 / set-as-s3
+# set-as-s1 / set-as-s2 / set-as-s3（役割の付け直し用。初回は setup-sN に含まれる）
 set-as-%: FORCE ## このサーバーをs1/s2/s3として設定する（set-as-s1 など）
 	./scripts/set-as.sh $*
 
