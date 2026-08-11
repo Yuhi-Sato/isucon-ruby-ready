@@ -94,6 +94,8 @@ make remote-deploy-s1     # s2 / s3 も同様
 make remote-deploy-all    # 全サーバーへ並列（SERVERS="s1 s2" で絞れる）
 ```
 
+サーバー上にいるときは `make deploy`（`git pull` → `scripts/deploy.sh`）。
+
 ### 設定ファイル（`sN/` 以下）の反映
 
 `s1/etc/mysql`・`s1/etc/nginx`・`s1/env.sh` などを変えたとき。

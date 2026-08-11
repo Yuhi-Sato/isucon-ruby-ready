@@ -18,7 +18,7 @@
    DB_SERVICE_NAME=mysql        # MariaDB出題なら mariadb 等に変更
    ```
 
-3. ローカルでcommit・push → サーバー側で `git pull`（`make remote-deploy-*` / `make bench-prep` の先頭で自動実行される）が通ることを確認する
+3. ローカルでcommit・push → サーバー側で `git pull`（`make deploy` / `make bench-prep` の先頭で自動実行される）が通ることを確認する
 
 ## よくある失敗
 
