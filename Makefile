@@ -65,13 +65,6 @@ alp: ## alpでアクセスログを確認する
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
 
-.PHONY: ns
-ns: notify-slack-alp notify-slack-slow-query ## notify_slack系をまとめて通知する
-
-# notify-slack-alp / notify-slack-slow-query
-notify-slack-%: FORCE ## alp / slow-query の結果をSlackに通知する（notify-slack-alp など）
-	./scripts/notify-slack.sh $*
-
 # duckdb-flow / duckdb-repeat / duckdb-heavy-users
 duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
 	@./scripts/duckdb.sh $*
