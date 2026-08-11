@@ -81,29 +81,3 @@ chmod 400 ~/.ssh/my_key.pem
 `IdentityFile`にこの`.pem`を指定する。AMIによっては初期状態で`isucon`ユーザーが存在しないため、[サーバーへのログイン](#サーバーへのログイン)どおり`isucon`に入れるようにしてから`./setup.sh`を実行する。
 
 ## デプロイ
-
-### Makefileターゲット
-
-Makefileはターゲット名のショートカット集で、ロジックは`scripts/`以下のシェルスクリプトにある（問題によって変わる変数は`scripts/vars.sh`に集約）。全ターゲットは `make help` で一覧できる。特に運用上の注意が必要なものだけ補足する。
-
-| ターゲット | 用途・注意点 |
-|---|---|
-| `make bench-prep` | **ベンチマーク実行直前のみ手動で叩く。** ログ削除・設定反映・DB/nginx含む全再起動を伴うため、計測中の他メンバーの作業を壊す |
-| `make deploy` | サーバー上で手動実行する軽量デプロイ（`deploy.sh`と同じ。git pull→bundle install→アプリのデーモン再起動）。ログは消さず、DB/nginxも再起動しない |
-| `make remote-deploy-s1` / `-all` | ローカルから対象サーバー（全サーバー）へ`deploy.sh`をSSH経由で実行する（[ローカルからのデプロイ](#ローカルからのデプロイ)参照） |
-| `make add-profiling-gems` | `bundle add vernier`を実行する。**ローカル専用**（サーバーで実行するとGemfile.lockの変更が残り以後の`git pull`がconflictする） |
-
-### ローカルからのデプロイ
-
-変更をpushしたら、ローカルから各サーバーへ直接デプロイする。
-
-```bash
-make remote-deploy-s1    # 対象サーバーのみ（remote-deploy-s2 / -s3 も同様）
-make remote-deploy-all   # 全サーバーへ並列デプロイ
-```
-
-対象は`~/.ssh/config`の`Host s1`/`s2`/`s3`（[手順2](#2-sshを設定する)で設定）。デプロイ先のパスはデフォルトで`/home/isucon`。
-
-- 一時的に別パスへ向けたい場合は `make remote-deploy-s1 REMOTE_DEPLOY_PATH=<パス>` で上書きする
-- 使わないサーバーがある場合は `make remote-deploy-all SERVERS="s1 s2"` のように対象を絞れる
-- `remote-deploy-all` は並列実行（`make -k -j`）のため出力が交錯することがある。失敗したサーバーがあっても残りへ続行し、最後にまとめて報告して非0で終了する
