@@ -79,7 +79,7 @@ s1の完了後、ローカルにアプリコードを取り込む。
 git pull
 ```
 
-以降は[isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md)スキルの初動調査に進む。サーバーへのSSHは`make bench-prep`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
+以降は[isucon-initial-recon](.claude/skills/isucon-initial-recon/SKILL.md)スキルの初動調査（問題の把握）に進み、続けて[isucon-measurement-setup](.claude/skills/isucon-measurement-setup/SKILL.md)スキルで計測セットアップとベースライン計測を行う。サーバーへのSSHは`make bench-prep`/`make alp`/`make slow-query`など**サーバー上でしか実行できない操作**に限定し、コードや設定の編集はこのローカルcloneで行ってからpushする。
 
 > [!IMPORTANT]
 > **サーバーは`origin/main`からツール一式を取得する。**
