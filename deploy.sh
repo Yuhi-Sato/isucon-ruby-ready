@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# サーバー上の軽量デプロイ（make deploy / make remote-deploy-*）のエントリポイント。
+# サーバー上の軽量デプロイ（./deploy.sh / make remote-deploy-*）のエントリポイント。
 # git pull 後に scripts/deploy.sh（pull済みの最新版。bundle install→アプリ再起動）へ
 # 委譲するので、デプロイロジックの変更は同じデプロイで反映される。
 # 既知の制約: このファイル自体への変更だけは `git pull` より前に読み込まれるため、
