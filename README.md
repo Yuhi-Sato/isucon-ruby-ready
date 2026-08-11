@@ -55,6 +55,15 @@ sudo chmod 700 /home/isucon/.ssh && sudo chmod 600 /home/isucon/.ssh/authorized_
 4. 上記の`~/.ssh/config`に`ForwardAgent yes`があること
 
 ### 3. セットアップする
+サーバー上で以下を実行し、本リポジトリのコードを引っ張る
+
+```bash
+cd /home/isucon   # webapp/ がある配布ルート
+git init -b main
+git remote add origin git@github.com:<repo-owner>/<repo-name>.git
+git fetch origin main
+git checkout -f -B main origin/main
+```
 
 ## 練習環境の準備（個人練習用）
 

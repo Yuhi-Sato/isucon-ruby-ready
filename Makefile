@@ -1,12 +1,3 @@
-# Makefileはターゲット名のショートカット集に徹し、ロジックはscripts/以下のシェルスクリプトに置く。
-# 問題によって変わる変数（SERVICE_NAME / APP_DIR 等）は scripts/vars.sh で定義する。
-# `make help` で全ターゲットを一覧できる。
-
-# ローカルからのリモートデプロイ用（Host s1/s2/s3 は ~/.ssh/config に手書きする。README参照）
-# 配布リポジトリのルートが /home/isucon 以外なら REMOTE_DEPLOY_PATH で上書きする。
-REMOTE_DEPLOY_PATH ?= /home/isucon
-SERVERS:=s1 s2 s3
-
 # 引数なしのmakeで setup が走らないように、デフォルトはヘルプ表示にする
 .DEFAULT_GOAL := help
 
@@ -51,21 +42,6 @@ deploy-conf: ## リポジトリ内の設定ファイルをそれぞれ配置す�
 .PHONY: bench-prep
 bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB/nginx含む全再起動。ベンチ自体は実行しない）
 	./scripts/bench-prep.sh
-
-.PHONY: deploy
-deploy: ## 軽量デプロイ（git pull→bundle install→デーモン再起動。ログは消さない・DB/nginxは再起動しない）
-	./deploy.sh
-
-# remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
-# ローカルマシンから実行する。対象サーバーのdeploy.shを直接叩く
-remote-deploy-%: FORCE ## ローカルから対象サーバーにデプロイする（remote-deploy-s1 など）
-	ssh $* "cd $(REMOTE_DEPLOY_PATH) && ./deploy.sh"
-
-# -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
-# -j: 全サーバーへ並列デプロイする（出力は交錯する）
-.PHONY: remote-deploy-all
-remote-deploy-all: ## ローカルから全サーバーへ並列デプロイする（対象は SERVERS で調整）
-	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-deploy-,$(SERVERS))
 
 .PHONY: restart
 restart: ## DB・アプリ・nginxをすべて再起動する
