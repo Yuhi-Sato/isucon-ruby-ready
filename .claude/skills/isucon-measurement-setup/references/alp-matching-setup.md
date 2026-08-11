@@ -14,9 +14,10 @@
 
    ```yaml
    matching_groups:
-     # 例: /api/users/1 と /api/users/2 を /api/users/:id としてまとめて集計する
-     - "^/api/[a-zA-Z0-9_]+/[0-9]+$"
-     - "^/api/[a-zA-Z0-9_]+/[0-9]+/[a-zA-Z0-9_]+$"
+     # エンドポイントごとに書く。リソース名を可変にすると別APIが同じ行に潰れる
+     - "^/api/users/[0-9]+$"
+     - "^/api/posts/[0-9]+$"
+     - "^/api/posts/[0-9]+/comments$"
    ```
 
 3. commit・push → 次の `make alp` 実行で、対象URLが1行に集約されているか確認する

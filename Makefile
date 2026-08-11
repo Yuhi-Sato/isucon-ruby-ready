@@ -1,13 +1,7 @@
-# Makefileはターゲット名のショートカット集に徹し、ロジックはscripts/以下のシェルスクリプトに置く。
-# 問題によって変わる変数（SERVICE_NAME / APP_DIR 等）は scripts/vars.sh で定義する。
-# `make help` で全ターゲットを一覧できる。
-
-# ローカルからのリモートデプロイ用（Host s1/s2/s3 は setup.sh が ~/.ssh/config に生成する）
-# servers.conf はローカルにしか無い（git管理外）ので -include で欠落を許容する。
-# REMOTE_DIR を設定していれば配布リポジトリのルートが /home/isucon 以外でも追随する。
--include servers.conf
-REMOTE_DEPLOY_PATH ?= $(if $(REMOTE_DIR),$(REMOTE_DIR),/home/isucon)
-SERVERS:=s1 s2 s3
+# ローカルからのリモート操作用（Host s1/s2/s3 は ~/.ssh/config に手書き。README参照）
+# 配布リポジトリのルートが /home/isucon 以外なら REMOTE_DEPLOY_PATH で上書きする。
+REMOTE_DEPLOY_PATH ?= /home/isucon
+SERVERS := s1 s2 s3
 
 # 引数なしのmakeで setup が走らないように、デフォルトはヘルプ表示にする
 .DEFAULT_GOAL := help
@@ -22,15 +16,19 @@ help: ## ターゲット一覧を表示する
 
 # セットアップ ------------------------
 
+# setup-s1 / setup-s2 / setup-s3
+setup-%: FORCE ## サーバーの環境構築（setup-s1 など）。ツール・SERVER_ID・初回commit
+	./scripts/setup.sh $*
+
 .PHONY: setup
-setup: ## サーバーの環境構築（ツールのインストール、gitまわりのセットアップ）
-	./scripts/setup.sh
+setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
+	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
 
 .PHONY: install-tools
 install-tools: ## 解析ツール（alp / notify_slack / DuckDB等）をインストールする
 	./scripts/install-tools.sh
 
-# set-as-s1 / set-as-s2 / set-as-s3
+# set-as-s1 / set-as-s2 / set-as-s3（役割の付け直し用。初回は setup-sN に含まれる）
 set-as-%: FORCE ## このサーバーをs1/s2/s3として設定する（set-as-s1 など）
 	./scripts/set-as.sh $*
 
@@ -54,19 +52,23 @@ deploy-conf: ## リポジトリ内の設定ファイルをそれぞれ配置す�
 bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB/nginx含む全再起動。ベンチ自体は実行しない）
 	./scripts/bench-prep.sh
 
-.PHONY: deploy
-deploy: ## 軽量デプロイ（git pull→bundle install→デーモン再起動。ログは消さない・DB/nginxは再起動しない）
-	./deploy.sh
+# 注意: remote-deploy-% は remote-deploy-conf-s1 にもマッチするため、より具体的なルールを先に書く
+# remote-deploy-conf-s1 / ...
+remote-deploy-conf-%: FORCE ## ローカルから対象サーバーへ設定反映+全再起動する（remote-deploy-conf-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy-conf
+
+# remote-bench-prep-s1 / ...
+remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep
 
 # remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
-# ローカルマシンから実行する。対象サーバーのdeploy.shを直接叩く
-remote-deploy-%: FORCE ## ローカルから対象サーバーにデプロイする（remote-deploy-s1 など）
-	ssh $* "cd $(REMOTE_DEPLOY_PATH) && ./deploy.sh"
+remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）
 .PHONY: remote-deploy-all
-remote-deploy-all: ## ローカルから全サーバーへ並列デプロイする（対象は SERVERS で調整）
+remote-deploy-all: ## ローカルから全サーバーへ並列で軽量デプロイする（対象は SERVERS で調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-deploy-,$(SERVERS))
 
 .PHONY: restart
@@ -90,13 +92,6 @@ alp: ## alpでアクセスログを確認する
 .PHONY: slow-query
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
-
-.PHONY: ns
-ns: notify-slack-alp notify-slack-slow-query ## notify_slack系をまとめて通知する
-
-# notify-slack-alp / notify-slack-slow-query
-notify-slack-%: FORCE ## alp / slow-query の結果をSlackに通知する（notify-slack-alp など）
-	./scripts/notify-slack.sh $*
 
 # duckdb-flow / duckdb-repeat / duckdb-heavy-users
 duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
