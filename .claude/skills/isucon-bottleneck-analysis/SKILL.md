@@ -34,7 +34,7 @@ make alp   # SUM降順・上位40件（tool-config/alp/config.yml で設定済�
 | 2XX〜5XX | ステータス | 4XX/5XXが多いURIはエラー自体がスコア減点の可能性 |
 | BODY SUM | 転送量合計 | 大きければ画像/静的ファイル配信が疑わしい |
 
-集計がURLごとにバラけている場合は `matching_groups` 未対応。先に `tool-config/alp/config.yml` を直す（isucon-initial-recon スキル手順5）。
+集計がURLごとにバラけている場合は `matching_groups` 未対応。先に `tool-config/alp/config.yml` を直す（isucon-measurement-setup スキル）。
 
 ## 手順2: 上位エンドポイントの中身を切り分ける
 
