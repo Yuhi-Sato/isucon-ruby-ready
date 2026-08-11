@@ -82,3 +82,34 @@ chmod 400 ~/.ssh/my_key.pem
 `IdentityFile`にこの`.pem`を指定する。AMIによっては初期状態で`isucon`ユーザーが存在しないため、[サーバーへのログイン](#サーバーへのログイン)どおり`isucon`に入れるようにしてから`make setup-s1`を実行する。
 
 ## デプロイ
+
+原則は**ローカルで編集 → commit / push → 各サーバーで反映**。サーバーのワーキングツリーは直接編集しない（以後の `git pull` が conflict する）。
+
+対象は `~/.ssh/config` の `Host s1` / `s2` / `s3`（[手順2](#2-sshを設定する)）。デプロイ先パスのデフォルトは `/home/isucon`（別パスなら `REMOTE_DEPLOY_PATH=<パス>` で上書き）。
+
+### アプリコードの反映（軽量）
+
+ログは消さず、DB / nginx も再起動しない。普段のコード反映はこちら。
+
+```bash
+make remote-deploy-s1     # s2 / s3 も同様
+make remote-deploy-all    # 全サーバーへ並列（SERVERS="s1 s2" で絞れる）
+```
+
+サーバーに入っているときは `make deploy`（`./deploy.sh` → `git pull` → `scripts/deploy.sh`）。
+
+### 設定ファイル（`sN/` 以下）の反映
+
+`s1/etc/mysql`・`s1/etc/nginx`・`s1/env.sh` などを変えたとき。
+
+```bash
+make remote-deploy-conf-s1
+```
+
+### ベンチ直前
+
+```bash
+make remote-bench-prep-s1
+```
+
+`make bench-prep` は `git pull` → `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。**計測中の他メンバーがいるときは叩かない**（ログが消える）。

@@ -1,3 +1,8 @@
+# ローカルからのリモート操作用（Host s1/s2/s3 は ~/.ssh/config に手書き。README参照）
+# 配布リポジトリのルートが /home/isucon 以外なら REMOTE_DEPLOY_PATH で上書きする。
+REMOTE_DEPLOY_PATH ?= /home/isucon
+SERVERS := s1 s2 s3
+
 # 引数なしのmakeで setup が走らないように、デフォルトはヘルプ表示にする
 .DEFAULT_GOAL := help
 
@@ -43,9 +48,32 @@ deploy-conf: ## リポジトリ内の設定ファイルをそれぞれ配置す�
 
 # デプロイ・ベンチ ------------------------
 
+.PHONY: deploy
+deploy: ## サーバー上の軽量デプロイ（git pull→bundle install→アプリ再起動。ログは消さない・DB/nginxは触らない）
+	./deploy.sh
+
 .PHONY: bench-prep
 bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB/nginx含む全再起動。ベンチ自体は実行しない）
 	./scripts/bench-prep.sh
+
+# 注意: remote-deploy-% は remote-deploy-conf-s1 にもマッチするため、より具体的なルールを先に書く
+# remote-deploy-conf-s1 / ...
+remote-deploy-conf-%: FORCE ## ローカルから対象サーバーへ設定反映+全再起動する（remote-deploy-conf-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy-conf
+
+# remote-bench-prep-s1 / ...
+remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep
+
+# remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
+remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy
+
+# -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
+# -j: 全サーバーへ並列デプロイする（出力は交錯する）
+.PHONY: remote-deploy-all
+remote-deploy-all: ## ローカルから全サーバーへ並列で軽量デプロイする（対象は SERVERS で調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-deploy-,$(SERVERS))
 
 .PHONY: restart
 restart: ## DB・アプリ・nginxをすべて再起動する
