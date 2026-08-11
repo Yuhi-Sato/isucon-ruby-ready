@@ -2,11 +2,9 @@
 # 問題によって変わる変数（SERVICE_NAME / APP_DIR 等）は scripts/vars.sh で定義する。
 # `make help` で全ターゲットを一覧できる。
 
-# ローカルからのリモートデプロイ用（Host s1/s2/s3 は setup.sh が ~/.ssh/config に生成する）
-# servers.conf はローカルにしか無い（git管理外）ので -include で欠落を許容する。
-# REMOTE_DIR を設定していれば配布リポジトリのルートが /home/isucon 以外でも追随する。
--include servers.conf
-REMOTE_DEPLOY_PATH ?= $(if $(REMOTE_DIR),$(REMOTE_DIR),/home/isucon)
+# ローカルからのリモートデプロイ用（Host s1/s2/s3 は ~/.ssh/config に手書きする。README参照）
+# 配布リポジトリのルートが /home/isucon 以外なら REMOTE_DEPLOY_PATH で上書きする。
+REMOTE_DEPLOY_PATH ?= /home/isucon
 SERVERS:=s1 s2 s3
 
 # 引数なしのmakeで setup が走らないように、デフォルトはヘルプ表示にする
