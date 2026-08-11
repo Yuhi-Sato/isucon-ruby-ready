@@ -28,6 +28,11 @@ setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
 install-tools: ## 解析ツール（alp / notify_slack / DuckDB等）をインストールする
 	./scripts/install-tools.sh
 
+.PHONY: self-signed-cert
+self-signed-cert: ## 練習用の自己署名証明書を作成する（CERT_HOST=<ホスト名またはIP>、再作成は FORCE=1）
+	@test -n "$(CERT_HOST)" || { echo "usage: make self-signed-cert CERT_HOST=<hostname-or-ip> [FORCE=1]" >&2; exit 1; }
+	./scripts/create-self-signed-cert.sh $(if $(filter 1,$(FORCE)),--force) "$(CERT_HOST)"
+
 # set-as-s1 / set-as-s2 / set-as-s3（役割の付け直し用。初回は setup-sN に含まれる）
 set-as-%: FORCE ## このサーバーをs1/s2/s3として設定する（set-as-s1 など）
 	./scripts/set-as.sh $*

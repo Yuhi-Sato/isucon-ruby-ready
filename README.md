@@ -111,3 +111,35 @@ make remote-deploy-conf-s1
 ```bash
 make remote-bench-prep-s1
 ```
+
+## 練習環境をHTTPS化する（自己署名証明書）
+
+練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
+
+```bash
+make self-signed-cert CERT_HOST=isucon.example.test
+# 既存の証明書を作り直す場合
+make self-signed-cert CERT_HOST=isucon.example.test FORCE=1
+```
+
+証明書は `/etc/ssl/certs/isucon-self-signed.crt`、秘密鍵は
+`/etc/ssl/private/isucon-self-signed.key` に作られる。秘密鍵は root のみ読み取り可能で、
+`make get-conf` の収集対象外にしてある。
+
+対象の Nginx `server {}` ブロックに次の1行を追加する。HTTPも残す場合は既存の
+`listen 80;` と併記できる。
+
+```nginx
+include snippets/isucon-self-signed-ssl.conf;
+```
+
+生成スクリプトはスニペットを `/etc/nginx/snippets/isucon-self-signed-ssl.conf` に配置し、
+`nginx -t` に成功した場合は起動中の Nginx を reload する。証明書の生成後に上記の
+`include` を追加した場合は、設定反映のため次も実行する。
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+自己署名証明書なので、ブラウザやベンチクライアント側では信頼設定を追加するか、
+検証を無効化する必要がある。

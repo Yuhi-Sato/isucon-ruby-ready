@@ -17,6 +17,11 @@ tmp/
 /tool-config/alp/notify-slack.toml
 /tool-config/slow-query/notify-slack.toml
 
+# ローカルで作ったTLS秘密鍵・証明書を誤ってコミットしない
+*.key
+*.crt
+*.pem
+
 # --- サーバー上の `git add -A` 用の除外 ---
 # ISUCON運営配布リポジトリのルートがホームディレクトリそのものになる問題（isucon14等）では、
 # remote-setup.sh の `git add -A` がホーム直下のdot要素（.ssh/.rustup/.cargo で数GB）まで
