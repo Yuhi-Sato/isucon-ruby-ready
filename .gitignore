@@ -26,9 +26,10 @@ tmp/
 # ISUCON運営配布リポジトリのルートがホームディレクトリそのものになる問題（isucon14等）では、
 # remote-setup.sh の `git add -A` がホーム直下のdot要素（.ssh/.rustup/.cargo で数GB）まで
 # 巻き込む。ホーム直下のdot要素と配布ランタイム(local/)を除外する。
-# .claude（スキル）・.github（ワークフロー）・.gitignore自体は管理対象に残す。
+# .claude（スキル）・.agents（スキルのエイリアス）・.github（ワークフロー）・.gitignore自体は管理対象に残す。
 /.*
 !/.claude/
+!/.agents/
 !/.github/
 !/.gitignore
 /local/
