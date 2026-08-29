@@ -94,7 +94,7 @@ make remote-deploy-s1     # s2 / s3 も同様
 make remote-deploy-all    # 全サーバーへ並列（SERVERS="s1 s2" で絞れる）
 ```
 
-サーバー上にいるときは `make deploy`（`git pull` → `scripts/deploy.sh`）。
+サーバー上にいるときは `make deploy`（`git pull` → `bundle install` → アプリ再起動）。
 
 ### 設定ファイル（`sN/` 以下）の反映
 
