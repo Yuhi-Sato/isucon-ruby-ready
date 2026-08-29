@@ -259,6 +259,6 @@ end
 | `depends_on` だけで DB に接続できず失敗する | `condition: service_healthy` + ヘルスチェックで DB 接続可能を待ってからテストを実行する |
 | テストから DB に接続できない（`localhost` のまま） | 接続ホストは compose サービス名 `mysql` を使う（`MYSQL_HOST` 環境変数で渡す） |
 | `MYSQL_*`（DB名・ユーザー・パスワード）がアプリの接続設定とズレる | アプリが読む接続設定を探索し、compose と helper の `MYSQL_*` を一致させる |
-| `3-initial-data.sql.gz` は使わない | 巨大シードを流さない。**TRUNCATE + 最小シード**で `initialize_database!` する |
-| 必要な設定レコードのシード漏れ | アプリが起動時に参照する設定（例: 決済URL `payment_gateway_url` 等）を `initialize_database!` で必ず入れる。無いと該当APIが失敗する |
+| `3-initial-data.sql.gz` は使わない | 巨大な本番シード（`*.sql.gz` 等）は流さない。**TRUNCATE + 最小シード**で `initialize_database!` する |
+| 必要な初期データ・設定レコードのシード漏れ | アプリが起動時・各ハンドラで参照する初期データや設定（例: 決済URL・料金表等。出題により異なる）を探索し、`initialize_database!` で必ず入れる。無いと該当APIが失敗する |
 | 前回の MySQL データが残ってテストが汚染される | `docker compose down`（必要なら `-v` でボリュームごと削除）で後片付けする |
