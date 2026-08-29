@@ -1,6 +1,6 @@
 ---
 name: isucon-ruby-testing
-description: ISUCONのRuby実装（Rack互換アプリ。Sinatra等）で、リファクタ前にハンドラの振る舞いをDocker + minitest/rack-testで検証するときに使う。フレームワーク・出題ドメインに依存しない汎用手順。テスト環境の構築・再実行手順・test_helperの書き方・ハマりポイントをまとめる。「テストを書いて」「リファクタ前に動作確認したい」「このハンドラを検証して」などのリクエストで使用する。N+1解消・インデックス追加・リファクタ手順そのものは isucon-optimization-patterns スキルに委譲する。
+description: ISUCONのRuby実装で、リファクタ前にハンドラをDocker + minitest/rack-testで回帰テストするスキル。フレームワーク（Sinatra等）・出題ドメイン非依存のテスト環境構築・test_helper・実行手順・ハマり対策をまとめる。「テストを書いて」「リファクタ前に動作確認したい」「このハンドラを検証して」などのリクエストで使用する。リファクタ手順自体は isucon-optimization-patterns に委譲。
 ---
 
 # ISUCON Ruby ハンドラ検証テスト（Docker + minitest）
