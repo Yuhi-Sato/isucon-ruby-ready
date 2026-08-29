@@ -14,8 +14,8 @@ log/
 tmp/
 *.gem
 /.bundle/
-/tool-config/alp/notify-slack.toml
-/tool-config/slow-query/notify-slack.toml
+/tool-config/alp/notify-discord.toml
+/tool-config/slow-query/notify-discord.toml
 
 # ローカルで作ったTLS秘密鍵・証明書を誤ってコミットしない
 *.key

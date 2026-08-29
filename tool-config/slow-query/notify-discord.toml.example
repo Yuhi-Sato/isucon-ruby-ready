@@ -1,0 +1,9 @@
+# このファイルをコピーして tool-config/slow-query/notify-discord.toml として使う。
+# notify-discord.toml はWebhook URLを含むため.gitignore済み（git管理しない）。
+#
+#   cp tool-config/slow-query/notify-discord.toml.example tool-config/slow-query/notify-discord.toml
+#
+# Discord チャンネルの設定 > 連携サービス > ウェブフック で URL を発行する。
+
+webhook_url = "https://discord.com/api/webhooks/XXXX/XXXX"
+username = "slow-query"

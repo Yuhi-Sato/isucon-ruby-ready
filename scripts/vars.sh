@@ -23,7 +23,7 @@ NGINX_PATH=/etc/nginx
 DB_SLOW_LOG=/var/log/mysql/mysql-slow.log
 NGINX_LOG=/var/log/nginx/access.log
 
-NOTIFY_SLACK_TMPFILE=tmp/notify-slack.txt
+NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
-# alp / notify_slack のバイナリ選択に使う（arm環境での素振りにも対応）
+# alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)

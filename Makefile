@@ -25,7 +25,7 @@ setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
 	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
 
 .PHONY: install-tools
-install-tools: ## 解析ツール（alp / notify_slack / DuckDB等）をインストールする
+install-tools: ## 解析ツール（alp / DuckDB等）をインストールする
 	./scripts/install-tools.sh
 
 .PHONY: self-signed-cert
@@ -102,6 +102,13 @@ alp: ## alpでアクセスログを確認する
 .PHONY: slow-query
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
+
+.PHONY: nd
+nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果をDiscordに通知する
+
+# notify-discord-alp / notify-discord-slow-query
+notify-discord-%: FORCE ## alp / slow-query の結果をDiscordに通知する（notify-discord-alp など）
+	./scripts/notify-discord.sh $*
 
 # duckdb-flow / duckdb-repeat / duckdb-heavy-users
 duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
