@@ -31,7 +31,7 @@ description: ISUCONで複数台構成への分割（DB分離・アプリ複数�
 
 ### DBをs2に分離する手順
 
-1. s2で `make setup-s2` / `make get-conf` 済みであることを確認（README参照）
+1. s2で `make setup-s2` 済みであることを確認（内部で `get-conf` まで実行される。README参照）
 2. s2の `s2/etc/mysql/` で `bind-address = 0.0.0.0` にする（デフォルトは127.0.0.1で外部から繋がらない）
 3. アプリ用MySQLユーザーがリモート接続可能か確認: `CREATE USER 'isucon'@'%' ...` / `GRANT`
 4. s1の `s1/env.sh` のDBホスト環境変数（`ISUCON_DB_HOST` 等、問題により名前が異なる）をs2のプライベートIPに変更
