@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 解析ツール（alp / notify_slack / DuckDB等）のインストール（make install-tools の本体）。
+# 解析ツール（alp / DuckDB等）のインストール（make install-tools の本体）。
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -11,9 +11,10 @@ sudo apt-get update
 # NEEDRESTART_MODE=a / DEBIAN_FRONTEND=noninteractive:
 # Ubuntu 22.04+ は apt install 中に needrestart の対話ダイアログが出て止まることがあるため無効化する
 # unzip/wget: alp・DuckDBのzip展開とダウンロード用
+# curl: Discord Webhook通知（make nd）用
 # dstat: CPU/iowait 確認用（スキルから参照）
 sudo NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  unzip wget dstat
+  unzip wget curl dstat
 
 # アーカイブの展開はtmpディレクトリで行う。リポジトリルートで展開すると
 # 同梱のREADME.md等がリポジトリのファイルを上書きしてしまうため
