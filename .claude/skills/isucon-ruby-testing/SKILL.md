@@ -138,16 +138,16 @@ CMD ["bundle", "exec", "rake", "test"]
 
 ### mysql/Dockerfile（テスト用MySQLイメージ）
 
-MySQL イメージ上で DB 作成・スキーマ投入を行う。**アプリの実スキーマを投入する**（テストは本番と同じ DDL で検証する）:
+本番と同じ DDL で検証するため、**アプリの実スキーマを投入する**。スキーマの所在（`sql/` 等の DDL / `CREATE TABLE` 群）は**アプリのリポジトリ構成を探索して取得**し、テスト用 MySQL の init ディレクトリに配置する:
 
 ```dockerfile
 FROM mysql:8.0
 COPY schema.sql /docker-entrypoint-initdb.d/01-schema.sql
 ```
 
-- `schema.sql` はアプリの DB スキーマ（`CREATE TABLE` 群）。出題リポジトリの `sql/` 等から取得し `webapp/<lang>/test/mysql/` に配置
-- `/docker-entrypoint-initdb.d/` は初回起動時に DB 作成後に自動実行され、`MYSQL_DATABASE` の DB に適用される。**init は `${MYSQL_USER}`（root でない）権限で実行される**ため `CREATE DATABASE` 等は入れず `CREATE TABLE` のみに留める
-- 巨大な本番シード（`*-initial-data.sql.gz`）は**ここには入れない**（TRUNCATE + 最小シードで初期化するため）
+- **schema.sql の取得元は探索で特定する**: 出題リポジトリの `sql/`・`db/`・DDL ファイル等から、テスト対象の DB に必要なスキーマ（`CREATE TABLE` 群）を見つけて配置する。決め打ちせずアプリ構成に合わせる
+- `/docker-entrypoint-initdb.d/` は初回起動時に DB 作成後に自動実行され、`MYSQL_DATABASE` の DB に適用される。**init は `${MYSQL_USER}`（root でない）権限で実行される**ため `CREATE DATABASE` や権限変更を要する文は入れない（`CREATE TABLE` 等のみ）
+- 本番の初期データ（大規模シード）は**ここには入れない**（テストでは TRUNCATE + 最小シードで初期化するため。初期データの扱いは後述の「DB に投入するデータを探索してセットアップする」参照）
 
 ### test_helper.rb の DB 接続設定
 
@@ -246,19 +246,3 @@ class SampleTest < Minitest::Test
   end
 end
 ```
-
-## ハマりポイント
-
-| ハマり | 対策 |
-|---|---|
-| bind mount が壊れる | 単一 `-v` バインドマウントは使えない。**COPY方式**でファイルを取り込み、**コード変更の度に再ビルド必須** |
-| `Gemfile` が COPY 範囲外でビルド失敗 | `build.context` はアプリルート（`webapp/ruby`）に設定し、`dockerfile` で `test/Dockerfile` を参照する |
-| Ruby バージョン不一致で bundle install 失敗 | `FROM ruby:*` をアプリの `.ruby-version` / Gemfile の `ruby` 宣言に一致させる |
-| healthcheck の認証が `MYSQL_*` とズレて永遠に失敗 | `mysqladmin ping` の `-u` / `-p` を compose の `MYSQL_USER` / `MYSQL_PASSWORD` と一致させる。`MYSQL_ALLOW_EMPTY_PASSWORD` は使わない |
-| ローカル開発機で mysql2 がネイティブビルド不可（server には入っている場合を除く） | Docker 内で `bundle install` しネイティブビルドする。ローカルで gem を入れ直す必要はない |
-| `depends_on` だけで DB に接続できず失敗する | `condition: service_healthy` + ヘルスチェックで DB 接続可能を待ってからテストを実行する |
-| テストから DB に接続できない（`localhost` のまま） | 接続ホストは compose サービス名 `mysql` を使う（`MYSQL_HOST` 環境変数で渡す） |
-| `MYSQL_*`（DB名・ユーザー・パスワード）がアプリの接続設定とズレる | アプリが読む接続設定を探索し、compose と helper の `MYSQL_*` を一致させる |
-| `3-initial-data.sql.gz` は使わない | 巨大な本番シード（`*.sql.gz` 等）は流さない。**TRUNCATE + 最小シード**で `initialize_database!` する |
-| 必要な初期データ・設定レコードのシード漏れ | アプリが起動時・各ハンドラで参照する初期データや設定（例: 決済URL・料金表等。出題により異なる）を探索し、`initialize_database!` で必ず入れる。無いと該当APIが失敗する |
-| 前回の MySQL データが残ってテストが汚染される | `docker compose down`（必要なら `-v` でボリュームごと削除）で後片付けする |
