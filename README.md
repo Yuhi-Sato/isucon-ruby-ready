@@ -148,6 +148,14 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 （Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
 設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
 
+ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
+
+```bash
+make remote-notify-discord-s1 NOTIFY_TARGET=alp
+make remote-notify-discord-s1 NOTIFY_TARGET=slow-query
+make remote-notify-discord-all NOTIFY_TARGET=alp  # SERVERSで対象を絞れる
+```
+
 ### New Relic APM（`isucon-newrelic-setup`）
 
 New Relic Ruby Agentのライセンスキーも`secrets.env`に`NEW_RELIC_LICENSE_KEY`を追加する形で配る。
