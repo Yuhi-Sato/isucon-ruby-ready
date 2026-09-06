@@ -120,9 +120,10 @@ make remote-bench-prep-s1
 引き続き`env.sh`側で扱う）。
 対象は `~/.ssh/config` の `Host s1` / `s2` / `s3`（[手順2](#2-sshを設定する)）。
 
-リポジトリルートに配布したい内容で `secrets.env` を作成する（`.gitignore`済みなので誤コミットしない）。
+`secrets.env.sample` をコピーして `secrets.env` を作成する（`secrets.env`自体は`.gitignore`済みなので誤コミットしない）。
 
 ```bash
+cp secrets.env.sample secrets.env
 make distribute-secrets                 # 全サーバー（s1 s2 s3）へ配布
 SERVERS="s1 s2" make distribute-secrets # 対象を絞る
 SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
@@ -132,6 +133,14 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 配布先のパスを変えたい場合は `REMOTE_SECRETS_PATH=<パス>` で上書きする。
 `env.sh`と同様に`scripts/vars.sh`が`$HOME/secrets.env`を自動sourceするので、配布後は
 `scripts/`配下の各スクリプトから（`KEY=value`形式で書いた）値をそのまま参照できる。
+
+### Discord Webhook（`make nd`）
+
+`make notify-discord-alp` / `make notify-discord-slow-query`（まとめて `make nd`）が使うWebhook URLも、
+`secrets.env`にキーを追加する形で配る。alp / slow-query で共通のWebhookを使うなら`DISCORD_WEBHOOK_URL`のみ、
+チャンネルを分けたい場合は`DISCORD_WEBHOOK_URL_ALP` / `DISCORD_WEBHOOK_URL_SLOW_QUERY`で個別に上書きできる
+（Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
+設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
 
 ## 練習環境をHTTPS化する（自己署名証明書）
 
