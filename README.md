@@ -148,6 +148,13 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 （Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
 設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
 
+ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
+
+```bash
+make remote-notify-discord-alp-s1
+make remote-notify-discord-slow-query-s1
+make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
+```
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
