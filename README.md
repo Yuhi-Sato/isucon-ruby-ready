@@ -82,6 +82,15 @@ chmod 400 ~/.ssh/my_key.pem
 
 `IdentityFile`にこの`.pem`を指定する。AMIによっては初期状態で`isucon`ユーザーが存在しないため、[サーバーへのログイン](#サーバーへのログイン)どおり`isucon`に入れるようにしてから`make setup-s1`を実行する。
 
+## git hookの有効化（ローカル開発用）
+
+`webapp/ruby/test` を追加したら、コミット前にテストを自動実行するgit hookを有効化できる。
+`webapp/ruby/test` が無い間はhookは何もしない。
+
+```bash
+make install-hooks
+```
+
 ## デプロイ
 原則はローカルから実行する
 

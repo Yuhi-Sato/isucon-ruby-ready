@@ -28,6 +28,10 @@ setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
 install-tools: ## 解析ツール（alp / DuckDB等）をインストールする
 	./scripts/install-tools.sh
 
+.PHONY: install-hooks
+install-hooks: ## commit時にwebapp/ruby/testを実行するgit hookを有効化する
+	git config core.hooksPath .githooks
+
 .PHONY: self-signed-cert
 self-signed-cert: ## 練習用の自己署名証明書を作成する（CERT_HOST=<ホスト名またはIP>、再作成は FORCE=1）
 	@test -n "$(CERT_HOST)" || { echo "usage: make self-signed-cert CERT_HOST=<hostname-or-ip> [FORCE=1]" >&2; exit 1; }

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# コミット前フック（core.hooksPath 経由で有効化。`make install-hooks` 参照）。
+# webapp/ruby/test が存在する場合のみ、コミット前にテストを実行する。
+# ディレクトリが無い間（webapp未配置・テスト未整備）は何もせず終了する。
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+APP_DIR="$REPO_ROOT/webapp/ruby"
+TEST_DIR="$APP_DIR/test"
+
+if [ ! -d "$TEST_DIR" ]; then
+  exit 0
+fi
+
+echo "==> webapp/ruby/test を検出。コミット前にテストを実行します"
+cd "$APP_DIR"
+
+if [ -f Rakefile ] && bundle exec rake -T 2>/dev/null | grep -qE '^rake test\b'; then
+  bundle exec rake test
+else
+  bundle exec ruby -Itest -e 'Dir.glob("test/**/*_test.rb").sort.each { |f| require File.expand_path(f) }'
+fi
