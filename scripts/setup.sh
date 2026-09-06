@@ -17,6 +17,9 @@ mkdir -p tool-config/alp tool-config/slow-query tool-config/nginx
 # SERVER_ID をセット（get-conf / deploy-conf の前提）。commit 前に走らせて sN/ を初回pushに含める
 scripts/set-as.sh "$ROLE"
 
+# 実際のDB/nginx設定・env.shを sN/ 配下に取り込む（初回commitからgit管理下に置く）
+scripts/get-conf.sh
+
 # サーバー上のgit identity。ここで作られるコミットはs1の「配布コード取り込み」だけなので
 # 厳密である必要はない。既に設定済みなら尊重し、未設定のときだけ中立な値を入れる。
 git config --global user.name  >/dev/null 2>&1 || git config --global user.name  "isucon"

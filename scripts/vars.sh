@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034  # 変数はsource元の各スクリプトで使われる
 # 共通変数定義。scripts/以下の各スクリプトから source される（単体では実行しない）。
-# 問題によって変わる変数はここに集約する（isucon-initial-recon スキル参照）。
+# 問題によって変わる変数はここに集約する。
 
 # SERVER_ID は env.sh 内で定義される（make set-as-s1 等で追記される）
 # shellcheck disable=SC1091
@@ -23,7 +23,7 @@ NGINX_PATH=/etc/nginx
 DB_SLOW_LOG=/var/log/mysql/mysql-slow.log
 NGINX_LOG=/var/log/nginx/access.log
 
-NOTIFY_SLACK_TMPFILE=tmp/notify-slack.txt
+NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
-# alp / notify_slack のバイナリ選択に使う（arm環境での素振りにも対応）
+# alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)

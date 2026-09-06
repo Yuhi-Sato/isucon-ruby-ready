@@ -21,9 +21,8 @@ Sinatra + mysql2 直叩き構成（近年のISUCON公式Ruby実装）での定�
 | EXPLAINで type=ALL / Rows examined ≫ Rows sent | 2. インデックス追加 |
 | 同一結果を返す軽くないSELECTが大量 | 3. アプリ内キャッシュ |
 | ループ内INSERT/UPDATEが多発 | 4. bulk insert / まとめ書き |
-| BODY SUMが大きい・画像URIがSUM上位 | 5. 静的ファイル/画像のnginx配信化（isucon-nginx-tuning も参照） |
+| BODY SUMが大きい・画像URIがSUM上位 | 5. 静的ファイル/画像のnginx配信化 |
 | apptime大でVernierに外部コマンドや重いRuby処理 | 6. アプリコードの直接改善 |
-| マルチスレッドPumaなのにVernierでmysql2待ち中に他スレッドが進んでいない（GVL長時間占有） | 7. mysql2→trilogy移行（[isucon-mysql2-to-trilogy](../isucon-mysql2-to-trilogy/SKILL.md)スキルを参照） |
 
 ## 1. N+1解消
 
@@ -113,7 +112,7 @@ db.xquery("INSERT INTO logs (a, b) VALUES #{values}", *records.flat_map { |r| [r
 ## 5. 画像・静的ファイルの配信改善
 
 - DBにBLOBで入っている画像は、初回アクセス時またはinitialize時にファイルへ書き出し、以降nginxが直接配信する（`try_files` で「ファイルがあればnginx、なければアプリ」）
-- アプリを通しているCSS/JS/画像は nginx の `location` で直接配信する（設定は isucon-nginx-tuning スキル）
+- アプリを通しているCSS/JS/画像は nginx の `location` で直接配信する
 
 ## 6. アプリコードの直接改善
 

@@ -67,11 +67,11 @@ ssh s1 "systemctl status <DB_SERVICE_NAME> nginx"
 よくある原因:
 
 - **直前のデプロイでbundle installが失敗/Gemfile.lockの不整合** → `cd <APP_DIR> && bundle check` で確認
-- **DBが起動していない/接続できない** → アプリがDBより先に起動を試みて落ちていないか（`isucon-server-tuning` の起動順の節を参照）
+- **DBが起動していない/接続できない** → アプリがDBより先に起動を試みて落ちていないか
 - **設定ファイルの構文エラー**（nginx.confやmy.cnfを直前に変更した）→ `sudo nginx -t` / `mysqld --validate-config` で検証
 - **ポート衝突・PIDファイル残留** → 前のプロセスが残っていないか `ps aux | grep <SERVICE_NAME>`
 
-502/499がnginx側で出ている場合はアプリ側のタイムアウト・ワーカー枯渇を疑う（`isucon-puma-tuning` 参照）。
+502/499がnginx側で出ている場合はアプリ側のタイムアウト・ワーカー枯渇を疑う。
 
 復旧しない場合も**まず直近のデプロイ・設定変更をrevertして復旧**を優先し、原因は復旧後に調べる。
 

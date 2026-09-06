@@ -74,7 +74,7 @@ ssh s1 'sudo tail -3 /var/log/nginx/access.log | grep -oE "userid:[^\t]*"'
 | コマンド | 見えるもの | 次のアクション |
 |---|---|---|
 | `make duckdb-flow` | 「URI→次のURI」の遷移集計。支配的な行動フローと、フロー中の遅い区間（`to_avg_reqtime`） | 遷移元のレスポンスに次のリクエストで使うデータを埋め込めないか、遅い遷移先を優先改善できないか |
-| `make duckdb-repeat` | 同一ユーザー×同一URIの繰り返しGET。`repeat_reqtime_sum`が潰せる時間の総量 | 上位をキャッシュ候補に（isucon-nginx-caching / isucon-optimization-patterns スキル） |
+| `make duckdb-repeat` | 同一ユーザー×同一URIの繰り返しGET。`repeat_reqtime_sum`が潰せる時間の総量 | 上位をキャッシュ候補に（isucon-optimization-patterns スキル） |
 | `make duckdb-heavy-users` | ユーザーごとのリクエスト数・総reqtime | 重いユーザーのuseridを控え、セクション3のアドホックSQLで行動を時系列に追う |
 
 読み方の注意：

@@ -9,8 +9,6 @@
 3. アプリへproxyする `location` に `proxy_hide_header X-User-Id;` を追加する（ユーザー行動履歴ロガーを使う場合。isucon-user-behavior-analysis スキル参照。使わない場合は不要）
 4. commit・push → `make bench-prep` で反映 → `make alp` が正常に集計できることを確認する
 
-nginx設定の他のチューニング項目（keepalive・静的配信・UNIXソケット等）は isucon-nginx-tuning スキルを参照。
-
 ## よくある失敗
 
 | 失敗 | 対策 |

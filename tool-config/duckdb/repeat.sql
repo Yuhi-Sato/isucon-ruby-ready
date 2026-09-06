@@ -1,6 +1,6 @@
 -- リピート検出: 同一ユーザーが同一URI（クエリ文字列含む）を複数回GETしているパターンの集計。
 -- 2回目以降のリクエスト（repeat_hits）はキャッシュで潰せる可能性がある
--- （ユーザー内キャッシュ・304・Cache-Control。isucon-nginx-caching スキル参照）。
+-- （ユーザー内キャッシュ・304・Cache-Control等で潰せないか検討する）。
 -- repeat_reqtime_sumが大きいuri_normがキャッシュ機会の最有力候補。
 WITH per_user_uri AS (
   SELECT

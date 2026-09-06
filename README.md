@@ -55,7 +55,7 @@ sudo chmod 700 /home/isucon/.ssh && sudo chmod 600 /home/isucon/.ssh/authorized_
 4. 上記の`~/.ssh/config`に`ForwardAgent yes`があること
 
 ### 3. セットアップする
-サーバー上で以下を実行し、本リポジトリのコードを引っ張ったあと `make setup-sN` でツール導入と `SERVER_ID` 設定まで行う（`s2` / `s3` も同様）。
+サーバー上で以下を実行し、本リポジトリのコードを引っ張ったあと `make setup-sN` でツール導入・`SERVER_ID` 設定・実際のDB/nginx設定と`env.sh`の取得（`sN/`配下、`make get-conf`相当）・初回commit&pushまで行う（`s2` / `s3` も同様）。
 
 ```bash
 cd /home/isucon   # webapp/ がある配布ルート
