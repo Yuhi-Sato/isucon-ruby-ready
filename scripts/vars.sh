@@ -30,5 +30,23 @@ NGINX_LOG=/var/log/nginx/access.log
 
 NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
+# make alp / make slow-query の結果を保存するディレクトリ（tmp/以下なのでgit管理外）
+MEASURE_LOG_DIR=tmp/measure
+
 # alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
+
+# タイムスタンプ-ブランチ名-コミットハッシュ形式のログファイル名を組み立てる
+# 引数: 保存先ディレクトリ名（alp / slow-query など）
+# 標準出力: 保存先の完全なファイルパス
+measure_log_path() {
+  local target="$1"
+  local stamp branch hash dir
+  stamp=$(date "+%Y%m%d-%H%M%S")
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-')
+  branch="${branch:-no-git}"
+  hash=$(git rev-parse --short HEAD 2>/dev/null || echo "no-git")
+  dir="${MEASURE_LOG_DIR}/${target}"
+  mkdir -p "$dir"
+  echo "${dir}/${stamp}-${branch}-${hash}.log"
+}
