@@ -1,0 +1,8 @@
+# /etc/mysql/mysql.conf.d/mysqld.cnf などの [mysqld] セクションに貼り付ける。
+# デフォルト(3: エラー+警告+注意)のままで通常は問題ない。
+# Aborted connection等のNote/Warningがディスクを圧迫するほど大量に出る場合の
+# 緊急回避としてのみ使う（根本原因はアプリ側のコネクション管理であることが多い。
+# error-log-setup.md参照）。
+
+[mysqld]
+log_error_verbosity = 2

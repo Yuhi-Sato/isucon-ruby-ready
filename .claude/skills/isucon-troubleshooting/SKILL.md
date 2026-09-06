@@ -64,6 +64,8 @@ ssh s1 "sudo journalctl -u <SERVICE_NAME> -n 50" # 直近の起動ログ・例�
 ssh s1 "systemctl status <DB_SERVICE_NAME> nginx"
 ```
 
+アプリ側のjournalに何も出ない・手がかりが薄い場合は`make watch-error-log`でnginx/MySQLのエラーログ（`upstream timed out`・`connect() failed`・DB接続エラー等）も合わせて確認する（置き場所・見方はisucon-measurement-setupのerror-log-setup参照）。
+
 よくある原因:
 
 - **直前のデプロイでbundle installが失敗/Gemfile.lockの不整合** → `cd <APP_DIR> && bundle check` で確認
@@ -91,4 +93,4 @@ FAILはしていないがスコアが大きく下がった場合:
 | 原因究明を先にやって時間を溶かし、そのままタイムアップ | 復旧（revert）を最優先。調査は復旧後 |
 | revertした後、直しても再度同じ改善を入れ直すのを忘れる | revertは一時措置。原因修正後に入れ直すまでがセット |
 | 複数コミットが未検証のまま積み上がりrevert対象を特定できない | 普段から1改善→1コミット→1ベンチを徹底する（isucon-bottleneck-analysis参照） |
-| サーバーのログを見ずに推測でコードを直す | `make watch-service-log` / `journalctl` で実際のエラーを確認してから直す |
+| サーバーのログを見ずに推測でコードを直す | `make watch-service-log`（アプリ）/ `make watch-error-log`（nginx・MySQL）で実際のエラーを確認してから直す |

@@ -26,7 +26,9 @@ DB_PATH=/etc/mysql
 NGINX_PATH=/etc/nginx
 
 DB_SLOW_LOG=/var/log/mysql/mysql-slow.log
+DB_ERROR_LOG=/var/log/mysql/error.log
 NGINX_LOG=/var/log/nginx/access.log
+NGINX_ERROR_LOG=/var/log/nginx/error.log
 
 NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
