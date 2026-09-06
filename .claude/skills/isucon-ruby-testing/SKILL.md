@@ -214,6 +214,60 @@ end
 2. **最小セットの定義**: テストに必要な最小限だけ seed。本番シード（`initial-data.sql.gz`）は流さず TRUNCATE + 最小シード
 3. **helper への反映**: テーブル名・カラムはハードコードせず探索で見つけた値を使用
 
+### `initial.sh` / `POST /initialize` のテスト
+
+ISUCON ではベンチマーク前に `initial.sh` や `POST /initialize` が実行され、DB を初期状態に戻すことが多い。これらが正しく動作することをテストで担保する。
+
+`test_helper.rb` に `initial.sh` を実行するヘルパーを追加する例:
+
+```ruby
+def run_initialize_script!
+  init_script = File.expand_path("../../../sql/init.sh", __dir__) # 出題によりパスは変わる
+  system("bash", init_script) || raise("initial.sh failed: #{$?}")
+end
+```
+
+`initial.sh` のテスト例:
+
+```ruby
+class InitializeTest < Minitest::Test
+  include Rack::Test::Methods
+
+  def app
+    App
+  end
+
+  def test_initial_sh_resets_database
+    # 事前にデータを汚しておく
+    DB.query("INSERT INTO users (id, name) VALUES (99999, 'dummy')")
+
+    run_initialize_script!
+
+    # 初期化後はダミーデータが消えていることを確認
+    result = DB.query("SELECT COUNT(*) AS cnt FROM users WHERE id = 99999").first
+    assert_equal 0, result["cnt"]
+  end
+end
+```
+
+`POST /initialize` のテスト例:
+
+```ruby
+def test_post_initialize
+  DB.query("INSERT INTO users (id, name) VALUES (99999, 'dummy')")
+
+  post "/initialize"
+  assert_equal 200, last_response.status
+
+  result = DB.query("SELECT COUNT(*) AS cnt FROM users WHERE id = 99999").first
+  assert_equal 0, result["cnt"]
+end
+```
+
+- `initial.sh` / `POST /initialize` のパスや動作は出題により異なるため、**実際のリポジトリ構成とコードを探索して特定する**
+- `initial.sh` 内で `sudo` や外部サービスを呼ぶ場合は、テスト用 Docker 環境でも動作するよう確認する
+- テスト全体の `setup` で `initialize_database!` を呼ぶ場合と、`InitializeTest` だけで `initial.sh` を検証する場合を使い分ける
+
 ### テストを独立させる（DB初期化の呼び出しタイミング）
 
 `initialize_database!` は**各テストの実行前**（Minitest では `setup`）に呼び、テスト間で DB 状態を独立させる:
