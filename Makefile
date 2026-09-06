@@ -137,6 +137,10 @@ duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckd
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh
 
+.PHONY: watch-error-log
+watch-error-log: ## nginx/MySQLのエラーログを確認する（アプリは watch-service-log）
+	./scripts/watch-error-log.sh
+
 .PHONY: vernier-view
 vernier-view: ## 直近のVernierプロファイル（Markdown形式）を表示する（tmp/vernier以下に出力する想定）
 	@./scripts/vernier-view.sh
