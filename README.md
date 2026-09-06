@@ -92,9 +92,15 @@ chmod 400 ~/.ssh/my_key.pem
 ```bash
 make remote-deploy-s1     # s2 / s3 も同様
 make remote-deploy-all    # 全サーバーへ並列（SERVERS="s1 s2" で絞れる）
+
+# ブランチを指定する場合
+make remote-deploy-s1 BRANCH=feature/example
 ```
 
 サーバー上にいるときは `make deploy`（`git pull` → `scripts/deploy.sh`）。
+サーバー上でブランチを指定する場合は `make deploy BRANCH=feature/example`。指定したブランチを
+`origin`から取得して切り替えてからデプロイする。`remote-deploy-conf-s1` と
+`remote-bench-prep-s1` にも `BRANCH=...` を指定できる。
 
 ### 設定ファイル（`sN/` 以下）の反映
 
