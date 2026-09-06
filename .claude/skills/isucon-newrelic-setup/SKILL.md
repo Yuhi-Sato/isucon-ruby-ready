@@ -11,7 +11,7 @@ New Relic Ruby Agentは計測そのものがアプリのオーバーヘッドに
 
 ### 1. 対象アプリと実行環境を確認する
 
-- `scripts/vars.sh` の `APP_DIR` と `SERVICE_NAME` を問題の実環境に合わせる。未確認なら `isucon-initial-recon` の手順を先に行う。
+- `scripts/vars.sh` の `APP_DIR` と `SERVICE_NAME` を問題の実環境に合わせる。
 - Rubyのバージョン、Gemfileの有無、Sinatra/Rackのエントリポイント（通常は `config.ru` または `app.rb`）、実際のsystemd unitを確認する。
 - アプリプロセスに `RACK_ENV=production`（または `NEW_RELIC_ENV=production`）が渡ることを確認する。New Relicは環境変数から読む設定セクションを決める。
 
@@ -22,8 +22,6 @@ New Relic Ruby Agentは計測そのものがアプリのオーバーヘッドに
 ```ruby
 gem "newrelic_rpm"
 ```
-
-Rubyのバージョンが古い場合は、現行agentの対応範囲を確認してから互換性のあるagentバージョンを選ぶ。反映は通常の `bundle install`（このリポジトリなら `make deploy` または `make bench-prep`）で行う。
 
 ### 3. Sinatra/Rackアプリでagentをrequireする
 
