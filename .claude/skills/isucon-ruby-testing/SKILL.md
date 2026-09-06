@@ -168,6 +168,7 @@ require "simplecov"
 SimpleCov.start do
   add_filter "/test/"
   add_filter "/vendor/"
+  minimum_coverage 70
 end
 
 require "mysql2"
@@ -265,6 +266,44 @@ API ハンドラのテストでは **カバレッジ 70% を目指す**。計測
    - カバレッジが 70% にならない場合は、不要コードの削除かテストの追加を検討する
 
 > `SimpleCov` のレポートは `coverage/` に出力される。Docker ビルド時にコピーされないよう `.dockerignore` に `coverage/` を追加しておく。
+
+### GitHub Actions への組み込み
+
+CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストとカバレッジ計測を実行する。`.github/workflows/api-tests.yml` を作成する:
+
+```yaml
+name: API Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and run tests with coverage
+        working-directory: webapp/ruby/test
+        run: docker compose up --build --abort-on-container-exit
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: webapp/ruby/test/coverage/
+```
+
+- `working-directory` はアプリのテストディレクトリ（例: `webapp/ruby/test`）に合わせる
+- `minimum_coverage 70` を設定しているため、カバレッジが 70% 未満の場合はジョブが失敗する
+- レポートは Artifacts からダウンロードして `index.html` を確認できる
 
 ### rack-test の認証ヘッダ・JSON の書き方
 
