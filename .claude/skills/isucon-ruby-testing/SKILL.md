@@ -267,9 +267,9 @@ API ハンドラのテストでは **カバレッジ 70% を目指す**。計測
 
 > `SimpleCov` のレポートは `coverage/` に出力される。Docker ビルド時にコピーされないよう `.dockerignore` に `coverage/` を追加しておく。
 
-### GitHub Actions への組み込み
+### GitHub Actions への組み込み（各問題リポジトリ用テンプレート）
 
-CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストを実行する。カバレッジ計測はローカルで行い、CI ではテストの成否だけ確認する。`.github/workflows/api-tests.yml` を作成する:
+CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストを実行したい場合は、**各 ISUCON 問題リポジトリ**に `.github/workflows/api-tests.yml` を作成する。カバレッジ計測はローカルで行い、CI ではテストの成否だけ確認する。
 
 ```yaml
 name: API Tests
@@ -295,6 +295,7 @@ jobs:
 ```
 
 - `working-directory` はアプリのテストディレクトリ（例: `webapp/ruby/test`）に合わせる
+- このファイルはisucon-ruby-ready（準備リポジトリ）には置かず、**実際にテストを実行する問題リポジトリにコピーして使う**
 - CI ではカバレッジ計測は行わない。カバレッジの確認はローカルで `coverage/index.html` を開いて行う
 
 ### rack-test の認証ヘッダ・JSON の書き方
