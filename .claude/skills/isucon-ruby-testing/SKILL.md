@@ -144,7 +144,7 @@ CMD ["bundle", "exec", "rake", "test"]
 
 ### mysql/Dockerfile（テスト用MySQLイメージ）
 
-本番と同じ DDL で検証するため、**アプリの実スキーマを投入する**。スキーマの所在（`sql/` 等の DDL / `CREATE TABLE` 群）は**アプリのリポジトリ構成を探索して取得**し、テスト用 MySQL の init ディレクトリに配置する:
+本番と同じ DDL で検証するため、**アプリの実スキーマを投入する**。ISUCON ではベンチマーク前に `POST /initialize` が実行されることが多いため、スキーマ（`sql/` 等の DDL / `CREATE TABLE` 群）は **アプリのリポジトリ構成と `POST /initialize` の実装を両方参照して探索**し、テスト用 MySQL の init ディレクトリに配置する:
 
 ```dockerfile
 FROM mysql:8.0
