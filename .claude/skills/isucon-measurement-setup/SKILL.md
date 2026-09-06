@@ -17,4 +17,6 @@ description: ISUCONで初回ベンチマークを実行する前に必ず済ま�
 | [nginx-ltsv-setup.md](references/nginx-ltsv-setup.md) | nginxのアクセスログをltsv形式にし、`make alp`が読める状態にする |
 | [sql-location-comment-setup.md](references/sql-location-comment-setup.md) | mysql2のクエリ発行をprependし、SQL文に`/* file:line */`を埋め込んで`make slow-query`の結果からアプリのコードを直接特定できるようにする |
 
+New Relicでアプリ内部のトランザクションを確認する場合は、[isucon-newrelic-setup](../isucon-newrelic-setup/SKILL.md) を追加で適用する。計測のオーバーヘッドとライセンスキーの扱いに注意し、最終ベンチでは無効化する。
+
 ユーザー行動履歴ロガー（`X-User-Id`ヘッダー・nginxの`userid`フィールド）の導入は`isucon-user-behavior-analysis`スキルの「1. 当日の導入手順」を参照。計測セットアップの一部として同じタイミングで実施する。

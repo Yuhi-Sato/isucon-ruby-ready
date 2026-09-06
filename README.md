@@ -142,6 +142,15 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 （Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
 設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
 
+### New Relic APM（`isucon-newrelic-setup`）
+
+New Relic Ruby Agentのライセンスキーも`secrets.env`に`NEW_RELIC_LICENSE_KEY`を追加する形で配る。
+ただし上記のDiscord webhookと違い、この値を使うのは`scripts/`配下のスクリプトではなくsystemdが起動するアプリ本体のため、
+`vars.sh`の自動sourceだけでは渡らない。対象unitのdrop-in（`systemctl edit "$SERVICE_NAME"`等）に
+`EnvironmentFile=/home/isucon/secrets.env`を追加し、アプリプロセス自身に読み込ませる必要がある（詳細は
+`isucon-newrelic-setup`スキル参照）。
+設定例・ライセンスキーの発行手順は `secrets.env.sample` を参照。
+
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
