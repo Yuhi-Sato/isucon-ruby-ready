@@ -269,7 +269,7 @@ API ハンドラのテストでは **カバレッジ 70% を目指す**。計測
 
 ### GitHub Actions への組み込み
 
-CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストとカバレッジ計測を実行する。`.github/workflows/api-tests.yml` を作成する:
+CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストを実行する。カバレッジ計測はローカルで行い、CI ではテストの成否だけ確認する。`.github/workflows/api-tests.yml` を作成する:
 
 ```yaml
 name: API Tests
@@ -289,21 +289,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and run tests with coverage
+      - name: Build and run tests
         working-directory: webapp/ruby/test
         run: docker compose up --build --abort-on-container-exit
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: webapp/ruby/test/coverage/
 ```
 
 - `working-directory` はアプリのテストディレクトリ（例: `webapp/ruby/test`）に合わせる
-- `minimum_coverage 70` を設定しているため、カバレッジが 70% 未満の場合はジョブが失敗する
-- レポートは Artifacts からダウンロードして `index.html` を確認できる
+- CI ではカバレッジ計測は行わない。カバレッジの確認はローカルで `coverage/index.html` を開いて行う
 
 ### rack-test の認証ヘッダ・JSON の書き方
 
