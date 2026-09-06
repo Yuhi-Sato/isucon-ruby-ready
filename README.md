@@ -112,6 +112,22 @@ make remote-deploy-conf-s1
 make remote-bench-prep-s1
 ```
 
+## secrets.envの配布
+
+APIキーやDBパスワードなど、git管理に乗せたくない値をチームメンバー間で配るときに使う。
+対象は `~/.ssh/config` の `Host s1` / `s2` / `s3`（[手順2](#2-sshを設定する)）。
+
+リポジトリルートに配布したい内容で `secrets.env` を作成する（`.gitignore`済みなので誤コミットしない）。
+
+```bash
+make distribute-secrets                 # 全サーバー（s1 s2 s3）へ配布
+SERVERS="s1 s2" make distribute-secrets # 対象を絞る
+SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
+```
+
+各サーバーのホームディレクトリ直下に `secrets.env`（`chmod 600`）としてコピーされる。
+配布先のパスを変えたい場合は `REMOTE_SECRETS_PATH=<パス>` で上書きする。
+
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。

@@ -22,6 +22,9 @@ tmp/
 *.crt
 *.pem
 
+# make distribute-secrets で配布する秘密情報ファイル（誤ってコミットしない）
+/secrets.env
+
 # --- サーバー上の `git add -A` 用の除外 ---
 # ISUCON運営配布リポジトリのルートがホームディレクトリそのものになる問題（isucon14等）では、
 # remote-setup.sh の `git add -A` がホーム直下のdot要素（.ssh/.rustup/.cargo で数GB）まで
