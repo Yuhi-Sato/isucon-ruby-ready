@@ -58,9 +58,9 @@ development:
 
 `NEW_RELIC_LICENSE_KEY` はgit管理に乗せない値なので、`secrets.env`の配布の仕組み（README「secrets.envの配布」参照）に乗せる。
 
-- リポジトリルートの `secrets.env`（`.gitignore`済み）に `NEW_RELIC_LICENSE_KEY=<キー>` を追記する。
+- ローカルの `secrets.env`（未作成なら `cp secrets.env.sample secrets.env`）に `NEW_RELIC_LICENSE_KEY` のコメントアウトを外して値を設定する。
 - `make distribute-secrets`（対象を絞るなら `SERVERS="s1 s2" make distribute-secrets`）で各サーバーの `$HOME/secrets.env`（`chmod 600`）へ配布する。
-- 対象unitへ `systemctl edit "$SERVICE_NAME"` などのdrop-inで `EnvironmentFile=/home/isucon/secrets.env` を追加する。`NEW_RELIC_APP_NAME` と `NEW_RELIC_AGENT_ENABLED=true` は秘密ではないので同じdrop-inに `Environment=` で直接渡してよい。
+- **`scripts/vars.sh`の`$HOME/secrets.env`自動sourceは`scripts/`配下のスクリプト用であり、systemdが起動するアプリ本体には渡らない。** 対象unitへ `systemctl edit "$SERVICE_NAME"` などのdrop-inで `EnvironmentFile=/home/isucon/secrets.env` を追加し、アプリプロセス自身に読み込ませる。`NEW_RELIC_APP_NAME` と `NEW_RELIC_AGENT_ENABLED=true` は秘密ではないので同じdrop-inに `Environment=` で直接渡してよい。
 - `systemctl cat "$SERVICE_NAME"` で上記drop-inが実際に読み込まれることを確認してから再起動する。
 - ライセンスキーを `${SERVER_ID}/env.sh`、`newrelic.yml`、ログ、commitに残さない。
 - `NEW_RELIC_APP_NAME` はサーバーごとに同じ論理アプリ名を使い、必要ならサーバー識別用の別属性を使う。アプリ名へ秘密情報や短命なベンチIDを含めない。
