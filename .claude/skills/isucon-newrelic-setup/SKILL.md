@@ -56,10 +56,13 @@ development:
 
 ### 5. キーと有効化設定をアプリプロセスへ渡す
 
-`NEW_RELIC_LICENSE_KEY`、`NEW_RELIC_APP_NAME`、`NEW_RELIC_AGENT_ENABLED=true` を、systemd unitが実際に読み込むEnvironmentFileまたはdrop-inへ設定する。`systemctl cat "$SERVICE_NAME"` で読み込み元を確認してから変更する。
+`NEW_RELIC_LICENSE_KEY` はgit管理に乗せない値なので、`secrets.env`の配布の仕組み（README「secrets.envの配布」参照）に乗せる。
 
+- リポジトリルートの `secrets.env`（`.gitignore`済み）に `NEW_RELIC_LICENSE_KEY=<キー>` を追記する。
+- `make distribute-secrets`（対象を絞るなら `SERVERS="s1 s2" make distribute-secrets`）で各サーバーの `$HOME/secrets.env`（`chmod 600`）へ配布する。
+- 対象unitへ `systemctl edit "$SERVICE_NAME"` などのdrop-inで `EnvironmentFile=/home/isucon/secrets.env` を追加する。`NEW_RELIC_APP_NAME` と `NEW_RELIC_AGENT_ENABLED=true` は秘密ではないので同じdrop-inに `Environment=` で直接渡してよい。
+- `systemctl cat "$SERVICE_NAME"` で上記drop-inが実際に読み込まれることを確認してから再起動する。
 - ライセンスキーを `${SERVER_ID}/env.sh`、`newrelic.yml`、ログ、commitに残さない。
-- 既存のGit管理設定に秘密値が入る構成なら、秘密値だけをサーバー上のroot管理ファイルへ移し、unitから参照させる。
 - `NEW_RELIC_APP_NAME` はサーバーごとに同じ論理アプリ名を使い、必要ならサーバー識別用の別属性を使う。アプリ名へ秘密情報や短命なベンチIDを含めない。
 
 ### 6. 再起動して動作確認する
