@@ -7,6 +7,11 @@
 # shellcheck disable=SC1091
 if [ -f "$HOME/env.sh" ]; then . "$HOME/env.sh"; fi
 
+# secrets.env はAPIキーなどgit管理に乗せない値を置く場所（make distribute-secrets で配布）。
+# env.shと違いsN/配下にも取り込まない＝リポジトリのどこにも内容を残さない
+# shellcheck disable=SC1091
+if [ -f "$HOME/secrets.env" ]; then . "$HOME/secrets.env"; fi
+
 # ローカルからの `ssh <host> "..."` やControlMaster経由のSSHは非ログイン・非対話シェルのため、
 # rbenv/xbuildでインストールしたRubyのPATHが通らないことがある。明示的に通す
 export PATH="$HOME/local/ruby/bin:$HOME/.rbenv/shims:$PATH"

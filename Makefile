@@ -93,6 +93,10 @@ restart-app: ## アプリのみ再起動する（自動デプロイ用。DB/ngin
 rm-logs: ## アクセスログ・スロークエリログ・クエリダイジェスト統計を空にする
 	./scripts/rm-logs.sh
 
+.PHONY: distribute-secrets
+distribute-secrets: ## ローカルのsecrets.envを全サーバーへSSHで配布する（対象は SERVERS、ファイルは SECRETS_FILE で調整）
+	SERVERS="$(SERVERS)" ./scripts/distribute-secrets.sh
+
 # 計測・解析 ------------------------
 
 .PHONY: alp
