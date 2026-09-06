@@ -114,15 +114,19 @@ nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果�
 notify-discord-%: FORCE ## alp / slow-query の結果をDiscordに通知する（notify-discord-alp など）
 	./scripts/notify-discord.sh $*
 
-# remote-notify-discord-s1 / remote-notify-discord-s2 / remote-notify-discord-s3
-remote-notify-discord-%: FORCE ## ローカルから対象サーバーのalp / slow-query結果をDiscordへ通知する（NOTIFY_TARGET=alp|slow-query）
-	@test -n "$(NOTIFY_TARGET)" || { echo "usage: make remote-notify-discord-s1 NOTIFY_TARGET=alp" >&2; exit 1; }
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord "$(NOTIFY_TARGET)"
+# remote-notify-discord-alp-s1 / remote-notify-discord-slow-query-s1 など
+remote-notify-discord-alp-%: FORCE ## ローカルから対象サーバーのalp結果をDiscordへ通知する（remote-notify-discord-alp-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord alp
 
-.PHONY: remote-notify-discord-all
-remote-notify-discord-all: ## 全サーバーのalp / slow-query結果をDiscordへ通知する（NOTIFY_TARGET=alp|slow-query、対象はSERVERSで調整）
-	@test -n "$(NOTIFY_TARGET)" || { echo "usage: make remote-notify-discord-all NOTIFY_TARGET=alp" >&2; exit 1; }
-	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-,$(SERVERS)) NOTIFY_TARGET=$(NOTIFY_TARGET)
+remote-notify-discord-slow-query-%: FORCE ## ローカルから対象サーバーのslow-query結果をDiscordへ通知する（remote-notify-discord-slow-query-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord slow-query
+
+.PHONY: remote-notify-discord-alp-all remote-notify-discord-slow-query-all
+remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知する（対象はSERVERSで調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-alp-,$(SERVERS))
+
+remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
 
 # duckdb-flow / duckdb-repeat / duckdb-heavy-users
 duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）

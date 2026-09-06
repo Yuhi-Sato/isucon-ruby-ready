@@ -145,9 +145,9 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
 
 ```bash
-make remote-notify-discord-s1 NOTIFY_TARGET=alp
-make remote-notify-discord-s1 NOTIFY_TARGET=slow-query
-make remote-notify-discord-all NOTIFY_TARGET=alp  # SERVERSで対象を絞れる
+make remote-notify-discord-alp-s1
+make remote-notify-discord-slow-query-s1
+make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
 ```
 
 ### New Relic APM（`isucon-newrelic-setup`）
