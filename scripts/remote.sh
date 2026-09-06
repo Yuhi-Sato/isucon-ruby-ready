@@ -7,23 +7,37 @@ set -euo pipefail
 
 HOST="${1:-}"
 ACTION="${2:-deploy}"
+BRANCH="${3:-}"
 REMOTE_DEPLOY_PATH="${REMOTE_DEPLOY_PATH:-/home/isucon}"
 
 echo "$HOST" | grep -qE '^s[1-3]$' || {
-  echo "usage: $0 s1|s2|s3 [deploy|deploy-conf|bench-prep]" >&2
+  echo "usage: $0 s1|s2|s3 [deploy|deploy-conf|bench-prep] [branch]" >&2
   exit 1
 }
 
+if [ -n "$BRANCH" ]; then
+  git check-ref-format --branch "$BRANCH" >/dev/null 2>&1 || {
+    echo "invalid branch name: $BRANCH" >&2
+    exit 1
+  }
+fi
+
+REMOTE_CD="cd $(printf %q "$REMOTE_DEPLOY_PATH")"
+REMOTE_BRANCH=""
+if [ -n "$BRANCH" ]; then
+  REMOTE_BRANCH="git fetch origin $(printf %q "$BRANCH") && git checkout -B $(printf %q "$BRANCH") origin/$(printf %q "$BRANCH") && git pull origin $(printf %q "$BRANCH") && "
+fi
+
 case "$ACTION" in
   deploy)
-    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make deploy"
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make deploy"
     ;;
   deploy-conf)
-    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && git pull && make deploy-conf && make restart"
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}$(if [ -z "$BRANCH" ]; then printf 'git pull && '; fi)make deploy-conf && make restart"
     ;;
   bench-prep)
     # bench-prep.sh 側で git pull する
-    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make bench-prep"
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make bench-prep"
     ;;
   *)
     echo "unknown action: ${ACTION} (expected deploy / deploy-conf / bench-prep)" >&2

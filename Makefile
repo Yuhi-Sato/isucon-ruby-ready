@@ -55,7 +55,8 @@ deploy-conf: ## リポジトリ内の設定ファイルをそれぞれ配置す�
 
 .PHONY: deploy
 deploy: ## サーバー上の軽量デプロイ（git pull→bundle install→アプリ再起動。ログは消さない・DB/nginxは触らない）
-	git pull
+	./scripts/checkout-branch.sh "$(BRANCH)"
+	git pull $(if $(BRANCH),origin $(BRANCH),)
 	./scripts/deploy.sh
 
 .PHONY: bench-prep
@@ -65,15 +66,15 @@ bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB
 # 注意: remote-deploy-% は remote-deploy-conf-s1 にもマッチするため、より具体的なルールを先に書く
 # remote-deploy-conf-s1 / ...
 remote-deploy-conf-%: FORCE ## ローカルから対象サーバーへ設定反映+全再起動する（remote-deploy-conf-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy-conf
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy-conf "$(BRANCH)"
 
 # remote-bench-prep-s1 / ...
 remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep "$(BRANCH)"
 
 # remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
 remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy "$(BRANCH)"
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）
