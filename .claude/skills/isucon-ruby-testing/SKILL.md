@@ -54,8 +54,10 @@ webapp/ruby/
 初回（ビルド込み）:
 
 ```bash
-docker compose up --build
+docker compose up --build --abort-on-container-exit
 ```
+
+> `tests-1 exited with code 0` が表示されていても、Compose は mysql が停止するまで待機し続けるため、`docker compose up` が終わらないように見える。`--abort-on-container-exit` や `--exit-code-from tests` を付けることで、テスト完了時に自動で終了する。
 
 コードを変更したら **imageを再ビルドしてから**再実行する（後述の bind mount 制約のため）:
 
