@@ -133,6 +133,20 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 `env.sh`と同様に`scripts/vars.sh`が`$HOME/secrets.env`を自動sourceするので、配布後は
 `scripts/`配下の各スクリプトから（`KEY=value`形式で書いた）値をそのまま参照できる。
 
+### Discord Webhook（`make nd`）
+
+`make notify-discord-alp` / `make notify-discord-slow-query`（まとめて `make nd`）が使うWebhook URLも、
+`secrets.env`にキーを追加する形で配る。alp / slow-query で共通のWebhookを使うなら`DISCORD_WEBHOOK_URL`のみ、
+チャンネルを分けたい場合は`DISCORD_WEBHOOK_URL_ALP` / `DISCORD_WEBHOOK_URL_SLOW_QUERY`で個別に上書きできる
+（Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
+
+```bash
+# secrets.env
+DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/XXXX/XXXX"
+```
+
+Webhook URLはDiscordのチャンネル設定 > 連携サービス > ウェブフック で発行する。
+
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
