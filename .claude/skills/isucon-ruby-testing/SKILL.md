@@ -54,8 +54,10 @@ webapp/ruby/
 初回（ビルド込み）:
 
 ```bash
-docker compose up --build
+docker compose up --build --abort-on-container-exit
 ```
+
+> `tests-1 exited with code 0` が表示されていても、Compose は mysql が停止するまで待機し続けるため、`docker compose up` が終わらないように見える。`--abort-on-container-exit` や `--exit-code-from tests` を付けることで、テスト完了時に自動で終了する。
 
 コードを変更したら **imageを再ビルドしてから**再実行する（後述の bind mount 制約のため）:
 
@@ -140,7 +142,7 @@ COPY . .
 CMD ["bundle", "exec", "rake", "test"]
 ```
 
-**ビルド時の COPY 範囲に注意**: `/app` に対象アプリ一式を取り込むが、必要最小限に留める。`.dockerignore` で除外するのは、`tmp/`・`log/`・`.git/`・`node_modules/`・不要なシード（`initial-data.sql.gz`）など。
+**ビルド時の COPY 範囲に注意**: `/app` に対象アプリ一式を取り込むが、必要最小限に留める。`.dockerignore` で除外するのは、`tmp/`・`log/`・`.git/`・`node_modules/`・`coverage/`・不要なシード（`initial-data.sql.gz`）など。
 
 ### mysql/Dockerfile（テスト用MySQLイメージ）
 
@@ -159,7 +161,16 @@ COPY schema.sql /docker-entrypoint-initdb.d/01-schema.sql
 
 mysql2 で MySQL コンテナへ接続する。接続情報は compose で渡した環境変数から組み立てる（**接続先ホストは `mysql`（compose サービス名）**、ローカルの `localhost` ではない）:
 
+**カバレッジ計測（SimpleCov）は他の require より先に開始する**。API ハンドラのテストでは **カバレッジ 70% を目指し**、未カバー行があればテストを追加する:
+
 ```ruby
+require "simplecov"
+SimpleCov.start do
+  add_filter "/test/"
+  add_filter "/vendor/"
+  minimum_coverage 70
+end
+
 require "mysql2"
 require "json"
 
@@ -226,6 +237,66 @@ end
 実行方法はアプリ構成に合わせて選ぶ。**Rakefile / rake が無いこともある**ため:
 - `rake test`（Rakefile + minitest-rake がある場合）
 - `ruby -Itest test/*_test.rb`（Rake を使わず直接実行する場合）
+
+### カバレッジ計測
+
+API ハンドラのテストでは **カバレッジ 70% を目指す**。計測には `simplecov` を使う:
+
+1. **Gemfile に追加**（テスト環境用）:
+
+   ```ruby
+   group :test do
+     gem "simplecov", require: false
+   end
+   ```
+
+2. **`test_helper.rb` で先頭に読み込み**（上記の例を参照）。`SimpleCov.start` はアプリコードを require する前に呼ぶ必要がある。
+
+3. **テスト実行後にレポートを確認**:
+
+   ```bash
+   docker compose run --rm tests
+   # コンテナ内またはホスト側で coverage/index.html をブラウザで開く
+   open coverage/index.html
+   ```
+
+4. **70% に向けた運用**:
+   - 未カバー行（赤色）を確認し、対応する API エンドポイントのテストを追加する
+   - リファクタ前に既存ハンドラを網羅的にテストで固定し、変更後も壊れていないことを確認する
+   - カバレッジが 70% にならない場合は、不要コードの削除かテストの追加を検討する
+
+> `SimpleCov` のレポートは `coverage/` に出力される。Docker ビルド時にコピーされないよう `.dockerignore` に `coverage/` を追加しておく。
+
+### GitHub Actions への組み込み（各問題リポジトリ用テンプレート）
+
+CI でも同じ Docker 構成を使い、プッシュ / PR 時に自動でテストを実行したい場合は、**各 ISUCON 問題リポジトリ**に `.github/workflows/api-tests.yml` を作成する。カバレッジ計測はローカルで行い、CI ではテストの成否だけ確認する。
+
+```yaml
+name: API Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and run tests
+        working-directory: webapp/ruby/test
+        run: docker compose up --build --abort-on-container-exit
+```
+
+- `working-directory` はアプリのテストディレクトリ（例: `webapp/ruby/test`）に合わせる
+- このファイルはisucon-ruby-ready（準備リポジトリ）には置かず、**実際にテストを実行する問題リポジトリにコピーして使う**
+- CI ではカバレッジ計測は行わない。カバレッジの確認はローカルで `coverage/index.html` を開いて行う
 
 ### rack-test の認証ヘッダ・JSON の書き方
 
