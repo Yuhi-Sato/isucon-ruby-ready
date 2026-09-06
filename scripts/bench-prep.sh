@@ -7,7 +7,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-git pull
+./scripts/checkout-branch.sh "${BRANCH:-}"
+if [ -n "${BRANCH:-}" ]; then
+  git pull origin "$BRANCH"
+else
+  git pull
+fi
 
 . scripts/vars.sh
 scripts/check-server-id.sh

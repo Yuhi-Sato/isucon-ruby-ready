@@ -92,9 +92,15 @@ chmod 400 ~/.ssh/my_key.pem
 ```bash
 make remote-deploy-s1     # s2 / s3 も同様
 make remote-deploy-all    # 全サーバーへ並列（SERVERS="s1 s2" で絞れる）
+
+# ブランチを指定する場合
+make remote-deploy-s1 BRANCH=feature/example
 ```
 
 サーバー上にいるときは `make deploy`（`git pull` → `scripts/deploy.sh`）。
+サーバー上でブランチを指定する場合は `make deploy BRANCH=feature/example`。指定したブランチを
+`origin`から取得して切り替えてからデプロイする。`remote-deploy-conf-s1` と
+`remote-bench-prep-s1` にも `BRANCH=...` を指定できる。
 
 ### 設定ファイル（`sN/` 以下）の反映
 
@@ -149,16 +155,6 @@ make remote-notify-discord-alp-s1
 make remote-notify-discord-slow-query-s1
 make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
 ```
-
-### New Relic APM（`isucon-newrelic-setup`）
-
-New Relic Ruby Agentのライセンスキーも`secrets.env`に`NEW_RELIC_LICENSE_KEY`を追加する形で配る。
-ただし上記のDiscord webhookと違い、この値を使うのは`scripts/`配下のスクリプトではなくsystemdが起動するアプリ本体のため、
-`vars.sh`の自動sourceだけでは渡らない。対象unitのdrop-in（`systemctl edit "$SERVICE_NAME"`等）に
-`EnvironmentFile=/home/isucon/secrets.env`を追加し、アプリプロセス自身に読み込ませる必要がある（詳細は
-`isucon-newrelic-setup`スキル参照）。
-設定例・ライセンスキーの発行手順は `secrets.env.sample` を参照。
-
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。

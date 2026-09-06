@@ -1,4 +1,0 @@
-interface:
-  display_name: "ISUCON New Relic Setup"
-  short_description: "New Relic Ruby Agentの計測セットアップ"
-  default_prompt: "New Relic Ruby AgentをISUCONのRubyアプリへ設定して"
