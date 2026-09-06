@@ -140,7 +140,7 @@ COPY . .
 CMD ["bundle", "exec", "rake", "test"]
 ```
 
-**ビルド時の COPY 範囲に注意**: `/app` に対象アプリ一式を取り込むが、必要最小限に留める。`.dockerignore` で除外するのは、`tmp/`・`log/`・`.git/`・`node_modules/`・不要なシード（`*-initial-data.sql.gz`）など。
+**ビルド時の COPY 範囲に注意**: `/app` に対象アプリ一式を取り込むが、必要最小限に留める。`.dockerignore` で除外するのは、`tmp/`・`log/`・`.git/`・`node_modules/`・不要なシード（`initial-data.sql.gz`）など。
 
 ### mysql/Dockerfile（テスト用MySQLイメージ）
 
@@ -200,7 +200,7 @@ end
 シードすべきデータは**決め打ちせずアプリ実装から探索**して特定する:
 
 1. **参照データの洗い出し**: スキーマ（`schema.sql` / DDL）、`POST /initialize` の投入内容、ハンドラが参照する設定値（例: 決済URL・料金表）を確認。**DB 接続設定**（ホスト・DB名・ユーザー・パスワード）も compose の `MYSQL_*` と一致させる
-2. **最小セットの定義**: テストに必要な最小限だけ seed。本番シード（`*-initial-data.sql.gz`）は流さず TRUNCATE + 最小シード
+2. **最小セットの定義**: テストに必要な最小限だけ seed。本番シード（`initial-data.sql.gz`）は流さず TRUNCATE + 最小シード
 3. **helper への反映**: テーブル名・カラムはハードコードせず探索で見つけた値を使用
 
 ### テストを独立させる（DB初期化の呼び出しタイミング）
