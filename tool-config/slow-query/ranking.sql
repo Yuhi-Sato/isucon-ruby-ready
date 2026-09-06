@@ -2,6 +2,10 @@
 -- ソース: performance_schema.events_statements_summary_by_digest（クエリダイジェスト単位の累積統計）
 -- 統計は make bench-prep のMySQL再起動、または make rm-logs のTRUNCATEでリセットされる
 -- pct はシステムスキーマ除外後の全クエリ時間に占める割合。TIMER系カラムの単位はピコ秒
+-- query（DIGEST_TEXT）は正規化済みでSQLコメントが常に除去される。/* file:line */形式の位置コメント
+-- （sql-location-comment-setup参照）はquery_sample（QUERY_SAMPLE_TEXT、正規化前の生テキスト）でのみ確認できる。
+-- query_sampleはdigestごとに最も遅かった1回の実行のサンプルなので、同パターンを複数箇所から発行している場合は
+-- 最悪ケースのfile:lineしか分からない点に注意
 
 SELECT '===== Profile: 合計時間順 上位20（完全なクエリ文は下の詳細ブロック） =====' AS section;
 
@@ -31,7 +35,8 @@ SELECT
   SUM_ROWS_SENT                                                 AS rows_sent,
   ROUND(SUM_ROWS_EXAMINED / GREATEST(SUM_ROWS_SENT, 1), 1)      AS examined_per_sent,
   SCHEMA_NAME                                                   AS db,
-  DIGEST_TEXT                                                   AS query
+  DIGEST_TEXT                                                   AS query,
+  QUERY_SAMPLE_TEXT                                             AS query_sample
 FROM performance_schema.events_statements_summary_by_digest
 WHERE SCHEMA_NAME IS NOT NULL
   AND SCHEMA_NAME NOT IN ('mysql', 'sys', 'information_schema', 'performance_schema')
