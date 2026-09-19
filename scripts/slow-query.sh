@@ -7,6 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 . scripts/vars.sh
 
+measure_log_meta
 log_file=$(measure_log_path slow-query)
-sudo mysql --table < tool-config/slow-query/ranking.sql | tee "$log_file"
+{ measure_log_header; sudo mysql --table < tool-config/slow-query/ranking.sql; } | tee "$log_file"
 echo "saved: $log_file" >&2

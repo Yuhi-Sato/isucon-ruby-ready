@@ -37,17 +37,33 @@ MEASURE_LOG_DIR=measure-logs
 # alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
 
-# タイムスタンプ-ブランチ名-コミットハッシュ形式のログファイル名を組み立てる
+# 計測ログのタイムスタンプ・ブランチ名・コミットハッシュを算出し、
+# MEASURE_STAMP / MEASURE_BRANCH / MEASURE_HASH にセットする。
+# measure_log_path / measure_log_header で同じ値を使うため、呼び出し側で最初に一度だけ呼ぶ
+measure_log_meta() {
+  MEASURE_STAMP=$(date "+%Y%m%d-%H%M%S")
+  MEASURE_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-')
+  MEASURE_BRANCH="${MEASURE_BRANCH:-no-git}"
+  MEASURE_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "no-git")
+}
+
+# タイムスタンプ-ブランチ名-コミットハッシュ形式のログファイル名を組み立てる（事前に measure_log_meta が必要）
 # 引数: 保存先ディレクトリ名（alp / slow-query など）
 # 標準出力: 保存先の完全なファイルパス
 measure_log_path() {
   local target="$1"
-  local stamp branch hash dir
-  stamp=$(date "+%Y%m%d-%H%M%S")
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-')
-  branch="${branch:-no-git}"
-  hash=$(git rev-parse --short HEAD 2>/dev/null || echo "no-git")
-  dir="${MEASURE_LOG_DIR}/${target}"
+  local dir="${MEASURE_LOG_DIR}/${target}"
   mkdir -p "$dir"
-  echo "${dir}/${stamp}-${branch}-${hash}.log"
+  echo "${dir}/${MEASURE_STAMP}-${MEASURE_BRANCH}-${MEASURE_HASH}.log"
+}
+
+# ログファイル名だけでなく中身にもタイムスタンプ・ブランチ・コミットハッシュを残すためのヘッダー
+# （ファイルが移動・リネームされても計測条件が追えるように。事前に measure_log_meta が必要）
+# 標準出力: ヘッダー行（# コメント形式）
+measure_log_header() {
+  cat <<HEADER
+# timestamp: ${MEASURE_STAMP}
+# branch: ${MEASURE_BRANCH}
+# commit: ${MEASURE_HASH}
+HEADER
 }
