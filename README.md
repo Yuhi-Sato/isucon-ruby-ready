@@ -118,6 +118,18 @@ make remote-deploy-conf-s1
 make remote-bench-prep-s1
 ```
 
+## 計測結果の記録（`make alp` / `make slow-query`）
+
+```bash
+make alp          # アクセスログの集計結果を表示・保存
+make slow-query   # クエリダイジェスト集計を表示・保存
+```
+
+実行結果は `measure-logs/alp/` / `measure-logs/slow-query/` 配下に
+`<タイムスタンプ>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
+ベンチ結果の推移をコミット単位で追えるようにする狙いなので、都度 `git add measure-logs && git commit` して
+チームリポジトリにpushする（自動コミットはしない。まとめてコミットしても、改善のたびにコミットしても良い）。
+
 ## secrets.envの配布
 
 外部APIキーやDiscord webhookなど、`env.sh`と違って**git管理に一切乗せたくない**値を配るときに使う。

@@ -30,8 +30,9 @@ NGINX_LOG=/var/log/nginx/access.log
 
 NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
-# make alp / make slow-query の結果を保存するディレクトリ（tmp/以下なのでgit管理外）
-MEASURE_LOG_DIR=tmp/measure
+# make alp / make slow-query の結果を保存するディレクトリ。
+# tmp/ とは別にして、実行結果をgit管理下に置き履歴として残す（ベンチ結果の推移をコミット単位で追える）
+MEASURE_LOG_DIR=measure-logs
 
 # alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
