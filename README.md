@@ -157,6 +157,20 @@ make remote-notify-discord-alp-s1
 make remote-notify-discord-slow-query-s1
 make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
 ```
+## ベンチ結果の記録と分析
+
+ベンチマークサーバーのGUIに出た結果（スコア・エラー・警告）は、ベンチごとにローカルで `docs/bench/` に保存してコミットする。
+ファイル名に日時・ブランチ・コミットが入るので、**ベンチを回したブランチをcheckoutした状態で**実行する。
+
+```bash
+pbpaste | make save-bench-log          # macOS（クリップボードから）
+xclip -o | make save-bench-log         # Linux
+make save-bench-log < result.txt       # ファイルから
+```
+
+問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
+`.claude/skills/isucon-score-strategy` を参照（「ベンチ結果を見て」等でスキルが起動する）。
+
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
