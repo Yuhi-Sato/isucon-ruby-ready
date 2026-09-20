@@ -145,6 +145,10 @@ watch-service-log: ## アプリケーションのログを確認する
 vernier-view: ## 直近のVernierプロファイル（Markdown形式）を表示する（tmp/vernier以下に出力する想定）
 	@./scripts/vernier-view.sh
 
+.PHONY: save-bench-log
+save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存する（ローカルで pbpaste | make save-bench-log）
+	@./scripts/save-bench-log.sh
+
 .PHONY: add-profiling-gems
 add-profiling-gems: ## Vernier用gemを追加する（ローカル専用。詳細はREADME参照）
 	./scripts/add-profiling-gems.sh
