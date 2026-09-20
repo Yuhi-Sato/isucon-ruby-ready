@@ -39,7 +39,7 @@ case "$ACTION" in
     ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make deploy"
     ;;
   deploy-conf)
-    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}$(if [ -z "$BRANCH" ]; then printf 'git pull && '; fi)make deploy-conf && make restart"
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}$(if [ -z "$BRANCH" ]; then printf 'git pull && '; fi)./scripts/deploy-conf.sh && ./scripts/restart.sh all"
     ;;
   bench-prep)
     # bench-prep.sh 側で git pull する
