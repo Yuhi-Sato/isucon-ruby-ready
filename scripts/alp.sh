@@ -6,4 +6,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 . scripts/vars.sh
 
-sudo alp ltsv --file="$NGINX_LOG" --config=tool-config/alp/config.yml
+log_file=$(measure_log_path alp)
+sudo alp ltsv --file="$NGINX_LOG" --config=tool-config/alp/config.yml | tee "$log_file"
+echo "saved: $log_file" >&2

@@ -25,7 +25,7 @@ setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
 	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
 
 .PHONY: install-tools
-install-tools: ## 解析ツール（alp / DuckDB等）をインストールする
+install-tools: ## 解析ツール（alp等）をインストールする
 	./scripts/install-tools.sh
 
 .PHONY: self-signed-cert
@@ -75,6 +75,14 @@ remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep
 # remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
 remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy "$(BRANCH)"
+
+# remote-nd-s1 / remote-nd-s2 / remote-nd-s3
+remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（remote-nd-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* nd
+
+.PHONY: remote-nd
+remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果を Discord 通知）
+	$(MAKE) remote-nd-s1
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）
@@ -128,10 +136,6 @@ remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知
 
 remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
-
-# duckdb-flow / duckdb-repeat / duckdb-heavy-users
-duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
-	@./scripts/duckdb.sh $*
 
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
