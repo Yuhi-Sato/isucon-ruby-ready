@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# サーバーの実際のDB/nginx設定・env.shをgit管理下（s1/等）にコピーする（setup.shから呼び出される）。
+# サーバーの実際のDB/nginx設定・env.shをgit管理下（s1/等）にコピーする（make get-conf の本体）。
 
 set -euo pipefail
 cd "$(dirname "$0")/.."

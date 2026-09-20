@@ -12,7 +12,7 @@ NOTIFY_TARGET="${4:-}"
 REMOTE_DEPLOY_PATH="${REMOTE_DEPLOY_PATH:-/home/isucon}"
 
 echo "$HOST" | grep -qE '^s[1-3]$' || {
-  echo "usage: $0 s1|s2|s3 [deploy|deploy-conf|bench-prep|notify-discord] [alp|slow-query]" >&2
+  echo "usage: $0 s1|s2|s3 [deploy|deploy-conf|bench-prep|notify-discord|nd] [alp|slow-query]" >&2
   exit 1
 }
 
@@ -39,7 +39,7 @@ case "$ACTION" in
     ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make deploy"
     ;;
   deploy-conf)
-    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}$(if [ -z "$BRANCH" ]; then printf 'git pull && '; fi)./scripts/deploy-conf.sh && ./scripts/restart.sh all"
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}$(if [ -z "$BRANCH" ]; then printf 'git pull && '; fi)make deploy-conf && make restart"
     ;;
   bench-prep)
     # bench-prep.sh 側で git pull する
@@ -52,8 +52,11 @@ case "$ACTION" in
     }
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make notify-discord-$(printf %q "$NOTIFY_TARGET")"
     ;;
+  nd)
+    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make nd"
+    ;;
   *)
-    echo "unknown action: ${ACTION} (expected deploy / deploy-conf / bench-prep / notify-discord)" >&2
+    echo "unknown action: ${ACTION} (expected deploy / deploy-conf / bench-prep / notify-discord / nd)" >&2
     exit 1
     ;;
 esac

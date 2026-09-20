@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SERVER_ID（env.sh内で定義。setup.shで設定される）の存在チェック。
+# SERVER_ID（env.sh内で定義。make set-as-s1 等で設定される）の存在チェック。
 
 set -euo pipefail
 cd "$(dirname "$0")/.."

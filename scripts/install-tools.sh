@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 解析ツール（alp等）のインストール（setup.shから呼び出される）。
+# 解析ツール（alp等）のインストール（make install-tools の本体）。
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
