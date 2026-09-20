@@ -167,7 +167,7 @@ make save-bench-log < result.txt       # ファイルから
 ```
 
 問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
-`.claude/skills/isucon-benchmark-log-analysis` を参照（「ベンチ結果を見て」等でスキルが起動する）。
+`.claude/skills/isucon-score-strategy` を参照（「ベンチ結果を見て」等でスキルが起動する）。
 
 ## 練習環境をHTTPS化する（自己署名証明書）
 
