@@ -3,7 +3,7 @@
 # 共通変数定義。scripts/以下の各スクリプトから source される（単体では実行しない）。
 # 問題によって変わる変数はここに集約する。
 
-# SERVER_ID は env.sh 内で定義される（make set-as-s1 等で追記される）
+# SERVER_ID は env.sh 内で定義される（setup.shから追記される）
 # shellcheck disable=SC1091
 if [ -f "$HOME/env.sh" ]; then . "$HOME/env.sh"; fi
 
