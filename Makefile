@@ -25,7 +25,7 @@ setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
 	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
 
 .PHONY: install-tools
-install-tools: ## 解析ツール（alp / DuckDB等）をインストールする
+install-tools: ## 解析ツール（alp等）をインストールする
 	./scripts/install-tools.sh
 
 .PHONY: self-signed-cert
@@ -136,10 +136,6 @@ remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知
 
 remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
-
-# duckdb-flow / duckdb-repeat / duckdb-heavy-users
-duckdb-%: FORCE ## ユーザー行動履歴の定型分析（duckdb-flow / duckdb-repeat / duckdb-heavy-users）
-	@./scripts/duckdb.sh $*
 
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
