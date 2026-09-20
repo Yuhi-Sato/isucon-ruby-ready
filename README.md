@@ -151,6 +151,8 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
 
 ```bash
+make remote-nd-s1
+make remote-nd-s2              # 対象サーバーを指定する場合
 make remote-notify-discord-alp-s1
 make remote-notify-discord-slow-query-s1
 make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
