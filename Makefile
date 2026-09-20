@@ -94,11 +94,3 @@ remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDi
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh
-
-.PHONY: vernier-view
-vernier-view: ## 直近のVernierプロファイル（Markdown形式）を表示する（tmp/vernier以下に出力する想定）
-	@./scripts/vernier-view.sh
-
-.PHONY: add-profiling-gems
-add-profiling-gems: ## Vernier用gemを追加する（ローカル専用。詳細はREADME参照）
-	./scripts/add-profiling-gems.sh
