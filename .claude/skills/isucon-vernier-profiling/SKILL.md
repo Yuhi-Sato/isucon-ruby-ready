@@ -10,7 +10,7 @@ description: ISUCONでVernierサンプリングプロファイラを導入・実
 [Vernier](https://github.com/jhawthorn/vernier) はRuby 3.2.1以上が必要のサンプリングプロファイラ。問題のRubyバージョンが古い場合は導入できない。
 出力形式はVernierのMarkdown形式（AI向けフォーマット。ホットスポット・スレッド別集計をテキストで出す）を使う。GUIビューアを開かずに`cat`やSSH経由でエージェントがそのまま読める。
 
-`isucon-bottleneck-analysis`スキルの手順4（slow-queryが軽いのにapptimeが大きい＝アプリCPUが疑わしいとき）から呼ばれる想定。
+slow-queryが軽いのにapptimeが大きい（＝アプリCPUが疑わしい）ときに使う想定。
 
 ## 1. gemの追加
 
