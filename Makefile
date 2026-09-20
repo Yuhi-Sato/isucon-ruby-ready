@@ -72,6 +72,13 @@ remote-deploy-conf-%: FORCE ## ローカルから対象サーバーへ設定反�
 remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep "$(BRANCH)"
 
+# 注意: remote-bench-prep-all は remote-bench-prep-% にもマッチするが、明示ルールがパターンルールより優先される
+# -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
+# DB/nginx含む全再起動を伴うため、-j は付けず SERVERS の順（s1→s2→s3）に直列で実行する
+.PHONY: remote-bench-prep-all
+remote-bench-prep-all: ## ローカルから全サーバーで順に bench-prep する（対象は SERVERS、ブランチは BRANCH で調整）
+	$(MAKE) -k $(addprefix remote-bench-prep-,$(SERVERS))
+
 # remote-deploy-s1 / remote-deploy-s2 / remote-deploy-s3
 remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy "$(BRANCH)"
