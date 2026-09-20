@@ -33,7 +33,7 @@ NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 # make alp / make slow-query の結果を保存するディレクトリ（tmp/以下なのでgit管理外）
 MEASURE_LOG_DIR=tmp/measure
 
-# alp / DuckDB のバイナリ選択に使う（arm環境での素振りにも対応）
+# alp のバイナリ選択に使う（arm環境での素振りにも対応）
 ARCH=$(dpkg --print-architecture 2>/dev/null || echo amd64)
 
 # タイムスタンプ-ブランチ名-コミットハッシュ形式のログファイル名を組み立てる
