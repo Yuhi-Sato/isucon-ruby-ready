@@ -115,8 +115,15 @@ make remote-deploy-conf-s1
 `make bench-prep` は `git pull` → `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。
 
 ```bash
-make remote-bench-prep-s1
+make remote-bench-prep-s1   # s2 / s3 も同様
+make remote-bench-prep      # 全サーバーで順に実行（SERVERS="s1 s2" で絞れる）
+
+# ブランチを指定する場合
+make remote-bench-prep BRANCH=feature/example
 ```
+
+`make remote-bench-prep` は DB を含む全再起動を伴うため、並列ではなく `SERVERS` の順（s1 → s2 → s3）に直列で実行する。
+途中のサーバーで失敗しても残りのサーバーへ続行し、最後にまとめて失敗を報告する。
 
 ## secrets.envの配布
 
