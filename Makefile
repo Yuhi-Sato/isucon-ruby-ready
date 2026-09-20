@@ -20,36 +20,10 @@ help: ## ターゲット一覧を表示する
 setup-%: FORCE ## サーバーの環境構築（setup-s1 など）。ツール・SERVER_ID・初回commit
 	./scripts/setup.sh $*
 
-.PHONY: setup
-setup: ## （誤り防止）setup-s1 / setup-s2 / setup-s3 を使う
-	@echo "usage: make setup-s1 (or setup-s2 / setup-s3)" >&2; exit 1
-
-.PHONY: install-tools
-install-tools: ## 解析ツール（alp等）をインストールする
-	./scripts/install-tools.sh
-
 .PHONY: self-signed-cert
 self-signed-cert: ## 練習用の自己署名証明書を作成する（CERT_HOST=<ホスト名またはIP>、再作成は FORCE=1）
 	@test -n "$(CERT_HOST)" || { echo "usage: make self-signed-cert CERT_HOST=<hostname-or-ip> [FORCE=1]" >&2; exit 1; }
 	./scripts/create-self-signed-cert.sh $(if $(filter 1,$(FORCE)),--force) "$(CERT_HOST)"
-
-# set-as-s1 / set-as-s2 / set-as-s3（役割の付け直し用。初回は setup-sN に含まれる）
-set-as-%: FORCE ## このサーバーをs1/s2/s3として設定する（set-as-s1 など）
-	./scripts/set-as.sh $*
-
-.PHONY: check-server-id
-check-server-id: ## SERVER_IDが設定されているか確認する
-	@./scripts/check-server-id.sh
-
-# 設定ファイルの取得・反映 ------------------------
-
-.PHONY: get-conf
-get-conf: ## 設定ファイルなどを取得してgit管理下に配置する
-	./scripts/get-conf.sh
-
-.PHONY: deploy-conf
-deploy-conf: ## リポジトリ内の設定ファイルをそれぞれ配置する
-	./scripts/deploy-conf.sh
 
 # デプロイ・ベンチ ------------------------
 
@@ -81,7 +55,7 @@ remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（r
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* nd
 
 .PHONY: remote-nd
-remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果を Discord 通知）
+remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果をDiscord通知）
 	$(MAKE) remote-nd-s1
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
@@ -89,18 +63,6 @@ remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果
 .PHONY: remote-deploy-all
 remote-deploy-all: ## ローカルから全サーバーへ並列で軽量デプロイする（対象は SERVERS で調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-deploy-,$(SERVERS))
-
-.PHONY: restart
-restart: ## DB・アプリ・nginxをすべて再起動する
-	./scripts/restart.sh all
-
-.PHONY: restart-app
-restart-app: ## アプリのみ再起動する（自動デプロイ用。DB/nginxは触らない）
-	./scripts/restart.sh app
-
-.PHONY: rm-logs
-rm-logs: ## アクセスログ・スロークエリログ・クエリダイジェスト統計を空にする
-	./scripts/rm-logs.sh
 
 .PHONY: distribute-secrets
 distribute-secrets: ## ローカルのsecrets.envを全サーバーへSSHで配布する（対象は SERVERS、ファイルは SECRETS_FILE で調整）
@@ -140,15 +102,3 @@ remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDi
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh
-
-.PHONY: vernier-view
-vernier-view: ## 直近のVernierプロファイル（Markdown形式）を表示する（tmp/vernier以下に出力する想定）
-	@./scripts/vernier-view.sh
-
-.PHONY: save-bench-log
-save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存する（ローカルで pbpaste | make save-bench-log）
-	@./scripts/save-bench-log.sh
-
-.PHONY: add-profiling-gems
-add-profiling-gems: ## Vernier用gemを追加する（ローカル専用。詳細はREADME参照）
-	./scripts/add-profiling-gems.sh

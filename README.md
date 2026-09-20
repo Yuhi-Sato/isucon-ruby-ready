@@ -55,7 +55,7 @@ sudo chmod 700 /home/isucon/.ssh && sudo chmod 600 /home/isucon/.ssh/authorized_
 4. 上記の`~/.ssh/config`に`ForwardAgent yes`があること
 
 ### 3. セットアップする
-サーバー上で以下を実行し、本リポジトリのコードを引っ張ったあと `make setup-sN` でツール導入・`SERVER_ID` 設定・実際のDB/nginx設定と`env.sh`の取得（`sN/`配下、`make get-conf`相当）・初回commit&pushまで行う（`s2` / `s3` も同様）。
+サーバー上で以下を実行し、本リポジトリのコードを引っ張ったあと `make setup-sN` でツール導入・`SERVER_ID` 設定・実際のDB/nginx設定と`env.sh`の取得（`sN/`配下）・初回commit&pushまで行う（`s2` / `s3` も同様）。
 
 ```bash
 cd /home/isucon   # webapp/ がある配布ルート
@@ -151,6 +151,8 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
 
 ```bash
+make remote-nd-s1
+make remote-nd-s2              # 対象サーバーを指定する場合
 make remote-notify-discord-alp-s1
 make remote-notify-discord-slow-query-s1
 make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
@@ -181,7 +183,7 @@ make self-signed-cert CERT_HOST=isucon.example.test FORCE=1
 
 証明書は `/etc/ssl/certs/isucon-self-signed.crt`、秘密鍵は
 `/etc/ssl/private/isucon-self-signed.key` に作られる。秘密鍵は root のみ読み取り可能で、
-`make get-conf` の収集対象外にしてある。
+設定ファイルの収集処理の対象外にしてある。
 
 対象の Nginx `server {}` ブロックに次の1行を追加する。HTTPも残す場合は既存の
 `listen 80;` と併記できる。

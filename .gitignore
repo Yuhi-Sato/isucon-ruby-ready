@@ -23,6 +23,10 @@ tmp/
 # make distribute-secrets で配布する秘密情報ファイル（誤ってコミットしない）
 /secrets.env
 
+# サーバー上で稼働中の実体。正本は sN/env.sh で、scripts/deploy-conf.sh がここへ配置する。
+# 追跡すると git pull のたびに稼働中の設定が別サーバーの内容で上書きされる
+/env.sh
+
 # --- サーバー上の `git add -A` 用の除外 ---
 # ISUCON運営配布リポジトリのルートがホームディレクトリそのものになる問題（isucon14等）では、
 # remote-setup.sh の `git add -A` がホーム直下のdot要素（.ssh/.rustup/.cargo で数GB）まで
@@ -35,3 +39,5 @@ tmp/
 !/.gitignore
 /local/
 node_modules/
+
+coverage/
