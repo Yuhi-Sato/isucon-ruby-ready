@@ -1,3 +1,8 @@
+---
+name: isucon-service-name-setup
+description: ISUCONで初回ベンチマークを実行する前に、scripts/vars.shのSERVICE_NAME/APP_DIR/DB_SERVICE_NAMEを実サーバーの実装（Ruby/Go等の言語違いの切り替えを含む）に合わせる。ズレたままmake bench-prepすると古いアプリを再起動・計測してしまいベンチ結果が無意味になるため、初動調査で最優先に対応する。「サービス名を設定して」「vars.shを直して」「SERVICE_NAMEが合っているか確認して」などのリクエストで使用する。
+---
+
 # サービス名・scripts/vars.sh変数のセットアップ
 
 `scripts/vars.sh` 冒頭の `SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME` はデフォルト値のままだと問題の実環境と一致しないことが多い。これがズレたまま `make bench-prep` すると、古いアプリを再起動・計測してしまい、ベンチ結果が無意味になる。**初動調査の中でも最優先で直す。**
