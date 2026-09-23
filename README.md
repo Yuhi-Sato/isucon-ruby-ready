@@ -99,18 +99,12 @@ make remote-deploy-s1 BRANCH=feature/example
 
 サーバー上にいるときは `make deploy`（`git pull` → `scripts/deploy.sh`）。
 サーバー上でブランチを指定する場合は `make deploy BRANCH=feature/example`。指定したブランチを
-`origin`から取得して切り替えてからデプロイする。`remote-deploy-conf-s1` と
-`remote-bench-prep-s1` にも `BRANCH=...` を指定できる。
+`origin`から取得して切り替えてからデプロイする。`remote-bench-prep-s1` にも
+`BRANCH=...` を指定できる。
 
-### 設定ファイル（`sN/` 以下）の反映
+### 設定ファイル（`sN/` 以下）の反映・ベンチ直前
 
-`s1/etc/mysql`・`s1/etc/nginx`・`s1/env.sh` などを変えたとき。
-
-```bash
-make remote-deploy-conf-s1
-```
-
-### ベンチ直前
+`s1/etc/mysql`・`s1/etc/nginx`・`s1/env.sh` などを変えたときも、ベンチ直前と同じく `bench-prep` で反映する。
 
 `make bench-prep` は `git pull` → `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。
 
@@ -129,7 +123,7 @@ make slow-query   # クエリダイジェスト集計を表示・保存・commit
 `<タイムスタンプ>-<サーバー名>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
 サーバー名は `SERVER_ID`（`make setup-sN` 済みなら `s1`/`s2`/`s3`）、未設定なら `hostname` の値になる。
 ベンチ結果の推移をコミット単位で追えるよう、保存したログはサーバー上でそのままcommitし、チェックアウト中のブランチへpushする
-（`scripts/push-measure-log.sh`）。`make nd` / `make remote-nd` / `make remote-notify-discord-*` も内部で同じスクリプトを通るため、同様にpushされる。
+（`scripts/push-measure-log.sh`）。`make nd` / `make remote-nd-*` も内部で同じスクリプトを通るため、同様にpushされる。
 
 - commitはログファイルだけをパス指定で行うので、サーバー上の他の変更は巻き込まない
 - pushが拒否された場合（ローカルや他サーバーが先にpushした等）は `git pull --rebase` してやり直す。
@@ -166,15 +160,12 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 （Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
 設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
 
-ローカルからサーバー上のアクセスログまたはスロークエリ集計結果を通知する場合は、次のように実行する。
+ローカルからサーバー上のアクセスログとスロークエリ集計結果を通知する場合は、次のように実行する。
 
 ```bash
 make remote-nd-s1
 make remote-nd-s2              # 対象サーバーを指定する場合
 make remote-nd-all             # 全サーバーで並列に（SERVERSで対象を絞れる）
-make remote-notify-discord-alp-s1
-make remote-notify-discord-slow-query-s1
-make remote-notify-discord-alp-all  # SERVERSで対象を絞れる
 ```
 ## ベンチ結果の記録と分析
 
