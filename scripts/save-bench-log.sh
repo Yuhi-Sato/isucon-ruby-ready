@@ -20,10 +20,6 @@ if [ -t 0 ]; then
 fi
 
 body=$(cat)
-if [ -z "${body//[[:space:]]/}" ]; then
-  echo "error: 標準入力が空です。GUIの結果をコピーしてから実行してください" >&2
-  exit 1
-fi
 
 stamp=$(date "+%Y%m%d-%H%M%S")
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-')
