@@ -121,15 +121,20 @@ make remote-bench-prep-s1
 ## 計測結果の記録（`make alp` / `make slow-query`）
 
 ```bash
-make alp          # アクセスログの集計結果を表示・保存
-make slow-query   # クエリダイジェスト集計を表示・保存
+make alp          # アクセスログの集計結果を表示・保存・commit・push
+make slow-query   # クエリダイジェスト集計を表示・保存・commit・push
 ```
 
 実行結果は `measure-logs/alp/` / `measure-logs/slow-query/` 配下に
 `<タイムスタンプ>-<サーバー名>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
 サーバー名は `SERVER_ID`（`make setup-sN` 済みなら `s1`/`s2`/`s3`）、未設定なら `hostname` の値になる。
-ベンチ結果の推移をコミット単位で追えるようにする狙いなので、都度 `git add measure-logs && git commit` して
-チームリポジトリにpushする（自動コミットはしない。まとめてコミットしても、改善のたびにコミットしても良い）。
+ベンチ結果の推移をコミット単位で追えるよう、保存したログはサーバー上でそのままcommitし、チェックアウト中のブランチへpushする
+（`scripts/push-measure-log.sh`）。`make nd` / `make remote-nd` / `make remote-notify-discord-*` も内部で同じスクリプトを通るため、同様にpushされる。
+
+- commitはログファイルだけをパス指定で行うので、サーバー上の他の変更は巻き込まない
+- pushが拒否された場合（ローカルや他サーバーが先にpushした等）は `git pull --rebase` してやり直す。
+  それでも失敗したら警告だけ出して計測結果の表示・Discord通知は続行し、commitは次回の計測時に一緒にpushされる
+- サーバーからログのcommitがpushされるので、**ローカルでpushが拒否されたら `git pull --rebase` してからpushし直す**
 
 ## secrets.envの配布
 
