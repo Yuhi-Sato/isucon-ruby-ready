@@ -37,11 +37,6 @@ deploy: ## サーバー上の軽量デプロイ（git pull→bundle install→�
 bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB/nginx含む全再起動。ベンチ自体は実行しない）
 	./scripts/bench-prep.sh
 
-# 注意: remote-deploy-% は remote-deploy-conf-s1 にもマッチするため、より具体的なルールを先に書く
-# remote-deploy-conf-s1 / ...
-remote-deploy-conf-%: FORCE ## ローカルから対象サーバーへ設定反映+全再起動する（remote-deploy-conf-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy-conf "$(BRANCH)"
-
 # remote-bench-prep-s1 / ...
 remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* bench-prep "$(BRANCH)"
@@ -53,10 +48,6 @@ remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロ
 # remote-nd-s1 / remote-nd-s2 / remote-nd-s3
 remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（remote-nd-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* nd
-
-.PHONY: remote-nd
-remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果をDiscord通知）
-	$(MAKE) remote-nd-s1
 
 # 計測ログは各サーバーが同時にpushするが、scripts/push-measure-log.sh が pull --rebase でやり直すので並列で良い
 .PHONY: remote-nd-all
@@ -93,20 +84,6 @@ nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果�
 # notify-discord-alp / notify-discord-slow-query
 notify-discord-%: FORCE ## alp / slow-query の結果をDiscordに通知する（notify-discord-alp など）
 	./scripts/notify-discord.sh $*
-
-# remote-notify-discord-alp-s1 / remote-notify-discord-slow-query-s1 など
-remote-notify-discord-alp-%: FORCE ## ローカルから対象サーバーのalp結果をDiscordへ通知する（remote-notify-discord-alp-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord alp
-
-remote-notify-discord-slow-query-%: FORCE ## ローカルから対象サーバーのslow-query結果をDiscordへ通知する（remote-notify-discord-slow-query-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord slow-query
-
-.PHONY: remote-notify-discord-alp-all remote-notify-discord-slow-query-all
-remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知する（対象はSERVERSで調整）
-	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-alp-,$(SERVERS))
-
-remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
-	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
 
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
