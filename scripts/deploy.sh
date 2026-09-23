@@ -9,5 +9,5 @@ cd "$(dirname "$0")/.."
 . scripts/vars.sh
 
 scripts/check-server-id.sh
-(cd "$APP_DIR" && bundle install)
+(cd "$APP_DIR" && bundle config set --local without test && bundle install)
 scripts/restart.sh app
