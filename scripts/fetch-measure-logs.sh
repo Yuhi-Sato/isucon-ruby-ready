@@ -25,6 +25,12 @@ if ! ssh "$HOST" "test -d $(printf %q "$remote_dir")"; then
   exit 0
 fi
 
+# rsync は scripts/install-tools.sh で入れる。それ以前にセットアップしたサーバーには無いことがある
+if ! ssh "$HOST" "command -v rsync >/dev/null"; then
+  echo "rsync is not installed on ${HOST}: ssh ${HOST} sudo apt-get install -y rsync" >&2
+  exit 1
+fi
+
 mkdir -p "$MEASURE_LOG_DIR"
 # --remove-source-files: 転送できたファイルだけサーバー側から消す（未回収のログが残り続けないように）
 fetched=$(rsync -a --remove-source-files --out-format="${MEASURE_LOG_DIR}/%n" \

@@ -13,8 +13,9 @@ sudo apt-get update
 # unzip/wget: alpのzip展開とダウンロード用
 # curl: Discord Webhook通知（make nd）用
 # dstat: CPU/iowait 確認用（スキルから参照）
+# rsync: 計測ログ(measure-logs/)をローカルへ回収する用（scripts/fetch-measure-logs.sh）。送受信の両側に必要
 sudo NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  unzip wget curl dstat
+  unzip wget curl dstat rsync
 
 # アーカイブの展開はtmpディレクトリで行う。リポジトリルートで展開すると
 # 同梱のREADME.md等がリポジトリのファイルを上書きしてしまうため
