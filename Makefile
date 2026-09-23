@@ -78,6 +78,10 @@ alp: ## alpでアクセスログを確認する
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
 
+.PHONY: save-bench-log
+save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存する（ローカルで実行）
+	@./scripts/save-bench-log.sh
+
 .PHONY: nd
 nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果をDiscordに通知する
 
