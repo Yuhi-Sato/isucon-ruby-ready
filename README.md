@@ -183,6 +183,9 @@ make save-bench-log < result.txt       # ファイルから
 問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
 `.claude/skills/isucon-score-strategy` を参照（「ベンチ結果を見て」等でスキルが起動する）。
 
+nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
+（「nginxをチューニングして」等でスキルが起動する）。
+
 ## 練習環境をHTTPS化する（自己署名証明書）
 
 練習用サーバー上で、アクセスに使うホスト名またはIPアドレスを指定して実行する。
