@@ -140,12 +140,7 @@ make remote-alp-all          # 全サーバー分を順に（remote-slow-query-a
 ```
 
 `make remote-notify-discord-*` / `make remote-nd` も通知後に回収・commitまで行う。
-サーバーに入って直接 `make alp` した分は、次のコマンドで回収する。
-
-```bash
-make remote-fetch-measure-logs-s1    # s1 の measure-logs/ を回収してcommit
-make remote-fetch-measure-logs-all   # 全サーバーから回収してcommit
-```
+回収はサーバー上の `measure-logs/` を丸ごと対象にするので、サーバーに入って直接 `make alp` した分も次の回収時に一緒に取り込まれる。
 
 commitは回収を実行したローカルのブランチ（worktree）に入る。ベンチ結果の推移を追えるよう、適宜pushする。
 

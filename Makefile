@@ -123,14 +123,6 @@ remote-alp-all: ## 全サーバーのalp結果を順に表示し、ログを回�
 remote-slow-query-all: ## 全サーバーのslow-query結果を順に表示し、ログを回収してcommitする（対象はSERVERSで調整）
 	@$(call MEASURE_LOG_ALL,,remote-slow-query-)
 
-# remote-fetch-measure-logs-s1 / ...（remote-alp-* / remote-notify-discord-* / remote-nd は自動で回収する）
-remote-fetch-measure-logs-%: FORCE ## 対象サーバーの measure-logs/ をローカルへ回収してcommitする（remote-fetch-measure-logs-s1 など。pushは手動）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/fetch-measure-logs.sh $*
-
-.PHONY: remote-fetch-measure-logs-all
-remote-fetch-measure-logs-all: ## 全サーバーの measure-logs/ をローカルへ回収してcommitする（対象はSERVERSで調整）
-	@$(call MEASURE_LOG_ALL,-j $(words $(SERVERS)),remote-fetch-measure-logs-)
-
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh

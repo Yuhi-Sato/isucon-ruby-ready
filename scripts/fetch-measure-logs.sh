@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 対象サーバー上の measure-logs/（make alp / make slow-query の保存先）をローカルへ回収する
-# （make remote-fetch-measure-logs-s1 等の本体。remote-alp-* / remote-notify-discord-* / remote-nd の後にも自動で呼ばれる）。
+# （scripts/remote.sh から remote-alp-* / remote-slow-query-* / remote-notify-discord-* / remote-nd の後に呼ばれる）。
 # サーバー上でcommitするとサーバーのブランチがローカルと分岐し、次の git pull でコンフリクトしうる。
 # そのためサーバーからは回収だけして元ファイルは消し、ローカルでcommitする（pushは手動）。
 # worktreeごと消してログを失わないよう、回収したら即commitする。
