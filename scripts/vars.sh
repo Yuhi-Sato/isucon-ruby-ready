@@ -31,7 +31,8 @@ NGINX_LOG=/var/log/nginx/access.log
 NOTIFY_DISCORD_TMPFILE=tmp/notify-discord.txt
 
 # make alp / make slow-query の結果を保存するディレクトリ。
-# tmp/ とは別にして、実行結果をgit管理下に置き履歴として残す（ベンチ結果の推移をコミット単位で追える）
+# tmp/ とは別にして、実行結果をgit管理下に置き履歴として残す（ベンチ結果の推移をコミット単位で追える）。
+# サーバー上ではcommitせず、scripts/fetch-measure-logs.sh でローカルへ回収してからcommitする
 MEASURE_LOG_DIR=measure-logs
 
 # alp のバイナリ選択に使う（arm環境での素振りにも対応）
@@ -48,11 +49,12 @@ measure_log_meta() {
 }
 
 # タイムスタンプ-ブランチ名-コミットハッシュ形式のログファイル名を組み立てる（事前に measure_log_meta が必要）
+# サーバーごとに measure-logs/<SERVER_ID>/ を分ける（全サーバーから回収しても混ざらないように）
 # 引数: 保存先ディレクトリ名（alp / slow-query など）
 # 標準出力: 保存先の完全なファイルパス
 measure_log_path() {
   local target="$1"
-  local dir="${MEASURE_LOG_DIR}/${target}"
+  local dir="${MEASURE_LOG_DIR}/${SERVER_ID:-unknown}/${target}"
   mkdir -p "$dir"
   echo "${dir}/${MEASURE_STAMP}-${MEASURE_BRANCH}-${MEASURE_HASH}.log"
 }

@@ -125,9 +125,20 @@ make alp          # アクセスログの集計結果を表示・保存
 make slow-query   # クエリダイジェスト集計を表示・保存
 ```
 
-実行結果は `measure-logs/alp/` / `measure-logs/slow-query/` 配下に
+実行結果は `measure-logs/<SERVER_ID>/alp/` / `measure-logs/<SERVER_ID>/slow-query/` 配下に
 `<タイムスタンプ>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
-ベンチ結果の推移をコミット単位で追えるようにする狙いなので、都度 `git add measure-logs && git commit` して
+`make nd` / `make notify-discord-*` も内部で同じスクリプトを呼ぶため、同様に保存される。
+
+サーバー上ではcommitしない（サーバーのブランチがローカルと分岐し、次の `git pull` でコンフリクトしうるため）。
+ローカルへ回収してからcommitする。回収したファイルはサーバー側から削除される。
+
+```bash
+make remote-fetch-measure-logs-s1    # s1 の measure-logs/ をローカルへ回収
+make remote-fetch-measure-logs-all   # 全サーバーから回収
+```
+
+`make remote-notify-discord-*` / `make remote-nd` は通知後に自動で回収まで行う。
+ベンチ結果の推移をコミット単位で追えるようにする狙いなので、回収後に `git add measure-logs && git commit` して
 チームリポジトリにpushする（自動コミットはしない。まとめてコミットしても、改善のたびにコミットしても良い）。
 
 ## secrets.envの配布

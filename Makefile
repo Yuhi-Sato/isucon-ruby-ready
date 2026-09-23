@@ -103,6 +103,14 @@ remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知
 remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
 
+# remote-fetch-measure-logs-s1 / ...（remote-notify-discord-* / remote-nd は通知後に自動で回収する）
+remote-fetch-measure-logs-%: FORCE ## 対象サーバーの measure-logs/ をローカルへ回収する（remote-fetch-measure-logs-s1 など。commitはローカルで）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/fetch-measure-logs.sh $*
+
+.PHONY: remote-fetch-measure-logs-all
+remote-fetch-measure-logs-all: ## 全サーバーの measure-logs/ をローカルへ回収する（対象はSERVERSで調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-fetch-measure-logs-,$(SERVERS))
+
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
 	./scripts/watch-service-log.sh

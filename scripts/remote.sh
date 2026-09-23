@@ -51,9 +51,11 @@ case "$ACTION" in
       exit 1
     }
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make notify-discord-$(printf %q "$NOTIFY_TARGET")"
+    "$(dirname "$0")/fetch-measure-logs.sh" "$HOST"
     ;;
   nd)
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make nd"
+    "$(dirname "$0")/fetch-measure-logs.sh" "$HOST"
     ;;
   *)
     echo "unknown action: ${ACTION} (expected deploy / deploy-conf / bench-prep / notify-discord / nd)" >&2
