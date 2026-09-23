@@ -125,24 +125,11 @@ make alp          # アクセスログの集計結果を表示・保存
 make slow-query   # クエリダイジェスト集計を表示・保存
 ```
 
-実行結果は `measure-logs/<SERVER_ID>/alp/` / `measure-logs/<SERVER_ID>/slow-query/` 配下に
-`<タイムスタンプ>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
-`make nd` / `make notify-discord-*` も内部で同じスクリプトを呼ぶため、同様に保存される。
-
-サーバー上ではcommitしない（サーバーのブランチがローカルと分岐し、次の `git pull` でコンフリクトしうるため）。
-ローカルへ回収して、`measure-logs/` だけを自動でcommitする（作業中の他の変更は巻き込まない。pushは手動）。
-回収したファイルはサーバー側から削除される。基本はローカルから次のコマンドで計測する。
-
-```bash
-make remote-alp-s1           # s1 で make alp → 結果を表示 → 回収してcommit
-make remote-slow-query-s1    # s1 で make slow-query → 結果を表示 → 回収してcommit
-make remote-alp-all          # 全サーバー分を順に（remote-slow-query-all も同様）
-```
-
-`make remote-notify-discord-*` / `make remote-nd` も通知後に回収・commitまで行う。
-回収はサーバー上の `measure-logs/` を丸ごと対象にするので、サーバーに入って直接 `make alp` した分も次の回収時に一緒に取り込まれる。
-
-commitは回収を実行したローカルのブランチ（worktree）に入る。ベンチ結果の推移を追えるよう、適宜pushする。
+実行結果は `measure-logs/alp/` / `measure-logs/slow-query/` 配下に
+`<タイムスタンプ>-<サーバー名>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
+サーバー名は `SERVER_ID`（`make setup-sN` 済みなら `s1`/`s2`/`s3`）、未設定なら `hostname` の値になる。
+ベンチ結果の推移をコミット単位で追えるようにする狙いなので、都度 `git add measure-logs && git commit` して
+チームリポジトリにpushする（自動コミットはしない。まとめてコミットしても、改善のたびにコミットしても良い）。
 
 ## secrets.envの配布
 

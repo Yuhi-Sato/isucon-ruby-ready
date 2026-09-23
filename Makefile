@@ -96,32 +96,12 @@ remote-notify-discord-alp-%: FORCE ## ローカルから対象サーバーのalp
 remote-notify-discord-slow-query-%: FORCE ## ローカルから対象サーバーのslow-query結果をDiscordへ通知する（remote-notify-discord-slow-query-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* notify-discord slow-query
 
-# -all系: 並列回収中にgitのindex.lockがぶつからないよう、各サーバーではcommitせず最後に一度だけcommitする。
-# 一部サーバーが失敗しても回収できた分はcommitし、終了コードは失敗を返す
-MEASURE_LOG_ALL = MEASURE_LOG_NO_COMMIT=1 $(MAKE) -k $(1) $(addprefix $(2),$(SERVERS)); \
-	status=$$?; ./scripts/commit-measure-logs.sh; exit $$status
-
 .PHONY: remote-notify-discord-alp-all remote-notify-discord-slow-query-all
 remote-notify-discord-alp-all: ## 全サーバーのalp結果をDiscordへ通知する（対象はSERVERSで調整）
-	@$(call MEASURE_LOG_ALL,-j $(words $(SERVERS)),remote-notify-discord-alp-)
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-alp-,$(SERVERS))
 
 remote-notify-discord-slow-query-all: ## 全サーバーのslow-query結果をDiscordへ通知する（対象はSERVERSで調整）
-	@$(call MEASURE_LOG_ALL,-j $(words $(SERVERS)),remote-notify-discord-slow-query-)
-
-# remote-alp-s1 / remote-slow-query-s1 など。サーバーで make alp 等を実行→結果を表示→ローカルへ回収してcommit
-remote-alp-%: FORCE ## ローカルから対象サーバーのalp結果を表示し、ログを回収してcommitする（remote-alp-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* alp
-
-remote-slow-query-%: FORCE ## ローカルから対象サーバーのslow-query結果を表示し、ログを回収してcommitする（remote-slow-query-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* slow-query
-
-# 出力が長く並列だと交錯して読めないため、-all は -j なしで順番に実行する
-.PHONY: remote-alp-all remote-slow-query-all
-remote-alp-all: ## 全サーバーのalp結果を順に表示し、ログを回収してcommitする（対象はSERVERSで調整）
-	@$(call MEASURE_LOG_ALL,,remote-alp-)
-
-remote-slow-query-all: ## 全サーバーのslow-query結果を順に表示し、ログを回収してcommitする（対象はSERVERSで調整）
-	@$(call MEASURE_LOG_ALL,,remote-slow-query-)
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-notify-discord-slow-query-,$(SERVERS))
 
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する
