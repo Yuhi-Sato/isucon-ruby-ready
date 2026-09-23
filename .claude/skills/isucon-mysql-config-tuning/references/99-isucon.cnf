@@ -1,0 +1,37 @@
+# ISUCON用のMySQL設定（.claude/skills/isucon-mysql-config-tuning 参照）
+# 配置先: sN/etc/mysql/mysql.conf.d/99-isucon.cnf（MariaDBなら sN/etc/mysql/mariadb.conf.d/99-isucon.cnf）
+# includedir 内はファイル名順に読まれ後勝ちなので、既存の mysqld.cnf を書き換えず 99- で上書きする。
+# 値は SKILL.md の手順2で計測した結果から決める。<...> は必ず埋めること。
+
+[mysqld]
+# --- メモリ ---
+# 計測したデータサイズ（ベンチ後）が収まり、かつ物理メモリを食い潰さない値にする。
+# DB専用サーバー: 物理メモリの70〜80%目安 / アプリ同居: アプリ・nginxの常駐メモリを引いた残りの半分程度
+innodb_buffer_pool_size = <計測値から決める 例: 1G>
+
+# --- 書き込みI/O削減 ---
+# MySQL 8.0はバイナリログがデフォルト有効。レプリケーションしないなら不要な書き込み
+disable_log_bin
+# コミット毎のfsyncをやめ、1秒毎にまとめる（OSごと落ちると直近約1秒分を失う。正常な再起動なら失わない）
+innodb_flush_log_at_trx_commit = 2
+# 二重書き込みを無効化（クラッシュ時のページ破損対策を捨てる）
+innodb_doublewrite = OFF
+# OSのページキャッシュとbuffer poolの二重キャッシュを避ける
+innodb_flush_method = O_DIRECT
+# redoログを大きくしてチェックポイントの頻度を下げる
+# MySQL 8.0.30以降: innodb_redo_log_capacity / 8.0.29以前・MariaDB: innodb_log_file_size（どちらか一方だけ残す）
+innodb_redo_log_capacity = 1G
+# innodb_log_file_size = 512M
+
+# --- 接続 ---
+# アプリの (プロセス数 × スレッド数 × コネクションプール) + 余裕 より大きくする。デフォルトは151
+max_connections = <計測値から決める 例: 1000>
+# DBを別サーバーに分離したときだけ有効化する（他サーバーのアプリから接続できるようにする）
+# bind-address = 0.0.0.0
+# mysqlx-bind-address = 0.0.0.0
+# skip-name-resolve
+
+# --- 計測 ---
+# make slow-query は performance_schema のダイジェスト集計を使うので競技中は必ずON（MariaDBはデフォルトOFF）
+# 最終ベンチ前に計測を止めるときだけ OFF にする
+performance_schema = ON
