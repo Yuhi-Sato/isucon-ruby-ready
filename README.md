@@ -130,16 +130,24 @@ make slow-query   # クエリダイジェスト集計を表示・保存
 `make nd` / `make notify-discord-*` も内部で同じスクリプトを呼ぶため、同様に保存される。
 
 サーバー上ではcommitしない（サーバーのブランチがローカルと分岐し、次の `git pull` でコンフリクトしうるため）。
-ローカルへ回収してからcommitする。回収したファイルはサーバー側から削除される。
+ローカルへ回収して、`measure-logs/` だけを自動でcommitする（作業中の他の変更は巻き込まない。pushは手動）。
+回収したファイルはサーバー側から削除される。基本はローカルから次のコマンドで計測する。
 
 ```bash
-make remote-fetch-measure-logs-s1    # s1 の measure-logs/ をローカルへ回収
-make remote-fetch-measure-logs-all   # 全サーバーから回収
+make remote-alp-s1           # s1 で make alp → 結果を表示 → 回収してcommit
+make remote-slow-query-s1    # s1 で make slow-query → 結果を表示 → 回収してcommit
+make remote-alp-all          # 全サーバー分を順に（remote-slow-query-all も同様）
 ```
 
-`make remote-notify-discord-*` / `make remote-nd` は通知後に自動で回収まで行う。
-ベンチ結果の推移をコミット単位で追えるようにする狙いなので、回収後に `git add measure-logs && git commit` して
-チームリポジトリにpushする（自動コミットはしない。まとめてコミットしても、改善のたびにコミットしても良い）。
+`make remote-notify-discord-*` / `make remote-nd` も通知後に回収・commitまで行う。
+サーバーに入って直接 `make alp` した分は、次のコマンドで回収する。
+
+```bash
+make remote-fetch-measure-logs-s1    # s1 の measure-logs/ を回収してcommit
+make remote-fetch-measure-logs-all   # 全サーバーから回収してcommit
+```
+
+commitは回収を実行したローカルのブランチ（worktree）に入る。ベンチ結果の推移を追えるよう、適宜pushする。
 
 ## secrets.envの配布
 
