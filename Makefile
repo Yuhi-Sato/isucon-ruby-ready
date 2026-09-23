@@ -58,6 +58,11 @@ remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（r
 remote-nd: ## ローカルから s1 で make nd する（alp / slow-query 結果をDiscord通知）
 	$(MAKE) remote-nd-s1
 
+# 計測ログは各サーバーが同時にpushするが、scripts/push-measure-log.sh が pull --rebase でやり直すので並列で良い
+.PHONY: remote-nd-all
+remote-nd-all: ## ローカルから全サーバーで並列に make nd する（対象は SERVERS で調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-nd-,$(SERVERS))
+
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）
 .PHONY: remote-deploy-all

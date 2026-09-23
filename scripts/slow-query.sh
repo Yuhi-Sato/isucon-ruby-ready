@@ -11,3 +11,4 @@ measure_log_meta
 log_file=$(measure_log_path slow-query)
 { measure_log_header; sudo mysql --table < tool-config/slow-query/ranking.sql; } | tee "$log_file"
 echo "saved: $log_file" >&2
+scripts/push-measure-log.sh "$log_file"
