@@ -28,7 +28,9 @@ mkdir -p tmp
 "scripts/${TARGET}.sh" > "$NOTIFY_DISCORD_TMPFILE"
 
 stamp=$(date "+%Y-%m-%d-%H:%M:%S")
-filename="${stamp}-${TARGET}.txt"
+# SERVER_ID（s1/s2/s3）が未設定な環境でもどのサーバーの結果かわかるよう、hostnameにフォールバックする
+server="${SERVER_ID:-$(hostname)}"
+filename="${stamp}-${server}-${TARGET}.txt"
 payload=$(printf '{"username":"%s","content":"%s"}' "$username" "$filename")
 
 curl --fail --silent --show-error --max-time 30 \
