@@ -181,6 +181,20 @@ make save-bench-log < result.txt       # ファイルから
 問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
 `.claude/skills/isucon-score-strategy` を参照（「ベンチ結果を見て」等でスキルが起動する）。
 
+### Claude Codeでの1実験（PR）の流れ
+
+1PR = 1実験として、PR作成からベンチ後の分析までをClaude Codeで一続きに回せるようにしてある。
+
+| 段階 | 起点 | 動くもの |
+|---|---|---|
+| PR作成 | `gh pr create`（またはGitHub MCPの `create_pull_request`） | `.claude/settings.json` の PostToolUse hook（`scripts/hooks/post-pr-create.sh`）が次の手順をClaudeに渡す |
+| デプロイ | Claudeがユーザーに確認してから実行 | `make remote-bench-prep-s1 BRANCH=<ブランチ>`（別メンバーのベンチ中に上書きしないよう自動実行はしない） |
+| ベンチ | ポータルで人が実行 | hookでは終了を検知できないので、**人が「ベンチ終わった」と合図する** |
+| 記録・通知・分析 | 合図＋ポータルの結果を貼る（`/isucon-bench-result`） | `.claude/skills/isucon-bench-result` が `make save-bench-log` → `make remote-nd-all` → `isucon-score-strategy` を順に行う |
+
+Claude Code on the web などSSHが通らない環境では、hook・スキルはデプロイと `make remote-nd-all` を手元で実行するよう促し、
+実行後に `git pull --rebase` でサーバーからpushされた `measure-logs/` を取り込んで分析に進む。
+
 nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
 （「nginxをチューニングして」等でスキルが起動する）。
 
