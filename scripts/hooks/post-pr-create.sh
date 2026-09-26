@@ -34,8 +34,9 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
    了承されたら: make remote-bench-prep-s1 BRANCH=${branch:-<ブランチ名>}
    この環境からSSHできない（Claude Code on the web など）場合は、ユーザーに手元で同じコマンドを実行してもらう。
 2. ユーザーがポータルでベンチを実行する。終了はhookでは検知できないので、ユーザーの合図を待つ。
-3. 「ベンチ終わった」の合図とポータルの結果が貼られたら、isucon-score-strategy スキルを起動する。
-   スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-nd-all（alp/slow-queryの
+3. 「ベンチ終わった」の合図とポータルの結果が貼られても、isucon-score-strategy スキルをすぐには起動しない。
+   まずユーザーに「ストラテジーを組み立てますか？」と確認し、yes等の同意が得られた場合のみスキルを起動する。
+   起動する場合、スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-nd-all（alp/slow-queryの
    Discord通知と measure-logs の push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
    SSHできない環境では make remote-nd-all をユーザーに手元で実行してもらう。"
 
