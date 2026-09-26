@@ -3,7 +3,7 @@
 # ベンチマークサーバーのGUIに表示された結果（スコア・エラー・警告など）を標準入力から受け取り、
 # docs/bench/ 以下に「日時-ブランチ-コミット」のファイル名で保存し、そのファイルだけをcommitする（make save-bench-log の本体）。
 # ローカル（GUIを見ている手元のマシン）で、ベンチを回したブランチをcheckoutした状態で実行する。
-# pushは行わない（alp / slow-query の通知まで含めて行う make bench-done がまとめてpushする）。
+# pushは行わない（サーバーがpushする measure-logs と合わせて、後で git pull --rebase してからpushする）。
 # 分析は .claude/skills/isucon-score-strategy を参照。
 #
 #   pbpaste | make save-bench-log          # macOS

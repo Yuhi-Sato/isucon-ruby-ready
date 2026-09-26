@@ -2,7 +2,7 @@
 
 # Claude Code の PostToolUse hook（.claude/settings.json から呼ばれる）。
 # `gh pr create`（Bash）または GitHub MCP の create_pull_request でPRが作られた直後に、
-# 「デプロイ → ベンチ → ベンチ終了の合図で make bench-done → isucon-score-strategy」という次の手順を
+# 「デプロイ → ベンチ → ベンチ終了の合図で isucon-score-strategy（保存・通知・分析）」という次の手順を
 # additionalContext としてClaudeに返す。デプロイ自体はここでは行わない
 # （別のメンバーがベンチ中のサーバーを上書きしないよう、Claudeがユーザーに確認してから実行する）。
 #
@@ -34,10 +34,10 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
    了承されたら: make remote-bench-prep-s1 BRANCH=${branch:-<ブランチ名>}
    この環境からSSHできない（Claude Code on the web など）場合は、ユーザーに手元で同じコマンドを実行してもらう。
 2. ユーザーがポータルでベンチを実行する。終了はhookでは検知できないので、ユーザーの合図を待つ。
-3. 「ベンチ終わった」の合図とポータルの結果が貼られたら、結果を一時ファイルに書いて
-   make bench-done < tmp/bench-result.txt を実行する（docs/bench への保存・commit、alp/slow-queryのDiscord通知、
-   measure-logs の取り込み・push まで行う。SSHできない環境ではユーザーに手元での実行を頼む）。
-   その後 isucon-score-strategy スキルで次の一手を決める。"
+3. 「ベンチ終わった」の合図とポータルの結果が貼られたら、isucon-score-strategy スキルを起動する。
+   スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-nd-all（alp/slow-queryの
+   Discord通知と measure-logs の push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
+   SSHできない環境では make remote-nd-all をユーザーに手元で実行してもらう。"
 
 # JSON文字列として安全に埋め込む（改行と二重引用符・バックスラッシュをエスケープ）
 escaped=$(printf '%s' "$context" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS="\\n"} {print}' | sed -e 's/\\n$//')
