@@ -169,17 +169,23 @@ make remote-nd-all             # 全サーバーで並列に（SERVERSで対象�
 ```
 ## ベンチ結果の記録と分析
 
-ベンチマークサーバーのGUIに出た結果（スコア・エラー・警告）は、ベンチごとにローカルで `docs/bench/` に保存してコミットする。
+ベンチマークサーバーのGUIに出た結果（スコア・エラー・警告）は、ベンチごとにローカルで `make bench-done` に流す。
+`docs/bench/` への保存・commit、全サーバーでの alp / slow-query の集計とDiscord通知（`make remote-nd-all`）、
+サーバーがpushした `measure-logs/` の取り込み（`git pull --rebase`）、push までをまとめて行う。
 ファイル名に日時・ブランチ・コミットが入るので、**ベンチを回したブランチをcheckoutした状態で**実行する。
 
 ```bash
-pbpaste | make save-bench-log          # macOS（クリップボードから）
-xclip -o | make save-bench-log         # Linux
-make save-bench-log < result.txt       # ファイルから
+pbpaste | make bench-done              # macOS（クリップボードから）
+xclip -o | make bench-done             # Linux
+make bench-done < result.txt           # ファイルから
+SERVERS="s1 s2" make bench-done        # alp / slow-query の対象サーバーを絞る
 ```
 
+サーバーへSSHできない環境では `remote-nd-all` を警告付きでスキップするので、手元で `make remote-nd-all` を実行してから `git pull` する。
+保存とcommitだけを行いたい場合は `pbpaste | make save-bench-log`（push・Discord通知はしない）。
+
 問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
-`.claude/skills/isucon-score-strategy` を参照（「ベンチ結果を見て」等でスキルが起動する）。
+`.claude/skills/isucon-score-strategy` を参照（「ベンチ終わった」「ベンチ結果を見て」等でスキルが起動し、`make bench-done` の実行から分析までを行う）。
 
 ### Claude Codeでの1実験（PR）の流れ
 
@@ -189,11 +195,8 @@ make save-bench-log < result.txt       # ファイルから
 |---|---|---|
 | PR作成 | `gh pr create`（またはGitHub MCPの `create_pull_request`） | `.claude/settings.json` の PostToolUse hook（`scripts/hooks/post-pr-create.sh`）が次の手順をClaudeに渡す |
 | デプロイ | Claudeがユーザーに確認してから実行 | `make remote-bench-prep-s1 BRANCH=<ブランチ>`（別メンバーのベンチ中に上書きしないよう自動実行はしない） |
-| ベンチ | ポータルで人が実行 | hookでは終了を検知できないので、**人が「ベンチ終わった」と合図する** |
-| 記録・通知・分析 | 合図＋ポータルの結果を貼る（`/isucon-bench-result`） | `.claude/skills/isucon-bench-result` が `make save-bench-log` → `make remote-nd-all` → `isucon-score-strategy` を順に行う |
-
-Claude Code on the web などSSHが通らない環境では、hook・スキルはデプロイと `make remote-nd-all` を手元で実行するよう促し、
-実行後に `git pull --rebase` でサーバーからpushされた `measure-logs/` を取り込んで分析に進む。
+| ベンチ | ポータルで人が実行 | hookでは終了を検知できないので、**人が「ベンチ終わった」と合図し、ポータルの結果を貼る** |
+| 記録・通知・分析 | 合図＋結果の貼り付け | `isucon-score-strategy` スキルが `make bench-done`（保存・Discord通知・measure-logs取り込み）→ スコア分析の順に行う |
 
 nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
 （「nginxをチューニングして」等でスキルが起動する）。

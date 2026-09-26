@@ -75,8 +75,12 @@ slow-query: ## performance_schemaのクエリダイジェスト集計を表示�
 	@./scripts/slow-query.sh
 
 .PHONY: save-bench-log
-save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存する（ローカルで実行）
+save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存してcommitする（ローカルで実行）
 	@./scripts/save-bench-log.sh
+
+.PHONY: bench-done
+bench-done: ## ベンチ終了後の記録をまとめて行う（結果を標準入力から保存・commit → remote-nd-all → pull/push。ローカルで実行）
+	@./scripts/bench-done.sh
 
 .PHONY: nd
 nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果をDiscordに通知する
