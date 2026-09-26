@@ -24,6 +24,8 @@ DB_SERVICE_NAME=mysql
 
 DB_PATH=/etc/mysql
 NGINX_PATH=/etc/nginx
+# アプリのsystemdユニット（${SERVICE_NAME}.service）の反映先。/lib/systemd/system より優先される
+SYSTEMD_PATH=/etc/systemd/system
 
 DB_SLOW_LOG=/var/log/mysql/mysql-slow.log
 NGINX_LOG=/var/log/nginx/access.log
