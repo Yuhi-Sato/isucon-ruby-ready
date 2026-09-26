@@ -75,7 +75,7 @@ slow-query: ## performance_schemaのクエリダイジェスト集計を表示�
 	@./scripts/slow-query.sh
 
 .PHONY: save-bench-log
-save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存する（ローカルで実行）
+save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存してcommitする（ローカルで実行）
 	@./scripts/save-bench-log.sh
 
 .PHONY: nd

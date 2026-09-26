@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # ベンチマークサーバーのGUIに表示された結果（スコア・エラー・警告など）を標準入力から受け取り、
-# docs/bench/ 以下に「日時-ブランチ-コミット」のファイル名で保存する（make save-bench-log の本体）。
+# docs/bench/ 以下に「日時-ブランチ-コミット」のファイル名で保存し、そのファイルだけをcommitする（make save-bench-log の本体）。
 # ローカル（GUIを見ている手元のマシン）で、ベンチを回したブランチをcheckoutした状態で実行する。
+# pushは行わない（サーバーがpushする measure-logs と合わせて、後で git pull --rebase してからpushする）。
 # 分析は .claude/skills/isucon-score-strategy を参照。
 #
 #   pbpaste | make save-bench-log          # macOS
@@ -42,4 +43,8 @@ out="${BENCH_LOG_DIR}/${stamp}-${branch}-${hash}.md"
 } > "$out"
 
 echo "saved: $out"
-echo "次: git add $out && git commit -m 'ベンチ結果を記録'" >&2
+
+# パス指定のcommitなので、手元の他の変更は巻き込まない（scripts/push-measure-log.sh と同じ方針）
+git add -- "$out"
+git commit --quiet -m "ベンチ結果を記録: $(basename "$out")" -- "$out"
+echo "committed: $out"
