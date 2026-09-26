@@ -11,6 +11,10 @@ ISUCONで利用するツール一式
 ```bash
 gh repo create <team-repo> --template Yuhi-Sato/isucon-ruby-ready --private --clone
 cd <team-repo>
+
+# PR画面に「Update branch」ボタンを出し、最新のmainをGitHubのUIから取り込めるようにする
+# （テンプレートからはリポジトリ設定が引き継がれないので、作成直後に毎回設定する）
+gh repo edit --allow-update-branch
 ```
 
 ### 2. SSH　を設定する
@@ -104,13 +108,18 @@ make remote-deploy-s1 BRANCH=feature/example
 
 ### 設定ファイル（`sN/` 以下）の反映・ベンチ直前
 
-`s1/etc/mysql`・`s1/etc/nginx`・`s1/env.sh` などを変えたときも、ベンチ直前と同じく `bench-prep` で反映する。
+`s1/etc/mysql`・`s1/etc/nginx`・`s1/etc/systemd/system`（アプリのsystemdユニット）・`s1/env.sh` などを変えたときも、ベンチ直前と同じく `bench-prep` で反映する。
 
 `make bench-prep` は `git pull` → `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。
 
 ```bash
 make remote-bench-prep-s1
 ```
+
+アプリのsystemdユニット（`${SERVICE_NAME}.service` と drop-in の `${SERVICE_NAME}.service.d/`）は `make setup-sN` 時に
+`sN/etc/systemd/system/` へ取り込まれ、`bench-prep` で `/etc/systemd/system/` に反映される（`daemon-reload` も自動）。
+ユニットを取り込む前にセットアップ済みのサーバーでは、サーバー上で `./scripts/get-conf.sh` を実行してcommit・pushする
+（nginx/MySQL設定も稼働中の内容で取り込み直すので、差分を確認してからcommitする）。
 
 ## 計測結果の記録（`make alp` / `make slow-query`）
 
