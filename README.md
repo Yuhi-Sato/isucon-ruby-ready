@@ -132,7 +132,7 @@ make slow-query   # クエリダイジェスト集計を表示・保存・commit
 `<タイムスタンプ>-<サーバー名>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
 サーバー名は `SERVER_ID`（`make setup-sN` 済みなら `s1`/`s2`/`s3`）、未設定なら `hostname` の値になる。
 ベンチ結果の推移をコミット単位で追えるよう、保存したログはサーバー上でそのままcommitし、チェックアウト中のブランチへpushする
-（`scripts/push-measure-log.sh`）。`make nd` / `make remote-nd-*` も内部で同じスクリプトを通るため、同様にpushされる。
+（`scripts/push-measure-log.sh`）。`make remote-measure-*` / `make nd` / `make remote-nd-*` も内部で同じスクリプトを通るため、同様にpushされる。
 
 - commitはログファイルだけをパス指定で行うので、サーバー上の他の変更は巻き込まない
 - pushが拒否された場合（ローカルや他サーバーが先にpushした等）は `git pull --rebase` してやり直す。
@@ -161,7 +161,10 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 `env.sh`と同様に`scripts/vars.sh`が`$HOME/secrets.env`を自動sourceするので、配布後は
 `scripts/`配下の各スクリプトから（`KEY=value`形式で書いた）値をそのまま参照できる。
 
-### Discord Webhook（`make nd`）
+### Discord Webhook（`make nd`、任意）
+
+`secrets.env`を配っていなくても `make alp` / `make slow-query` / `make remote-measure-*` は動く
+（計測結果の記録にDiscord通知は必須ではない）。チームへの通知が欲しい場合のみ以下を設定する。
 
 `make notify-discord-alp` / `make notify-discord-slow-query`（まとめて `make nd`）が使うWebhook URLも、
 `secrets.env`にキーを追加する形で配る。alp / slow-query で共通のWebhookを使うなら`DISCORD_WEBHOOK_URL`のみ、
@@ -187,8 +190,8 @@ pbpaste | make save-bench-log          # macOS（クリップボードから）
 xclip -o | make save-bench-log         # Linux
 make save-bench-log < result.txt       # ファイルから
 
-# 2. 全サーバーで alp / slow-query を集計してDiscordに通知（measure-logs/ はサーバーからcommit・pushされる）
-make remote-nd-all
+# 2. 全サーバーで alp / slow-query を実行（measure-logs/ はサーバーからcommit・pushされる。Discord通知はせずsecrets.env不要）
+make remote-measure-all
 
 # 3. サーバーがpushした measure-logs/ を取り込み、1のcommitをpush
 git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" && git push
@@ -206,7 +209,7 @@ git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" && git push
 | PR作成 | `gh pr create`（またはGitHub MCPの `create_pull_request`） | `.claude/settings.json` の PostToolUse hook（`scripts/hooks/post-pr-create.sh`）が次の手順をClaudeに渡す |
 | デプロイ | Claudeがユーザーに確認してから実行 | `make remote-bench-prep-s1 BRANCH=<ブランチ>`（別メンバーのベンチ中に上書きしないよう自動実行はしない） |
 | ベンチ | ポータルで人が実行 | hookでは終了を検知できないので、**人が「ベンチ終わった」と合図し、ポータルの結果を貼る** |
-| 記録・通知・分析 | 合図＋結果の貼り付け | `isucon-score-strategy` スキルが `make save-bench-log` → `make remote-nd-all` → pull / push → スコア分析の順に行う |
+| 記録・計測・分析 | 合図＋結果の貼り付け | `isucon-score-strategy` スキルが `make save-bench-log` → `make remote-measure-all` → pull / push → スコア分析の順に行う |
 
 nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
 （「nginxをチューニングして」等でスキルが起動する）。

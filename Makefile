@@ -49,10 +49,18 @@ remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロ
 remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（remote-nd-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* nd
 
+# remote-measure-s1 / remote-measure-s2 / remote-measure-s3
+remote-measure-%: FORCE ## ローカルから対象サーバーで alp/slow-query を実行する（Discord通知なし・secrets.env不要、remote-measure-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* measure
+
 # 計測ログは各サーバーが同時にpushするが、scripts/push-measure-log.sh が pull --rebase でやり直すので並列で良い
 .PHONY: remote-nd-all
 remote-nd-all: ## ローカルから全サーバーで並列に make nd する（対象は SERVERS で調整）
 	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-nd-,$(SERVERS))
+
+.PHONY: remote-measure-all
+remote-measure-all: ## ローカルから全サーバーで並列に alp/slow-query を実行する（Discord通知なし・secrets.env不要、対象は SERVERS で調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-measure-,$(SERVERS))
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）

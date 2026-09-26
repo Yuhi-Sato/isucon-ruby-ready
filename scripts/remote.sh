@@ -11,7 +11,7 @@ BRANCH="${3:-}"
 REMOTE_DEPLOY_PATH="${REMOTE_DEPLOY_PATH:-/home/isucon}"
 
 echo "$HOST" | grep -qE '^s[1-3]$' || {
-  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|nd]" >&2
+  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|nd|measure]" >&2
   exit 1
 }
 
@@ -39,8 +39,13 @@ case "$ACTION" in
   nd)
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make nd"
     ;;
+  measure)
+    # Discord通知（secrets.envのWebhook設定が必要）を経由せず、alp/slow-queryをサーバー上で実行するだけ。
+    # measure-logs/ へのcommit・pushは alp.sh / slow-query.sh 側で行われる
+    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make alp && make slow-query"
+    ;;
   *)
-    echo "unknown action: ${ACTION} (expected deploy / bench-prep / nd)" >&2
+    echo "unknown action: ${ACTION} (expected deploy / bench-prep / nd / measure)" >&2
     exit 1
     ;;
 esac
