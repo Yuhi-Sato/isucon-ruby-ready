@@ -36,8 +36,8 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
 2. ユーザーがポータルでベンチを実行する。終了はhookでは検知できないので、ユーザーの合図を待つ。
 3. 「ベンチ終わった」の合図とポータルの結果が貼られたら、確認なしで記録・計測する
    （次のbench-prepでサーバー上のログが上書きされるため後回しにしない。マージより先に済ませ、ログをPRブランチに載せる）。
-   PRブランチをcheckoutした状態で: 貼られた結果を一字も変えずに make save-bench-log へ渡す（docs/bench へ保存・commit）
-   → make remote-measure-all（alp/slow-query をサーバーで実行し measure-logs を push）→ git pull --rebase / git push。
+   PRブランチをcheckoutした状態で: 先に make remote-measure-all（alp/slow-query をサーバーで実行し measure-logs を push）→ git pull --rebase
+   → 貼られた結果を一字も変えずに make save-bench-log へ渡す（docs/bench へ保存・commit）→ git push。
    SSHできない環境では make remote-measure-all をユーザーに手元で実行してもらう。
 4. isucon-score-strategy スキルは起動せず、レポートも書かない。
    今回のスコアと docs/bench/ の直前のログのスコアを1行で並べ、「mainへマージしますか？」とユーザーに確認する。
