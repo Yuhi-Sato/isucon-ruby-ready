@@ -2,7 +2,7 @@
 
 # Claude Code の PostToolUse hook（.claude/settings.json から呼ばれる）。
 # `gh pr create`（Bash）または GitHub MCP の create_pull_request でPRが作られた直後に、
-# 「デプロイ → ベンチ → ベンチ終了の合図で isucon-score-strategy（保存・通知・分析）」という次の手順を
+# 「デプロイ → ベンチ → ベンチ終了の合図で記録・計測 → passならマージ確認／failなら分析の確認」という次の手順を
 # additionalContext としてClaudeに返す。デプロイ自体はここでは行わない
 # （別のメンバーがベンチ中のサーバーを上書きしないよう、Claudeがユーザーに確認してから実行する）。
 #
@@ -34,11 +34,16 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
    了承されたら: make remote-bench-prep-s1 BRANCH=${branch:-<ブランチ名>}
    この環境からSSHできない（Claude Code on the web など）場合は、ユーザーに手元で同じコマンドを実行してもらう。
 2. ユーザーがポータルでベンチを実行する。終了はhookでは検知できないので、ユーザーの合図を待つ。
-3. 「ベンチ終わった」の合図とポータルの結果が貼られても、isucon-score-strategy スキルをすぐには起動しない。
-   まずユーザーに「ストラテジーを組み立てますか？」と確認し、yes等の同意が得られた場合のみスキルを起動する。
-   起動する場合、スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-measure-all（alp/slow-query
-   をサーバーで実行し measure-logs を push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
-   SSHできない環境では make remote-measure-all をユーザーに手元で実行してもらう。"
+3. 「ベンチ終わった」の合図とポータルの結果が貼られたら、pass/failに関わらず確認なしで記録・計測する
+   （次のbench-prepでサーバー上のログが上書きされるため後回しにしない。マージより先に済ませ、ログをPRブランチに載せる）。
+   PRブランチをcheckoutした状態で: 貼られた結果を一字も変えずに make save-bench-log へ渡す（docs/bench へ保存・commit）
+   → make remote-measure-all（alp/slow-query をサーバーで実行し measure-logs を push）→ git pull --rebase / git push。
+   SSHできない環境では make remote-measure-all をユーザーに手元で実行してもらう。
+4. passした場合: isucon-score-strategy スキルは起動せず、レポートも書かない。
+   今回のスコアと docs/bench/ の直前のログのスコアを1行で並べ、「mainへマージしますか？」とユーザーに確認する。
+   スコアが上がっていても勝手にマージしない。了承されたら: gh pr merge ${pr_url:-<PRのURL>} --merge
+   failした場合: マージしない。ユーザーに「ストラテジーを組み立てますか？」と確認し、同意が得られた場合のみ
+   isucon-score-strategy スキルを起動する（手順3で記録・計測は済んでいるので、スキルの手順0はやり直さない）。"
 
 # JSON文字列として安全に埋め込む（改行と二重引用符・バックスラッシュをエスケープ）
 escaped=$(printf '%s' "$context" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS="\\n"} {print}' | sed -e 's/\\n$//')

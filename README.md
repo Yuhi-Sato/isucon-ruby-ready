@@ -184,14 +184,16 @@ git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" && git push
 
 ### Claude Codeでの1実験（PR）の流れ
 
-1PR = 1実験として、PR作成からベンチ後の分析までをClaude Codeで一続きに回せるようにしてある。
+1PR = 1実験として、PR作成からベンチ・マージ（failなら分析）までをClaude Codeで一続きに回せるようにしてある。
 
 | 段階 | 起点 | 動くもの |
 |---|---|---|
 | PR作成 | `gh pr create`（またはGitHub MCPの `create_pull_request`） | `.claude/settings.json` の PostToolUse hook（`scripts/hooks/post-pr-create.sh`）が次の手順をClaudeに渡す |
 | デプロイ | Claudeがユーザーに確認してから実行 | `make remote-bench-prep-s1 BRANCH=<ブランチ>`（別メンバーのベンチ中に上書きしないよう自動実行はしない） |
 | ベンチ | ポータルで人が実行 | hookでは終了を検知できないので、**人が「ベンチ終わった」と合図し、ポータルの結果を貼る** |
-| 記録・計測・分析 | 合図＋結果の貼り付け | `isucon-score-strategy` スキルが `make save-bench-log` → `make remote-measure-all` → pull / push → スコア分析の順に行う |
+| 記録・計測 | 合図＋結果の貼り付け | pass/failに関わらず確認なしで `make save-bench-log` → `make remote-measure-all` → pull / push（マージより先に行い、ログをPRブランチに載せる） |
+| マージ | pass | レポートは書かず、今回と直前のスコアを並べて「mainへマージしますか？」と確認し、了承後に `gh pr merge --merge`（勝手にマージしない） |
+| 分析 | fail（またはユーザーの依頼） | 「ストラテジーを組み立てますか？」と確認し、同意があれば `isucon-score-strategy` スキルを起動する |
 
 nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
 （「nginxをチューニングして」等でスキルが起動する）。
