@@ -37,8 +37,7 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
 3. 「ベンチ終わった」の合図とポータルの結果が貼られても、isucon-score-strategy スキルをすぐには起動しない。
    まずユーザーに「ストラテジーを組み立てますか？」と確認し、yes等の同意が得られた場合のみスキルを起動する。
    起動する場合、スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-measure-all（alp/slow-query
-   をサーバーで実行し measure-logs を push。Discord通知は行わず secrets.env が無くても動く）→ git pull --rebase / push を
-   行い、そのあと次の一手を決める。
+   をサーバーで実行し measure-logs を push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
    SSHできない環境では make remote-measure-all をユーザーに手元で実行してもらう。"
 
 # JSON文字列として安全に埋め込む（改行と二重引用符・バックスラッシュをエスケープ）

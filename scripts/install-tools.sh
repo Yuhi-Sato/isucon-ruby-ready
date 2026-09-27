@@ -11,7 +11,7 @@ sudo apt-get update
 # NEEDRESTART_MODE=a / DEBIAN_FRONTEND=noninteractive:
 # Ubuntu 22.04+ は apt install 中に needrestart の対話ダイアログが出て止まることがあるため無効化する
 # unzip/wget: alpのzip展開とダウンロード用
-# curl: Discord Webhook通知（make nd）用
+# curl: サーバー上での疎通確認用（スキルから参照）
 # dstat: CPU/iowait 確認用（スキルから参照）
 sudo NEEDRESTART_MODE=a DEBIAN_FRONTEND=noninteractive apt-get install -y \
   unzip wget curl dstat

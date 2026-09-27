@@ -132,16 +132,16 @@ make slow-query   # クエリダイジェスト集計を表示・保存・commit
 `<タイムスタンプ>-<サーバー名>-<ブランチ名>-<コミットハッシュ>.log` として保存される（`tmp/` と違いgit管理下）。
 サーバー名は `SERVER_ID`（`make setup-sN` 済みなら `s1`/`s2`/`s3`）、未設定なら `hostname` の値になる。
 ベンチ結果の推移をコミット単位で追えるよう、保存したログはサーバー上でそのままcommitし、チェックアウト中のブランチへpushする
-（`scripts/push-measure-log.sh`）。`make remote-measure-*` / `make nd` / `make remote-nd-*` も内部で同じスクリプトを通るため、同様にpushされる。
+（`scripts/push-measure-log.sh`）。`make remote-measure-*` も内部で同じスクリプトを通るため、同様にpushされる。
 
 - commitはログファイルだけをパス指定で行うので、サーバー上の他の変更は巻き込まない
 - pushが拒否された場合（ローカルや他サーバーが先にpushした等）は `git pull --rebase` してやり直す。
-  それでも失敗したら警告だけ出して計測結果の表示・Discord通知は続行し、commitは次回の計測時に一緒にpushされる
+  それでも失敗したら警告だけ出して計測結果の表示は続行し、commitは次回の計測時に一緒にpushされる
 - サーバーからログのcommitがpushされるので、**ローカルでpushが拒否されたら `git pull --rebase` してからpushし直す**
 
 ## secrets.envの配布
 
-外部APIキーやDiscord webhookなど、`env.sh`と違って**git管理に一切乗せたくない**値を配るときに使う。
+外部APIキーなど、`env.sh`と違って**git管理に一切乗せたくない**値を配るときに使う。
 `env.sh`は`sN/env.sh`としてチームリポジトリにcommitされる前提だが、secrets.envはSSH(scp)で直接転送するだけで、
 リポジトリのどこにも内容を残さない。全サーバーへ同じ内容を配ることを想定している（サーバーごとに値を変えたい設定は
 引き続き`env.sh`側で扱う）。
@@ -161,24 +161,6 @@ SECRETS_FILE=other.env make distribute-secrets  # 別ファイルを配布する
 `env.sh`と同様に`scripts/vars.sh`が`$HOME/secrets.env`を自動sourceするので、配布後は
 `scripts/`配下の各スクリプトから（`KEY=value`形式で書いた）値をそのまま参照できる。
 
-### Discord Webhook（`make nd`、任意）
-
-`secrets.env`を配っていなくても `make alp` / `make slow-query` / `make remote-measure-*` は動く
-（計測結果の記録にDiscord通知は必須ではない）。チームへの通知が欲しい場合のみ以下を設定する。
-
-`make notify-discord-alp` / `make notify-discord-slow-query`（まとめて `make nd`）が使うWebhook URLも、
-`secrets.env`にキーを追加する形で配る。alp / slow-query で共通のWebhookを使うなら`DISCORD_WEBHOOK_URL`のみ、
-チャンネルを分けたい場合は`DISCORD_WEBHOOK_URL_ALP` / `DISCORD_WEBHOOK_URL_SLOW_QUERY`で個別に上書きできる
-（Discordの通知メッセージの投稿者名も同様に`DISCORD_USERNAME_ALP` / `DISCORD_USERNAME_SLOW_QUERY`で上書き可能、未設定時は`alp` / `slow-query`になる）。
-設定例・Webhook URLの発行手順は `secrets.env.sample` を参照。
-
-ローカルからサーバー上のアクセスログとスロークエリ集計結果を通知する場合は、次のように実行する。
-
-```bash
-make remote-nd-s1
-make remote-nd-s2              # 対象サーバーを指定する場合
-make remote-nd-all             # 全サーバーで並列に（SERVERSで対象を絞れる）
-```
 ## ベンチ結果の記録と分析
 
 ベンチが終わったら、ベンチごとにローカルで次の3つを順に行う。ベンチ結果のファイル名に日時・ブランチ・コミットが入るので、
@@ -190,7 +172,7 @@ pbpaste | make save-bench-log          # macOS（クリップボードから）
 xclip -o | make save-bench-log         # Linux
 make save-bench-log < result.txt       # ファイルから
 
-# 2. 全サーバーで alp / slow-query を実行（measure-logs/ はサーバーからcommit・pushされる。Discord通知はせずsecrets.env不要）
+# 2. 全サーバーで alp / slow-query を実行（measure-logs/ はサーバーからcommit・pushされる）
 make remote-measure-all
 
 # 3. サーバーがpushした measure-logs/ を取り込み、1のcommitをpush

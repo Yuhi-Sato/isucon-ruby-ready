@@ -42,7 +42,7 @@ alpは**手順3で「動かす項」が決まったあと**に、その項に関
    BENCH
    make save-bench-log < tmp/bench-result.txt     # saved: docs/bench/YYYYMMDD-HHMMSS-<ブランチ>-<コミット>.md
 
-   # 2. 全サーバーで alp / slow-query を実行し、measure-logs/ をサーバーからcommit・push（Discord通知はしない・secrets.env不要）
+   # 2. 全サーバーで alp / slow-query を実行し、measure-logs/ をサーバーからcommit・push
    make remote-measure-all                        # SERVERS="s1 s2" make remote-measure-all で対象を絞れる
 
    # 3. サーバーがpushした measure-logs/ を取り込み、1のcommitをpush
