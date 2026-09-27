@@ -45,14 +45,14 @@ remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep
 remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy "$(BRANCH)"
 
-# remote-nd-s1 / remote-nd-s2 / remote-nd-s3
-remote-nd-%: FORCE ## ローカルから対象サーバーで make nd する（remote-nd-s1 など）
-	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* nd
+# remote-measure-s1 / remote-measure-s2 / remote-measure-s3
+remote-measure-%: FORCE ## ローカルから対象サーバーで alp/slow-query を実行する（remote-measure-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* measure
 
 # 計測ログは各サーバーが同時にpushするが、scripts/push-measure-log.sh が pull --rebase でやり直すので並列で良い
-.PHONY: remote-nd-all
-remote-nd-all: ## ローカルから全サーバーで並列に make nd する（対象は SERVERS で調整）
-	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-nd-,$(SERVERS))
+.PHONY: remote-measure-all
+remote-measure-all: ## ローカルから全サーバーで並列に alp/slow-query を実行する（対象は SERVERS で調整）
+	$(MAKE) -k -j $(words $(SERVERS)) $(addprefix remote-measure-,$(SERVERS))
 
 # -k: 失敗したサーバーがあっても残りへ続行し、最後にまとめて失敗を報告して非0で終了する
 # -j: 全サーバーへ並列デプロイする（出力は交錯する）
@@ -77,13 +77,6 @@ slow-query: ## performance_schemaのクエリダイジェスト集計を表示�
 .PHONY: save-bench-log
 save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存してcommitする（ローカルで実行）
 	@./scripts/save-bench-log.sh
-
-.PHONY: nd
-nd: notify-discord-alp notify-discord-slow-query ## alp / slow-query の結果をDiscordに通知する
-
-# notify-discord-alp / notify-discord-slow-query
-notify-discord-%: FORCE ## alp / slow-query の結果をDiscordに通知する（notify-discord-alp など）
-	./scripts/notify-discord.sh $*
 
 .PHONY: watch-service-log
 watch-service-log: ## アプリケーションのログを確認する

@@ -36,9 +36,9 @@ context="PRを作成した${pr_url:+: ${pr_url}}。ISUCONの1実験としてこ�
 2. ユーザーがポータルでベンチを実行する。終了はhookでは検知できないので、ユーザーの合図を待つ。
 3. 「ベンチ終わった」の合図とポータルの結果が貼られても、isucon-score-strategy スキルをすぐには起動しない。
    まずユーザーに「ストラテジーを組み立てますか？」と確認し、yes等の同意が得られた場合のみスキルを起動する。
-   起動する場合、スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-nd-all（alp/slow-queryの
-   Discord通知と measure-logs の push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
-   SSHできない環境では make remote-nd-all をユーザーに手元で実行してもらう。"
+   起動する場合、スキルの手順0で make save-bench-log（docs/bench へ保存・commit）→ make remote-measure-all（alp/slow-query
+   をサーバーで実行し measure-logs を push）→ git pull --rebase / push を行い、そのあと次の一手を決める。
+   SSHできない環境では make remote-measure-all をユーザーに手元で実行してもらう。"
 
 # JSON文字列として安全に埋め込む（改行と二重引用符・バックスラッシュをエスケープ）
 escaped=$(printf '%s' "$context" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS="\\n"} {print}' | sed -e 's/\\n$//')

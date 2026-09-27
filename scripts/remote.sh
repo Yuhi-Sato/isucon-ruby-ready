@@ -11,7 +11,7 @@ BRANCH="${3:-}"
 REMOTE_DEPLOY_PATH="${REMOTE_DEPLOY_PATH:-/home/isucon}"
 
 echo "$HOST" | grep -qE '^s[1-3]$' || {
-  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|nd]" >&2
+  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|measure]" >&2
   exit 1
 }
 
@@ -36,11 +36,12 @@ case "$ACTION" in
     # bench-prep.sh 側で git pull する
     ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make bench-prep"
     ;;
-  nd)
-    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make nd"
+  measure)
+    # measure-logs/ へのcommit・pushは alp.sh / slow-query.sh 側で行われる
+    ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make alp && make slow-query"
     ;;
   *)
-    echo "unknown action: ${ACTION} (expected deploy / bench-prep / nd)" >&2
+    echo "unknown action: ${ACTION} (expected deploy / bench-prep / measure)" >&2
     exit 1
     ;;
 esac

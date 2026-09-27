@@ -3,13 +3,13 @@
 # 計測ログ1件をサーバー上でcommitしてpushする（scripts/alp.sh / slow-query.sh から呼ばれる）。
 # commit直後にpushするので、サーバーのブランチはoriginの先頭から分岐しない。
 # ログのファイル名は毎回異なる（タイムスタンプ・サーバー名入り）ため、pull --rebase でコンフリクトしない。
-# 計測結果の表示・Discord通知を止めないよう、失敗しても警告だけで exit 0 する。
+# 計測結果の表示を止めないよう、失敗しても警告だけで exit 0 する。
 # pushできなかったcommitはサーバーに残り、次回の計測時に一緒にpushされる。
 
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 0
 
-# notify-discord.sh は alp.sh 等の標準出力をDiscordに添付するため、こちらの出力はすべて標準エラーへ
+# alp.sh 等が tee で保存する集計結果に混ざらないよう、こちらの出力はすべて標準エラーへ
 exec 1>&2
 
 LOG_FILE="${1:?usage: $0 <measure-log-file>}"
