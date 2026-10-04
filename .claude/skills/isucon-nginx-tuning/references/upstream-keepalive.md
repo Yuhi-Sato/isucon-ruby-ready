@@ -52,7 +52,7 @@ upstream app {
 
 - ソケットのパーミッション: nginxの実行ユーザー（`www-data`等）が読み書きできること
 - systemdユニットに`PrivateTmp=true`があると`/tmp`がプロセスごとに分離され、nginxからソケットが見えない。`/tmp`以外（例: `/run/<ディレクトリ>`）に置く
-- systemdユニットは`sN/`で管理されていない。起動コマンドを変える場合は、アプリのリポジトリ内の設定（`config/puma.rb`等）か`sN/env.sh`で切り替えられる形にし、再現できるようにする
+- 起動コマンドを変える場合は、アプリのリポジトリ内の設定（`config/puma.rb`等）か`sN/env.sh`、またはgit管理下のsystemdユニット（`sN/etc/systemd/system/${SERVICE_NAME}.service`）を変更し、サーバー上で直接編集しない（次の`bench-prep`で上書きされる）
 
 ## 確認
 
