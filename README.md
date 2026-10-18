@@ -194,7 +194,8 @@ git pull --rebase origin "$(git rev-parse --abbrev-ref HEAD)" && git push
 ```
 
 問題マニュアルは `docs/manual.md` に置く。マニュアルのスコア式とベンチ結果を突き合わせて改善方針を出す手順は
-`.claude/skills/isucon-score-strategy` を参照（「ベンチ終わった」「ベンチ結果を見て」等でスキルが起動し、上の3ステップから分析までを行う）。
+`.claude/skills/isucon-score-strategy` を参照（分析担当が「ベンチ結果を分析して」等で起動する）。
+上の3ステップだけを行う場合は `.claude/skills/bench-log`（「ベンチ終わった」等で起動し、ログを出したら完了する）。
 
 nginx設定（`sN/etc/nginx/`）を計測に基づいて最適化する手順は `.claude/skills/isucon-nginx-tuning` を参照
 （「nginxをチューニングして」等でスキルが起動する）。
