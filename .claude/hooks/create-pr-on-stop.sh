@@ -3,6 +3,7 @@
 # Claude が作業を終えて止まる時に、作業ブランチにPRが無ければ停止を止めてPR作成へ戻す（Stop hook の本体）。
 # commit だけ積んでPRを作り忘れ、レビューもベンチ比較もされないブランチを残さないため。
 # main・mainより先のcommitが無いブランチ・PR作成済みのブランチでは何もしない。
+# 変更がベンチ結果と計測ログ（docs/bench/・measure-logs/）だけなら、ログを出して終わる作業なので止めない。
 # 判断と本文作成はClaudeが行う。手順は .claude/skills/create-pr/SKILL.md 参照。
 
 set -uo pipefail
@@ -26,8 +27,15 @@ dirty=$(git status --porcelain 2>/dev/null)
 
 [ "$ahead" -eq 0 ] && [ -z "$dirty" ] && exit 0
 
+changed=$( { git diff --name-only "$base...HEAD" 2>/dev/null; cut -c4- <<<"$dirty"; } \
+  | grep -v -E '^(docs/bench/|measure-logs/)' | grep -v '^$')
+[ -z "$changed" ] && exit 0
+
 # PRが既にあれば（OPEN/MERGED/CLOSEDを問わず）何もしない
-gh pr view "$branch" --json number >/dev/null 2>&1 && exit 0
+# gh pr view はGraphQLを使い、Claude Code のクラウド環境では403になるためREST APIで引く。
+# 確認自体に失敗したら（未ログイン・ネットワーク不通など）PRの有無が分からないので止めない
+prs=$(gh api "repos/{owner}/{repo}/pulls?state=all&head={owner}:$branch" --jq 'length' 2>/dev/null) || exit 0
+[ "$prs" != "0" ] && exit 0
 
 note=""
 [ -n "$dirty" ] && note="未コミットの変更があるので、先にテストを実行してcommitする（CLAUDE.md の原則）。"

@@ -21,7 +21,6 @@ ISUCONは時間勝負で、施策ごとのスコアを比べて次の一手を�
 
 ### 試作ブランチの切り方と命名
 
-- ブランチを切る前に [issue-sync](../issue-sync/SKILL.md) の「トリガー1」に従い、割り当てられたissueがあり競合が無いことを確認する
 - 名前は `<GitHubユーザ名>/<施策名>`。施策名は英小文字とハイフン
 - 番号は付けない。施策の番号は PR 番号だけにする
 - main から切る、コミットする、テストを実行する、は `CLAUDE.md` の原則に従う
@@ -39,6 +38,7 @@ ISUCONは時間勝負で、施策ごとのスコアを比べて次の一手を�
    - アプリコードだけ軽く反映する: `make remote-deploy-s1 BRANCH=<ブランチ名>`
    - s2 / s3 も同じ形。全台は `make remote-deploy-all BRANCH=<ブランチ名>`
 3. ベンチ実行サーバーからベンチを実行する。設定・DB・nginx を変えたときは、実行前に必ず 2 の `bench-prep` を済ませる
+4. ベンチ後のログ保存は [bench-log](../bench-log/SKILL.md)。ログを出したら完了し、分析は分析担当に任せる（差分がログだけならPR作成も促されない）
 
 **Few-shot**:
 - 良: `make remote-bench-prep-s1 BRANCH=u-ktk/users-index` のあとにベンチ
