@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ブランチを新規作成する git コマンドの前に、issue-sync のトリガー1を context に出す（PreToolUse hook の本体）。
-# 競合検知（未クローズissueの確認）をブランチ作成前に強制想起させるため。
+# 割り当て済みissueの有無と競合の確認をブランチ作成前に強制想起させるため。
 # 判断自体はClaudeが行う。手順は .claude/skills/issue-sync/SKILL.md 参照。
 
 set -uo pipefail

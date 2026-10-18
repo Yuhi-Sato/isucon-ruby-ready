@@ -12,6 +12,7 @@ ISUCONは時間勝負で、施策ごとのスコアを比べて次の一手を�
 ### 環境構築はmain直
 
 - `make setup-sN` が作る `chore: setup (sN)` のcommitはmainに直接pushする
+- 問題マニュアル `docs/manual.md` は、競技開始時に分析担当が1回だけmainに直接commit・pushする
 - 環境構築が終わった後の変更（アプリ・SQL・設定）は、次のブランチで行う
 
 **Few-shot**:
