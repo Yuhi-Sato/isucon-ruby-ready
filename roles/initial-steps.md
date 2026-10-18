@@ -102,7 +102,7 @@ Yuhi-Satoがリポジトリをサーバーに展開してから始める。順�
   - `scripts/vars.sh`の`SERVICE_NAME` / `APP_DIR` / `DB_SERVICE_NAME`を実サーバーに合わせる
   - ズレたままベンチを回すと古いアプリを計測してしまうため、最優先
 - [ ] ベンチマークを実行する
-  - [ ] `scripts/save-bench-log.sh`を実行する
+  - [ ] ローカルで、ポータルの結果を標準入力に渡して`make save-bench-log`を実行する（例: `pbpaste | make save-bench-log`。`docs/bench/`に保存してcommitする。pushはしない）
   - [ ] ベンチ結果はポータルサイトで確認する
 - [ ] `isucon-measurement-setup`を実行する
 
@@ -115,4 +115,4 @@ Yuhi-Satoがリポジトリをサーバーに展開してから始める。順�
 - [ ] u-ktk: マニュアルを読み込んだ
 - [ ] garebare: `isucon-service-name-setup`、ベンチ実行、`isucon-measurement-setup`を済ませた
 
-ここまでが初動。以降は`roles.md`の役割分担と`tasks.md`で進める。
+ここまでが初動。以降は`after-initial.md`の役割分担で進める。

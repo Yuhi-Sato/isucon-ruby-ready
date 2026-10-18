@@ -9,6 +9,6 @@ set -uo pipefail
 jq -n '{
   hookSpecificOutput: {
     hookEventName: "PreToolUse",
-    additionalContext: "【ブランチ作成前の確認】.claude/skills/issue-sync/SKILL.md の「トリガー1」に従い、対象エンドポイントの未クローズissueが無いか gh issue list --state open で確認してからブランチを切る。見つかったらブランチを切らずに止めてユーザに提示する。"
+    additionalContext: "【ブランチ作成前の確認】.claude/skills/issue-sync/SKILL.md の「トリガー1」に従い、gh issue list --state open で、対象エンドポイントのissueが自分に割り当てられていて、他のissueやPRと競合していないことを確認してからブランチを切る。issueが無い・他の人に割り当て済み・競合がある場合はブランチを切らずに止めてユーザに提示する（実装担当は自分で起票しない）。"
   }
 }'
