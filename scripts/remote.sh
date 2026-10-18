@@ -33,8 +33,8 @@ case "$ACTION" in
     ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make deploy"
     ;;
   bench-prep)
-    # bench-prep.sh 側で git pull する
-    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make bench-prep"
+    # bench-prep.sh 側で git pull する。BRANCH を渡さないと bench-prep.sh が main に切り替えてしまう
+    ssh "$HOST" "$REMOTE_CD && ${REMOTE_BRANCH}make bench-prep BRANCH=$(printf %q "$BRANCH")"
     ;;
   measure)
     # measure-logs/ へのcommit・pushは alp.sh / slow-query.sh 側で行われる

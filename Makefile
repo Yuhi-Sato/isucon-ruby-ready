@@ -35,7 +35,7 @@ deploy: ## サーバー上の軽量デプロイ（git pull→bundle install→�
 
 .PHONY: bench-prep
 bench-prep: ## ベンチ実行直前の準備（ログ削除・設定反映・DB/nginx含む全再起動。ベンチ自体は実行しない）
-	./scripts/bench-prep.sh
+	BRANCH="$(BRANCH)" ./scripts/bench-prep.sh
 
 # remote-bench-prep-s1 / ...
 remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep する（remote-bench-prep-s1 など）
