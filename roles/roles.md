@@ -2,6 +2,18 @@
 
 担当者名は競技開始時に埋める。
 
+## メンバー
+
+GitHubでこのリポジトリにコミットしているアカウント（Claude・Cursorなどのbotは除く）。
+
+| GitHubアカウント | コミット数 |
+| --- | --- |
+| [Yuhi-Sato](https://github.com/Yuhi-Sato) | 160 |
+| [garebareDA](https://github.com/garebareDA) | 24 |
+| [u-ktk](https://github.com/u-ktk) | 6 |
+
+コミット数は`gh api repos/:owner/:repo/contributors`の値（作成時点）。
+
 | 役割 | 担当者 | 主な担当範囲 | 参照スキル |
 | --- | --- | --- | --- |
 | 計測・分析担当 | | ベンチ実行、alp / slow-query / Vernierの結果解釈、次の改善対象の決定 | `isucon-bottleneck-analysis` / `isucon-vernier-profiling` |
