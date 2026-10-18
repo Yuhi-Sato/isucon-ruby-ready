@@ -75,7 +75,7 @@ alp / slow-queryで見えるボトルネックが出尽くした状態が目安�
 ## Yuhi-Sato（後半戦での変更）
 
 - [ ] `after-initial.md`の共通手順どおりに、割り当てられたissueを1つずつ解決する
-- [ ] 実装担当が1人になるので、u-ktkとgarebareDAの両方がissueを作成するので、溜まったら優先度順に着手する。同じ箇所を触るissueが重なったらu-ktkに相談する
+- [ ] 実装担当が1人で、u-ktkとgarebareDAの両方がissueを作成するので、溜まったら優先度順に着手する。同じ箇所を触るissueが重なったらu-ktkに相談する
 
 ---
 
