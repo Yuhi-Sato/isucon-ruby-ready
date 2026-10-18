@@ -10,7 +10,7 @@
 | 初動 | `isucon-ruby-testing` | リファクタ前の回帰テスト環境を作る |
 | 初動 | `/update-architecture-diagram` | サーバ構成・通信経路の図をmermaidで描く |
 | 初動以降 | `branch-pr-workflow` | ブランチを切り、ベンチ前にサーバーへ反映する |
-| 初動以降 | `issue-sync` | 着手前に、割り当てられたissueがあり競合が無いか確認する |
+| 初動以降 | `issue-sync` | PR作成時に対応issueへPRのURLをコメントする |
 | 初動以降 | `create-pr` | PRを作成する |
 | 初動以降 | `isucon-mysql-config-tuning` | MySQL設定の最適化（issueになった場合） |
 | 初動以降 | `isucon-nginx-tuning` | nginx設定の最適化（issueになった場合） |
@@ -31,7 +31,7 @@
 | 初動 | `isucon-service-name-setup` | `scripts/vars.sh`を実サーバーに合わせる（最優先） |
 | 初動 | `isucon-measurement-setup` | alp・nginxのltsvログ・SQLコメントなど計測設定を入れる |
 | 初動以降 | `branch-pr-workflow` | ブランチを切り、ベンチ前にサーバーへ反映する |
-| 初動以降 | `issue-sync` | 着手前に、割り当てられたissueがあり競合が無いか確認する |
+| 初動以降 | `issue-sync` | PR作成時に対応issueへPRのURLをコメントする |
 | 初動以降 | `create-pr` | PRを作成する |
 | 初動以降 | `isucon-mysql-config-tuning` | MySQL設定の最適化（issueになった場合） |
 | 初動以降 | `isucon-nginx-tuning` | nginx設定の最適化（issueになった場合） |
