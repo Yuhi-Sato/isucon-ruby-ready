@@ -6,6 +6,7 @@
 
 | 時期 | スキル / コマンド | 用途 |
 | --- | --- | --- |
+| 初動 | `isucon-remote-setup` | ローカルからSSHで各サーバーの`make setup-sN`まで流す |
 | 初動 | `isucon-ruby-testing` | リファクタ前の回帰テスト環境を作る |
 | 初動 | `/update-architecture-diagram` | サーバ構成・通信経路の図をmermaidで描く |
 | 初動以降 | `branch-pr-workflow` | ブランチを切り、ベンチ前にサーバーへ反映する |
