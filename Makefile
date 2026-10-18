@@ -45,6 +45,18 @@ remote-bench-prep-%: FORCE ## ローカルから対象サーバーで bench-prep
 remote-deploy-%: FORCE ## ローカルから対象サーバーへ軽量デプロイする（remote-deploy-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* deploy "$(BRANCH)"
 
+# remote-install-stackprof-s1 / ...
+remote-install-stackprof-%: FORCE ## ローカルから対象サーバーに stackprof を導入する（remote-install-stackprof-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* install-stackprof
+
+# remote-stackprof-on-s1 / ...
+remote-stackprof-on-%: FORCE ## ローカルから対象サーバーのCPUプロファイリングを開始する（remote-stackprof-on-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* stackprof-on
+
+# remote-stackprof-report-s1 / ...
+remote-stackprof-report-%: FORCE ## ローカルから対象サーバーのプロファイリングを止めて集計する（remote-stackprof-report-s1 など）
+	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* stackprof-report
+
 # remote-measure-s1 / remote-measure-s2 / remote-measure-s3
 remote-measure-%: FORCE ## ローカルから対象サーバーで alp/slow-query を実行する（remote-measure-s1 など）
 	REMOTE_DEPLOY_PATH=$(REMOTE_DEPLOY_PATH) ./scripts/remote.sh $* measure
@@ -73,6 +85,18 @@ alp: ## alpでアクセスログを確認する
 .PHONY: slow-query
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
+
+.PHONY: install-stackprof
+install-stackprof: ## stackprofを導入する（後半戦のCPUプロファイリング用。アプリのGemfileは変えない）
+	./scripts/install-stackprof.sh
+
+.PHONY: stackprof-on
+stackprof-on: ## CPUプロファイリングを有効にしてアプリを再起動する（この間のベンチのスコアは評価に使わない）
+	./scripts/stackprof-on.sh
+
+.PHONY: stackprof-report
+stackprof-report: ## プロファイリングを止めてアプリを再起動し、dumpを集計して保存・commit・pushする（行数はSTACKPROF_LIMIT）
+	./scripts/stackprof-report.sh
 
 .PHONY: top
 top: ## topを一定時間サンプリングして保存する（通常はbench-prepが自動で裏起動するので手動実行は不要。秒数はTOP_DURATION/TOP_INTERVALで調整）
