@@ -34,7 +34,7 @@ ISUCONは時間勝負で、施策ごとのスコアを比べて次の一手を�
 
 1. ローカルで `git push origin <ブランチ名>`
 2. ローカルから対象サーバーへ反映する
-   - ベンチ直前の準備（サーバーで pull、ログ削除、設定反映、DB・nginx を含む全再起動。ベンチ自体は実行しない）: `make remote-bench-prep-s1 BRANCH=<ブランチ名>`
+   - ベンチ直前の準備（サーバーで pull、最新の origin/main をマージして push、ログ削除、設定反映、DB・nginx を含む全再起動。ベンチ自体は実行しない）: `make remote-bench-prep-s1 BRANCH=<ブランチ名>`
    - アプリコードだけ軽く反映する: `make remote-deploy-s1 BRANCH=<ブランチ名>`
    - s2 / s3 も同じ形。全台は `make remote-deploy-all BRANCH=<ブランチ名>`
 3. ベンチ実行サーバーからベンチを実行する。設定・DB・nginx を変えたときは、実行前に必ず 2 の `bench-prep` を済ませる
