@@ -38,8 +38,8 @@ alp / slow-queryで見えるボトルネックが出尽くした状態が目安�
 
 ### プロファイリング
 
-- [ ] mainの最新を対象サーバーに反映する（`branch-pr-workflow`）。プロファイルは、評価したいコードが動いている状態で取る
 - [ ] `make install-stackprof`でstackprofを導入する（各サーバーで1回。ローカルからは`make remote-install-stackprof-s1`）。アプリの`Gemfile`は変えない。**導入が済むまでプロファイルは開始しない**
+- [ ] mainの最新を対象サーバーに反映する（`branch-pr-workflow`）。プロファイルは、評価したいコードが動いている状態で取る
 - [ ] `make stackprof-on`でプロファイリングを有効にしてアプリを再起動する（ローカルからは`make remote-stackprof-on-s1`）
 - [ ] ベンチを回す
   - プロファイラ自体の負荷でスコアが変わるため、**プロファイル取得中のスコアは評価に使わない**。スコア確認用のベンチは別に回す
