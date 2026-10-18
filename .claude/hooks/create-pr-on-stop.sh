@@ -11,7 +11,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 
 input=$(cat)
 
-# hook に戻されて再度止まる時は通す（承認待ちで止まるたびに戻すループを防ぐ）
+# hook に戻されて再度止まる時は通す（作業途中で止まるたびに戻すループを防ぐ）
 [ "$(jq -r '.stop_hook_active // false' <<<"$input")" = "true" ] && exit 0
 
 branch=$(git branch --show-current 2>/dev/null)
@@ -34,5 +34,5 @@ note=""
 
 jq -n --arg branch "$branch" --arg note "$note" '{
   decision: "block",
-  reason: ("【作業終了前の確認】ブランチ \($branch) にPRがまだ無い。\($note).claude/skills/create-pr/SKILL.md の本文構成と作成手順に従い、本文案をユーザに見せて承認を得てから push と gh pr create を行う。作業が途中でPRを作る段階でないなら、その旨をユーザに伝えて止まってよい。")
+  reason: ("【作業終了前の確認】ブランチ \($branch) にPRがまだ無い。\($note).claude/skills/create-pr/SKILL.md の本文構成と作成手順に従い、本文案の承認は取らずにそのまま push と gh pr create を行う。作業が途中でPRを作る段階でないなら、その旨をユーザに伝えて止まってよい。")
 }'
