@@ -13,9 +13,12 @@ esac
 
 command -v jq >/dev/null 2>&1 || exit 0
 
-pr=$(gh pr view --json number,state,title,body \
-  -q '"#\(.number) [\(.state)] \(.title)\n\n\(.body)"' 2>/dev/null) \
-  || pr="このブランチにPRはまだ無い。先に create-pr でドラフトPRを作る"
+# gh pr view はGraphQLを使い、Claude Code のクラウド環境では403になるためREST APIで引く。
+# 確認自体に失敗したら（未ログイン・ネットワーク不通など）何も出さない
+pr=$(gh api "repos/{owner}/{repo}/pulls?state=all&head={owner}:$branch" \
+  --jq '.[0] // empty | "#\(.number) [\(if .merged_at then "merged" else .state end)] \(.title)\n\n\(.body // "")"' 2>/dev/null) \
+  || exit 0
+[ -z "$pr" ] && pr="このブランチにPRはまだ無い。先に create-pr でドラフトPRを作る"
 
 jq -n --arg branch "$branch" --arg pr "$pr" '{
   hookSpecificOutput: {

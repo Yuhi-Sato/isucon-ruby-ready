@@ -32,7 +32,10 @@ changed=$( { git diff --name-only "$base...HEAD" 2>/dev/null; cut -c4- <<<"$dirt
 [ -z "$changed" ] && exit 0
 
 # PRが既にあれば（OPEN/MERGED/CLOSEDを問わず）何もしない
-gh pr view "$branch" --json number >/dev/null 2>&1 && exit 0
+# gh pr view はGraphQLを使い、Claude Code のクラウド環境では403になるためREST APIで引く。
+# 確認自体に失敗したら（未ログイン・ネットワーク不通など）PRの有無が分からないので止めない
+prs=$(gh api "repos/{owner}/{repo}/pulls?state=all&head={owner}:$branch" --jq 'length' 2>/dev/null) || exit 0
+[ "$prs" != "0" ] && exit 0
 
 note=""
 [ -n "$dirty" ] && note="未コミットの変更があるので、先にテストを実行してcommitする（CLAUDE.md の原則）。"
