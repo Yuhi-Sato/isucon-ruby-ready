@@ -87,5 +87,5 @@ alp / slow-queryで見えるボトルネックが出尽くした状態が目安�
 | stackprofの結果を分析する | garebareDA | `isucon-stackprof-analysis` |
 | issueの起票 | garebareDA / u-ktk | `issue-sync` |
 | ベンチ結果とスコア規則から次の一手を決める | u-ktk | `isucon-score-strategy` |
-| issueのクローズ | u-ktk | `issue-sync` |
+| スコア確認 | u-ktk | `issue-sync` |
 | PRを作成する | Yuhi-Sato | `create-pr` |
