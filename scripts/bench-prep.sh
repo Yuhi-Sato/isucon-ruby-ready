@@ -7,12 +7,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-./scripts/checkout-branch.sh "${BRANCH:-}"
-if [ -n "${BRANCH:-}" ]; then
-  git pull origin "$BRANCH"
-else
-  git pull
-fi
+# ブランチ未指定時はmainをpullする（作業ツリーが別ブランチのまま古い状態でベンチを回さないため）
+BRANCH="${BRANCH:-main}"
+./scripts/checkout-branch.sh "$BRANCH"
+git pull origin "$BRANCH"
 
 . scripts/vars.sh
 scripts/check-server-id.sh
