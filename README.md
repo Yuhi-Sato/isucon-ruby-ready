@@ -110,7 +110,8 @@ make remote-deploy-s1 BRANCH=feature/example
 
 `s1/etc/mysql`・`s1/etc/nginx`・`s1/etc/systemd/system`（アプリのsystemdユニット）・`s1/env.sh` などを変えたときも、ベンチ直前と同じく `bench-prep` で反映する。
 
-`make bench-prep` は `git pull` → `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。
+`make bench-prep` は `git pull` →（main以外のブランチなら最新の `origin/main` をマージしてpush）→ `bundle install` → ログ消去 → `deploy-conf` → DB / アプリ / nginx の全再起動までまとめて行う。
+`origin/main` のマージでコンフリクトした場合は中断するので、ローカルで main を取り込んで push してから再実行する。
 
 ```bash
 make remote-bench-prep-s1
