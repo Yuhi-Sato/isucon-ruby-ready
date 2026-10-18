@@ -1,13 +1,13 @@
 ---
 name: isucon-stackprof-analysis
-description: ISUCON後半戦で、stackprofのCPUサンプリング結果（measure-logs/stackprof/ の集計と tmp/stackprof/done/ のdump）を読み、CPU時間の大きい箇所を特定してエンドポイントに対応づけ、u-ktkに渡す共有メモを作る。「プロファイルを見て」「stackprofの結果を分析して」「CPUを食っている箇所は？」「プロファイル取れた」などのリクエストで使用する。導入・取得は`make install-stackprof` / `make stackprof-on` / `make stackprof-report`。担当は分析と共有メモまでで、実装・issue起票・スコア判断は行わない。
+description: ISUCON後半戦で、stackprofのCPUサンプリング結果（measure-logs/stackprof/ の集計と tmp/stackprof/done/ のdump）を読み、CPU時間の大きい箇所を特定してエンドポイントに対応づけ、issueの根拠となる数値付きの表にまとめる。「プロファイルを見て」「stackprofの結果を分析して」「CPUを食っている箇所は？」「プロファイル取れた」などのリクエストで使用する。導入・取得は`make install-stackprof` / `make stackprof-on` / `make stackprof-report`。担当は分析まで（issue起票は`issue-sync`で別途行う）で、実装・スコア判断は行わない。
 ---
 
 # stackprof 分析（後半戦）
 
 ## 概要
 
-後半戦（`roles/late-game.md`）でgarebareDAが担当する、CPUサンプリング結果の読み方。目的は「CPU時間の大きい箇所を、数値付きでエンドポイントに対応づけ、u-ktkがissueにできる形で渡す」こと。
+後半戦（`roles/late-game.md`）でgarebareDAが担当する、CPUサンプリング結果の読み方。目的は「CPU時間の大きい箇所を、数値付きでエンドポイントに対応づけ、garebareDA自身がissueにできる形にする」こと。
 
 鉄則（CLAUDE.md）: 推測するな。計測せよ。原因を断定せず、サンプル数・割合を根拠として添える。
 
@@ -53,9 +53,9 @@ stackprof tmp/stackprof/done/<日時>/*.dump --text --limit 80       # 件数を
 
 アプリのコード上で、上位の箇所がどのルート（ハンドラ）から呼ばれるかを追う。最新の `measure-logs/alp/` で、そのエンドポイントの件数・合計時間を引く。プロファイルは「どのコードが重いか」、alpは「どのエンドポイントが多く呼ばれるか」を表すので、両方が大きいものを優先する。
 
-## 手順4: 共有メモを作る
+## 手順4: issueの根拠をまとめる
 
-u-ktkに渡すメモは次の形で書く。
+分析結果はu-ktkには渡さない。次の表をissue本文の根拠として使い、`issue-sync`の起票粒度（1エンドポイント1issue）でYuhi-Satoに割り当てる。
 
 ```
 プロファイル: measure-logs/stackprof/<ファイル名>（コミット <ハッシュ>）
@@ -64,10 +64,10 @@ u-ktkに渡すメモは次の形で書く。
 
 - 上位N件（目安5〜10）に絞る
 - 原因は「〜がSAMPLESの○%を占める」のように数値で書き、断定しない。計測で確かめていないことは「未確認」と書く
-- 改善案を思いついたら添えてよいが、issueにするかはu-ktkが決める
+- 改善案はissueの「やること」に書く
 
 ## やらないこと
 
 - コード変更・デプロイ・ベンチ実行（`stackprof-on`/`stackprof-report`の実行は取得手順なので除く）
-- issueの起票（u-ktkの役割）
+- 実装・PR作成（Yuhi-Satoのサイクル）
 - プロファイル取得中のベンチ結果でスコアを判断する
