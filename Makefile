@@ -74,6 +74,10 @@ alp: ## alpでアクセスログを確認する
 slow-query: ## performance_schemaのクエリダイジェスト集計を表示する
 	@./scripts/slow-query.sh
 
+.PHONY: top
+top: ## topを一定時間サンプリングして保存する（通常はbench-prepが自動で裏起動するので手動実行は不要。秒数はTOP_DURATION/TOP_INTERVALで調整）
+	@./scripts/top.sh
+
 .PHONY: save-bench-log
 save-bench-log: ## ベンチGUIの結果を標準入力から docs/bench/ に保存してcommitする（ローカルで実行）
 	@./scripts/save-bench-log.sh

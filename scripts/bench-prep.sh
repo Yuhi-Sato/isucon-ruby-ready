@@ -20,3 +20,9 @@ scripts/check-server-id.sh
 scripts/rm-logs.sh
 scripts/deploy-conf.sh
 scripts/restart.sh all
+
+# ベンチ走行中のtop計測はbench-prep完了直後からベンチ開始までのタイムラグを読めないため、
+# ここでバックグラウンド起動しておく（手動で別途叩く必要をなくす）。
+# setsidでSSHセッションから切り離し、sshが切れても計測・保存（push-measure-log.sh）まで走り切らせる
+TOP_DELAY="${TOP_DELAY:-40}" setsid scripts/top.sh </dev/null >/dev/null 2>&1 &
+disown
