@@ -91,6 +91,12 @@
 ## u-ktk
 
 - [ ] マニュアルを読み込む
+- [ ] マニュアルの本文を`docs/manual.md`に保存し、mainにcommit・pushする（`isucon-score-strategy`がスコア式の根拠として参照する。競技開始時に1回）
+  ```bash
+  git add docs/manual.md
+  git commit -m "docs: 問題マニュアルを追加"
+  git pull --rebase origin main && git push origin main
+  ```
 
 ---
 
@@ -112,7 +118,7 @@ Yuhi-Satoがリポジトリをサーバーに展開してから始める。順�
 
 - [ ] Yuhi-Sato: インスタンスを作成し、秘密鍵を共有し、リポジトリをサーバーに展開した（`make setup-s1`まで）
 - [ ] Yuhi-Sato: `isucon-ruby-testing`と`update-architecture-diagram`を実行した
-- [ ] u-ktk: マニュアルを読み込んだ
+- [ ] u-ktk: マニュアルを読み込み、`docs/manual.md`をcommit・pushした
 - [ ] garebare: `isucon-service-name-setup`、ベンチ実行、`isucon-measurement-setup`を済ませた
 
 ここまでが初動。以降は`after-initial.md`の役割分担で進める。
