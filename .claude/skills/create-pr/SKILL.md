@@ -65,20 +65,21 @@ description: 現在のブランチの変更から、PRを作成する。「PRを
 
 ## 作成手順
 
-**目的**: 外に出る操作（push・PR作成）は取り消しづらい。本文を見せて承認を得てから実行する。
+**目的**: ISUCONは時間勝負で、承認待ちで作業を止めると試行回数が減る。作業ブランチの push・PR作成は承認を待たずに進め、本文は後から直す。取り消しづらい main への直接 push・force push はしない。
 
 **What/How**:
-1. 本文案を出す → 修正があれば反映して再提示
-2. 承認後、`git push -u origin HEAD`
+1. 本文を上の本文構成どおりに書く
+2. `git push -u origin HEAD`（作業ブランチのみ。main・force push は対象外）
 3. 本文を一時ファイルに書いて作成する。baseは `main`
    ```bash
    gh pr create --base main --head "$(git branch --show-current)" \
      --title "<変更の意図を短く>" --body-file "$BODY"
    ```
-4. 一時ファイルを削除し、PRのURLを返す
+4. 一時ファイルを削除し、PRのURLと本文の要点をユーザに報告する
 5. [issue-sync](../issue-sync/SKILL.md) の「トリガー2」に従い、対応issueにPRのURLを追記する
 - 422 は push 漏れを疑い、push してから再実行する。`gh` 未ログインなら `gh auth login` を案内する
 
 **Few-shot**:
-- 良: 本文案を見せて承認を得てから、push と `gh pr create` を実行する
-- 悪: 承認前に push する
+- 良: 本文を書き、承認を待たずに push と `gh pr create` を実行して、URLと要点を報告する
+- 悪: 本文案を見せて承認待ちで止まる
+- 悪: main に直接 push する、force push する
