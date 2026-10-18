@@ -8,6 +8,8 @@
 | Yuhi-Sato | [Yuhi-Sato](https://github.com/Yuhi-Sato) | u-ktkが作成したissueを解決するPRを作成する |
 | garebareDA | [garebareDA](https://github.com/garebareDA) | u-ktkが作成したissueを解決するPRを作成する |
 
+issueが足りなくなったら後半戦（`late-game.md`）に移り、garebareDAは実装から離れてCPUプロファイリングを担当する。
+
 ## サイクル
 
 ```
