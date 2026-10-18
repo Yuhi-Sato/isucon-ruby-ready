@@ -24,12 +24,16 @@ git commit --quiet -m "計測ログを記録: ${LOG_FILE#measure-logs/}" -- "$LO
 
 # ローカルや他サーバーが先にpushしていると拒否されるため、rebaseして数回やり直す
 # （-all系で全サーバーが同時にpushする場合もここで吸収する）
-for i in 1 2 3; do
-  if git pull --quiet --rebase --autostash origin "$branch" && git push --quiet origin "HEAD:${branch}"; then
+# 待ち時間が全サーバーで同じだと再び同時にpushして衝突するので、ランダムにずらす。
+# 途中の拒否メッセージは想定内なので捨て、最後まで失敗したときだけ表示する
+attempts=6
+for i in $(seq 1 "$attempts"); do
+  if out=$(git pull --quiet --rebase --autostash origin "$branch" 2>&1 && git push --quiet origin "HEAD:${branch}" 2>&1); then
     echo "pushed: ${LOG_FILE} -> origin/${branch}"
     exit 0
   fi
   git rebase --abort 2>/dev/null
-  sleep "$i"
+  [ "$i" -lt "$attempts" ] && sleep "$(awk -v s="$RANDOM" -v i="$i" 'BEGIN { srand(s); printf "%.1f", i * 0.5 + rand() * 2 }')"
 done
+echo "$out"
 warn "pushに失敗。commitはサーバーに残り、次回の計測時に一緒にpushされる"
