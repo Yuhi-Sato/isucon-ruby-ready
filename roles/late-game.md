@@ -41,15 +41,17 @@ alp / slow-queryで見えるボトルネックが出尽くした状態が目安�
 ### プロファイリング
 
 - [ ] mainの最新を対象サーバーに反映する（`branch-pr-workflow`）。プロファイルは、評価したいコードが動いている状態で取る
-- [ ] `stackprof`を導入する（アプリの`Gemfile`に追加して`bundle install`し、計測時だけ有効にする）。導入が済むまでプロファイルは開始しない
-- [ ] ベンチを回している間にアプリプロセスをサンプリングする
-  - ベンチ開始と同時に取り始め、負荷が乗っている時間帯を対象にする
+- [ ] `make install-stackprof`でstackprofを導入する（各サーバーで1回。ローカルからは`make remote-install-stackprof-s1`）。アプリの`Gemfile`は変えない。**導入が済むまでプロファイルは開始しない**
+- [ ] `make stackprof-on`でプロファイリングを有効にしてアプリを再起動する（ローカルからは`make remote-stackprof-on-s1`）
+- [ ] ベンチを回す
   - プロファイラ自体の負荷でスコアが変わるため、**プロファイル取得中のスコアは評価に使わない**。スコア確認用のベンチは別に回す
-- [ ] 取得したプロファイルを保存する（ファイル名にコミットSHAと日時を入れ、どのコードの結果か分かるようにする）
+- [ ] `make stackprof-report`でプロファイリングを止め、dumpを集計する（ローカルからは`make remote-stackprof-report-s1`）
+  - 集計は`measure-logs/stackprof/<日時>-<サーバー>-<ブランチ>-<ハッシュ>.log`に保存され、commit・pushされる
+  - 実行を忘れるとプロファイラが付いたままになるので、スコア確認のベンチ前に必ず実行する
 
 ### 解析と共有
 
-- [ ] CPU時間の大きい順に、メソッド / 行 / 呼び出し元を洗い出す
+- [ ] `isucon-stackprof-analysis`スキルで、CPU時間の大きい順に、メソッド / 行 / 呼び出し元を洗い出す
 - [ ] 上位の箇所を、どのエンドポイントから呼ばれているかに対応づける（alpの結果と照らす）
 - [ ] 共有メモに「上位N件 / 対応するエンドポイント / 想定される原因」を書き、u-ktkに渡す
   - 推測で原因を断定しない。計測できた数値（サンプル数・割合）を添える
@@ -83,6 +85,7 @@ alp / slow-queryで見えるボトルネックが出尽くした状態が目安�
 | 用途 | 担当 | スキル |
 | --- | --- | --- |
 | mainの最新をサーバーへ反映する | garebareDA | `branch-pr-workflow` |
+| stackprofの結果を分析し、共有メモを作る | garebareDA | `isucon-stackprof-analysis` |
 | ベンチ結果とスコア規則から次の一手を決める | u-ktk | `isucon-score-strategy` |
 | issueの起票・クローズ | u-ktk | `issue-sync` |
 | PRを作成する | Yuhi-Sato | `create-pr` |

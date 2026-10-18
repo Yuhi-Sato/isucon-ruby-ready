@@ -11,7 +11,7 @@ BRANCH="${3:-}"
 REMOTE_DEPLOY_PATH="${REMOTE_DEPLOY_PATH:-/home/isucon}"
 
 echo "$HOST" | grep -qE '^s[1-3]$' || {
-  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|measure]" >&2
+  echo "usage: $0 s1|s2|s3 [deploy|bench-prep|measure|install-stackprof|stackprof-on|stackprof-report]" >&2
   exit 1
 }
 
@@ -40,8 +40,11 @@ case "$ACTION" in
     # measure-logs/ へのcommit・pushは alp.sh / slow-query.sh 側で行われる
     ssh "$HOST" "cd $(printf %q "$REMOTE_DEPLOY_PATH") && make alp && make slow-query"
     ;;
+  install-stackprof|stackprof-on|stackprof-report)
+    ssh "$HOST" "$REMOTE_CD && make ${ACTION}"
+    ;;
   *)
-    echo "unknown action: ${ACTION} (expected deploy / bench-prep / measure)" >&2
+    echo "unknown action: ${ACTION} (expected deploy / bench-prep / measure / install-stackprof / stackprof-on / stackprof-report)" >&2
     exit 1
     ;;
 esac

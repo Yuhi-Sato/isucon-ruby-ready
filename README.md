@@ -121,6 +121,20 @@ make remote-bench-prep-s1
 ユニットを取り込む前にセットアップ済みのサーバーでは、サーバー上で `./scripts/get-conf.sh` を実行してcommit・pushする
 （nginx/MySQL設定も稼働中の内容で取り込み直すので、差分を確認してからcommitする）。
 
+## CPUプロファイリング（`make install-stackprof` / `make stackprof-on` / `make stackprof-report`）
+
+後半戦用。stackprofでアプリのCPUをサンプリングする。アプリのコード・Gemfileは変えず、systemdのdrop-inで `RUBYOPT` に `tool-config/stackprof/boot.rb` を載せる。
+
+```bash
+make install-stackprof   # 各サーバーで1回
+make stackprof-on        # プロファイリングを有効にしてアプリ再起動
+# ベンチを回す（このベンチのスコアは評価に使わない）
+make stackprof-report    # drop-inを外して再起動 → dumpを集計 → measure-logs/stackprof/ に保存・commit・push
+```
+
+ローカルからは `make remote-install-stackprof-s1` / `remote-stackprof-on-s1` / `remote-stackprof-report-s1`。
+結果の読み方は `isucon-stackprof-analysis` スキル、役割は `roles/late-game.md`。
+
 ## 計測結果の記録（`make alp` / `make slow-query`）
 
 ```bash

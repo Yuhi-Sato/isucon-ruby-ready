@@ -1,6 +1,6 @@
 # メンバー別の必要スキル
 
-各メンバーが使いそうなスキル（`.claude/skills/`）とコマンド（`.claude/commands/`）のメモ。担当は`initial-steps.md`と`after-initial.md`に基づく。
+各メンバーが使いそうなスキル（`.claude/skills/`）とコマンド（`.claude/commands/`）のメモ。担当は`initial-steps.md`・`after-initial.md`・`late-game.md`に基づく。
 
 ## Yuhi-Sato
 
@@ -34,6 +34,7 @@
 | 初動以降 | `create-pr` | PRを作成する |
 | 初動以降 | `isucon-mysql-config-tuning` | MySQL設定の最適化（issueになった場合） |
 | 初動以降 | `isucon-nginx-tuning` | nginx設定の最適化（issueになった場合） |
+| 後半戦 | `isucon-stackprof-analysis` | stackprofの結果を分析し、u-ktkへの共有メモを作る（導入は`make install-stackprof`） |
 
 ## メモ
 
