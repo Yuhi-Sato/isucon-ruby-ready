@@ -76,7 +76,7 @@ description: 現在のブランチの変更から、PRを作成する。「PRを
      --title "<変更の意図を短く>" --body-file "$BODY"
    ```
 4. 一時ファイルを削除し、PRのURLを返す
-5. [issue-sync](../issue-sync/SKILL.md) の「トリガー2」に従い、対応issueにPRのURLを追記する
+5. [issue-sync](../issue-sync/SKILL.md) の「トリガー1」に従い、対応issueにPRのURLを追記する
 - 422 は push 漏れを疑い、push してから再実行する。`gh` 未ログインなら `gh auth login` を案内する
 
 **Few-shot**:
