@@ -10,20 +10,6 @@
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pr-body-before-commit.sh",
             "timeout": 30,
             "statusMessage": "PR本文を確認中..."
-          },
-          {
-            "type": "command",
-            "if": "Bash(git checkout -b*)",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/issue-sync-before-branch.sh",
-            "timeout": 30,
-            "statusMessage": "issueの競合を確認中..."
-          },
-          {
-            "type": "command",
-            "if": "Bash(git switch -c*)",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/issue-sync-before-branch.sh",
-            "timeout": 30,
-            "statusMessage": "issueの競合を確認中..."
           }
         ]
       }
@@ -34,10 +20,10 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(gh pr create*)",
+            "if": "Bash(gh issue create*)",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/issue-sync-after-pr-create.sh",
             "timeout": 30,
-            "statusMessage": "issue-syncを確認中..."
+            "statusMessage": "IssueSyncを確認中..."
           }
         ]
       }
