@@ -65,11 +65,11 @@ description: 現在のブランチの変更から、PRを作成する。「PRを
 
 ## 作成手順
 
-**目的**: 外に出る操作（push・PR作成）は取り消しづらい。本文を見せて承認を得てから実行する。
+**目的**: 承認待ちで作業が止まると、競技中の限られた時間を失う。PRは後から本文を直せるため、本文案の承認を取らずにそのまま作成する。
 
 **What/How**:
-1. 本文案を出す → 修正があれば反映して再提示
-2. 承認後、`git push -u origin HEAD`
+1. 本文を書く（ユーザへの本文案の提示・承認待ちはしない）
+2. `git push -u origin HEAD`
 3. 本文を一時ファイルに書いて作成する。baseは `main`
    ```bash
    gh pr create --base main --head "$(git branch --show-current)" \
@@ -80,5 +80,5 @@ description: 現在のブランチの変更から、PRを作成する。「PRを
 - 422 は push 漏れを疑い、push してから再実行する。`gh` 未ログインなら `gh auth login` を案内する
 
 **Few-shot**:
-- 良: 本文案を見せて承認を得てから、push と `gh pr create` を実行する
-- 悪: 承認前に push する
+- 良: 本文を書いたら、そのまま push と `gh pr create` を実行し、PRのURLを返す
+- 悪: 本文案を見せて「この内容で作成してよいですか？」と承認を待つ
