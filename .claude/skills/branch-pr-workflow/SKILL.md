@@ -38,10 +38,13 @@ ISUCONは時間勝負で、施策ごとのスコアを比べて次の一手を�
    - アプリコードだけ軽く反映する: `make remote-deploy-s1 BRANCH=<ブランチ名>`
    - s2 / s3 も同じ形。全台は `make remote-deploy-all BRANCH=<ブランチ名>`
 3. ベンチ実行サーバーからベンチを実行する。設定・DB・nginx を変えたときは、実行前に必ず 2 の `bench-prep` を済ませる
+4. `bench-prep` の後は、ローカルで `git pull origin <ブランチ名>` してから続きを commit する。`bench-prep` がサーバー上でマージした結果を origin のブランチへ push するため、pull しないと次の `git push` が non-fast-forward で拒否される
+   - `bench-prep` が origin/main とのコンフリクトで中断したときは、ローカルで `git fetch origin main && git merge origin/main` してコンフリクトを解消し、push してから 2 をやり直す
 
 **Few-shot**:
 - 良: `make remote-bench-prep-s1 BRANCH=u-ktk/users-index` のあとにベンチ
 - 悪: サーバー上のブランチを確認せずにベンチを叩く
+- 悪: `bench-prep` の後に pull せず commit を積み、`git push` が拒否される
 
 ### 軽い設定の判定条件
 
