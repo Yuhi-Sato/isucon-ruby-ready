@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: 現在のブランチの変更から、PRを作成する。「PRを作って」「create-pr」「PR出して」と言われたときに使う。既存PRの本文更新は edit-pr。
+description: 現在のブランチの変更から、PRを作成する。「PRを作って」「create-pr」「PR出して」と言われたときに使う。既存PRの本文更新にも同じ本文構成を使う。
 ---
 
 ## 本文構成
@@ -78,6 +78,8 @@ description: 現在のブランチの変更から、PRを作成する。「PRを
 4. 一時ファイルを削除し、PRのURLを返す
 5. [issue-sync](../issue-sync/SKILL.md) の「トリガー1」に従い、対応issueにPRのURLを追記する
 - 422 は push 漏れを疑い、push してから再実行する。`gh` 未ログインなら `gh auth login` を案内する
+
+既存PRの本文更新では、差分と実測値から同じ本文構成で書き直し、一時ファイルを `gh pr edit <PR番号> --body-file "$BODY"` に渡す。
 
 **Few-shot**:
 - 良: 本文を書いたら、そのまま push と `gh pr create` を実行し、PRのURLを返す
