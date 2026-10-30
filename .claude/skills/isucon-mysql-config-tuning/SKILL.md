@@ -62,10 +62,10 @@ ssh s1 "sudo mysql -e \"SHOW GLOBAL STATUS WHERE Variable_name IN ('Max_used_con
 
 ### 4. 反映して、効いているか確認する
 
-commit・push したら、ローカルから反映する（`git pull` → `deploy-conf.sh` → DB/アプリ/nginx全再起動）。
+commit・push したら、ローカルから反映する（ブランチを pull → 最新の origin/main をマージ → `deploy-conf.sh` → DB/アプリ/nginx全再起動）。`BRANCH` を省くとサーバーが main に切り替わり、設定変更が入らないまま確認・計測してしまう。
 
 ```bash
-make remote-deploy-conf-s1   # DBが s1 以外ならそのサーバー
+make remote-bench-prep-s1 BRANCH=<ブランチ名>   # DBが s1 以外ならそのサーバー
 ```
 
 反映後、**起動していること**と**値が反映されていること**を必ず確認する。
@@ -77,7 +77,7 @@ ssh s1 "sudo mysql -e \"SHOW VARIABLES WHERE Variable_name IN ('innodb_buffer_po
 
 ### 5. ベンチで効果を計測する
 
-`make remote-bench-prep-s1` → ベンチ実行 → スコアを変更前と比較する（`make save-bench-log` で結果を残す）。
+`make remote-bench-prep-s1 BRANCH=<ブランチ名>` → ベンチ実行 → スコアを変更前と比較する（`make save-bench-log` で結果を残す）。
 併せて `make slow-query` の結果が出ること（performance_schemaが生きていること）を確認する。スコアが下がった・エラーが増えた場合は手順6で戻す。
 
 ### 6. 戻すとき
